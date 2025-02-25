@@ -2,20 +2,305 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* モダンなスタイルとUXのための基本設定 */
+:root,
+html.light {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 250, 251, 252;
+  --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* 明示的なダークモード設定 */
+html.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 31, 41, 55;
+}
+
+/* 基本スタイル */
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+/* ライトモード時にダークモードのクラスを無効化 */
+html.light .dark\:bg-gray-800,
+html.light .dark\:bg-gray-900,
+html.light .dark\:border-gray-600,
+html.light .dark\:text-gray-400,
+html.light .dark\:text-gray-300,
+html.light .dark\:text-gray-200,
+html.light .dark\:text-gray-100,
+html.light .dark\:hover\:bg-gray-700 {
+  /* !importantを使用してダークモードのスタイルを強制的に上書き */
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: inherit !important;
+}
+
+/* ダークモード専用スタイル */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+html.dark .text-gray-900 {
+  color: #f3f4f6 !important;
+}
+
+html.dark .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-gray-600 {
+  color: #e5e7eb !important;
+}
+
+/* ダークモード時のボタンとメニュー要素 */
+html.dark .btn,
+html.dark .menu {
+  --tw-text-opacity: 1;
+  color: rgba(229, 231, 235, var(--tw-text-opacity));
+}
+
+/* スムーズスクロール設定 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* カスタムコンポーネントスタイル */
+@layer components {
+  /* モダンなカードコンポーネント */
+  .modern-card {
+    @apply bg-white dark:bg-gray-800 
+           rounded-xl shadow-card 
+           transition-all duration-300 
+           hover:shadow-hover;
+  }
+  
+  /* ブロックカードのスタイル */
+  .block-card {
+    @apply modern-card border-l-4 p-4;
+  }
+  
+  /* 朝ブロック */
+  .morning-block {
+    @apply border-morning-border bg-morning-light dark:bg-gray-800 dark:border-morning-border;
+  }
+  
+  /* 午前ブロック */
+  .forenoon-block {
+    @apply border-forenoon-border bg-forenoon-light dark:bg-gray-800 dark:border-forenoon-border;
+  }
+  
+  /* 昼ブロック */
+  .noon-block {
+    @apply border-noon-border bg-noon-light dark:bg-gray-800 dark:border-noon-border;
+  }
+  
+  /* 午後ブロック */
+  .afternoon-block {
+    @apply border-afternoon-border bg-afternoon-light dark:bg-gray-800 dark:border-afternoon-border;
+  }
+  
+  /* 夜ブロック */
+  .evening-block {
+    @apply border-evening-border bg-evening-light dark:bg-gray-800 dark:border-evening-border;
+  }
+  
+  /* 無割り当てブロック */
+  .unassigned-block {
+    @apply border-gray-300 bg-gray-50 dark:bg-gray-800 dark:border-gray-600;
+  }
+  
+  /* タスクアイテムのスタイル */
+  .task-item {
+    @apply flex items-center justify-between 
+           py-2 px-1 rounded-lg hover:bg-base-200 dark:hover:bg-gray-700
+           transition-colors duration-200;
+  }
+  
+  /* 完了タスクのスタイル */
+  .completed-task {
+    @apply line-through text-gray-400 
+           opacity-60 transition-all duration-200;
+  }
+
+  /* モーダルのアニメーション */
+  .modal-appear {
+    animation: modalFade 0.3s ease-in-out;
+  }
+  .modal-content-appear {
+    animation: modalContentSlide 0.3s ease-out;
+    z-index: 50;
+  }
+  
+  /* カスタムスクロールバー */
+  .custom-scrollbar {
+    @apply scrollbar-thin scrollbar-thumb-gray-300 
+           scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 
+           dark:scrollbar-track-gray-800;
+  }
+  
+  /* ボタンホバーエフェクト */
+  .btn-hover-effect {
+    @apply transition-all duration-200 hover:scale-105 
+           active:scale-95 focus:outline-none;
+  }
+  
+  /* フォーカスリング */
+  .focus-ring {
+    @apply focus:ring-2 focus:ring-offset-2 
+           focus:ring-primary-400 focus:outline-none;
+  }
+  
+  /* プログレスバー */
+  .progress-bar-bg {
+    @apply bg-gray-200 dark:bg-gray-700 rounded-full h-2;
+  }
+  .progress-bar-fill {
+    @apply bg-primary-500 h-2 rounded-full transition-all duration-500;
+  }
+  
+  /* 日付ナビゲーションスタイル */
+  .date-nav {
+    @apply flex items-center space-x-2 
+           bg-white dark:bg-gray-800 
+           shadow-soft rounded-xl p-2;
+  }
+  
+  /* タスク追加ボタン */
+  .add-task-button {
+    @apply flex items-center gap-2 text-primary-600 
+           hover:text-primary-700 font-medium 
+           hover:bg-primary-50 px-3 py-1.5 rounded-lg 
+           transition-colors duration-200;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* アニメーション効果 */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ラベルスタイル */
+.form-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+}
+
+/* 入力フィールドスタイル */
+.form-input {
+  @apply w-full rounded-lg border-gray-300 shadow-sm 
+         focus:border-primary-500 focus:ring focus:ring-primary-200 
+         focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600;
+}
+
+/* トースト通知のスタイル */
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.toast-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left: 4px solid #10B981;
+}
+
+html.dark .toast {
+  background: #1F2937;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+/* 空の状態スタイル */
+.empty-state {
+  @apply flex flex-col items-center justify-center 
+         py-8 px-4 text-center text-gray-500 
+         border-2 border-dashed border-gray-300 
+         rounded-xl my-4;
+}
+
+/* 日付表示のスタイル */
+.date-display {
+  @apply text-xl md:text-2xl font-bold text-gray-800 
+         dark:text-gray-100 py-1 px-3 bg-white 
+         dark:bg-gray-800 rounded-xl shadow-soft;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalContentSlide {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* モーダル背景の透過問題修正 */
+.fixed.inset-0.bg-black.bg-opacity-50 {
+  backdrop-filter: blur(2px);
+}
+
+/* テーマ切り替え時のスムーズなトランジション */
+body,
+.text-gray-900,
+.text-gray-700,
+.text-gray-600,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.border-gray-200,
+.border-gray-300 {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+/* ドラッグ&ドロップ関連のスタイル */
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
 }
