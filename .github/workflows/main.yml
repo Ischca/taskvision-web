@@ -109,7 +109,7 @@ jobs:
         with:
           name: chrome-extension-package
           path: |
-            chrome-extension/dist.crx
+            chrome-extension/taskvision-chrome-extension.crx
             chrome-extension/extension.zip
           retention-days: 7
 
@@ -119,3 +119,44 @@ jobs:
           name: chrome-extension-unpacked
           path: chrome-extension/dist
           retention-days: 7
+
+  create-release:
+    needs: build-extension
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download extension artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: chrome-extension-package
+          path: artifacts
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(curl -s https://raw.githubusercontent.com/${{ github.repository }}/main/chrome-extension/package.json | jq -r '.version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: TaskVision Extension v${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/taskvision-chrome-extension.crx
+            artifacts/extension.zip
+          body: |
+            TaskVision Chrome拡張機能の最新ビルドです。
+
+            ## インストール方法
+
+            1. このリリースからCRXファイルをダウンロードします
+            2. Chromeで chrome://extensions を開きます
+            3. CRXファイルをブラウザウィンドウにドラッグ＆ドロップします
+
+            または開発者モードでインストールする場合は、unpacked版を使用してください。
