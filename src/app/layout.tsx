@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import ThemeProvider from "./components/ThemeProvider";
 import AuthProvider from "./components/AuthProvider";
-import PWAComponents from "./components/PWAComponents";
+import PWAComponents from "@/app/components/PWAComponents";
 
 // M PLUS Rounded 1c フォントの設定
 const mPlusRounded = M_PLUS_Rounded_1c({
@@ -18,7 +18,6 @@ export const metadata: Metadata = {
     title: "TaskVision - 日々のタスクをブロックで管理",
     description: "1日の流れを固定されたブロックで管理する、シンプルで使いやすいタスク管理アプリ",
     keywords: "タスク管理, スケジュール, 時間ブロック, 生産性向上",
-    colorScheme: 'light',
     manifest: '/manifest.json',
     metadataBase: new URL('https://your-domain.com'),
     openGraph: {
@@ -29,6 +28,10 @@ export const metadata: Metadata = {
         locale: 'ja_JP',
         type: 'website',
     },
+};
+
+export const viewport: Viewport = {
+    colorScheme: 'light',
 };
 
 export default function RootLayout({

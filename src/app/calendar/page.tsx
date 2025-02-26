@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db } from "../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { Task } from "@/types";
-import { useAuth } from "../components/AuthProvider";
-import Calendar from "../components/Calendar";
-import TaskItem from "../components/TaskItem";
-import UnassignedTasksSection from "../components/UnassignedTasksSection";
+import { useAuth } from "@/app/components/AuthProvider";
+import Calendar from "@/app/components/Calendar";
+import TaskItem from "@/app/components/TaskItem";
+import UnassignedTasksSection from "@/app/components/UnassignedTasksSection";
 import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 export default function CalendarPage() {
