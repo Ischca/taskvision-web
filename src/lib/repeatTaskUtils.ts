@@ -1,4 +1,4 @@
-import { Task, RepeatSettings, RepeatType } from '@/types';
+import { Task, RepeatSettings, RepeatType, RepeatException } from '@/types';
 import { db } from './firebase';
 import {
   collection,
@@ -171,20 +171,20 @@ export function checkIfDateIsException(
 
   const dateStr = date.toISOString().split('T')[0];
 
-  return exceptions.find((ex) => ex.originalDate === dateStr) || null;
+  return exceptions.find((ex) => ex.date === dateStr) || null;
 }
 
 /**
  * 繰り返しタスクに例外を追加する
  * @param taskId タスクID
- * @param originalDate 元の日付
+ * @param date 例外の日付
  * @param action アクション（skip/reschedule）
  * @param newDate 新しい日付（rescheduledの場合）
  * @param newBlockId 新しいブロックID（オプション）
  */
 export async function addRepeatException(
   taskId: string,
-  originalDate: string,
+  date: string,
   action: 'skip' | 'reschedule',
   newDate?: string,
   newBlockId?: string
@@ -214,7 +214,7 @@ export async function addRepeatException(
 
     // 例外の作成
     const exception: RepeatException = {
-      originalDate,
+      date,
       action,
     };
 
@@ -226,7 +226,7 @@ export async function addRepeatException(
 
     // 既存の例外を更新または新しい例外を追加
     const existingIndex = repeatSettings.exceptions.findIndex(
-      (ex) => ex.originalDate === originalDate
+      (ex) => ex.date === date
     );
 
     if (existingIndex >= 0) {
