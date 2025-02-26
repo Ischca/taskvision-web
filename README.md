@@ -1,77 +1,95 @@
-# TaskVision - タスク管理アプリ
+# TaskVision
 
-TaskVisionは、タイムブロッキングを活用した効率的なタスク管理のためのWebアプリケーションです。日々のタスクをブロックで管理し、生産性を向上させることを目的としています。
+TaskVisionは、シンプルで効率的なタスク管理ツールです。このリポジトリはWeb版とChrome拡張機能を含んでいます。
 
-## 主な機能
+## プロジェクト構造
 
-### 認証・ユーザー管理機能
-- メールアドレス/パスワードによるログイン
-- Google認証によるログイン
-- 新規ユーザー登録
-- パスワード再設定
-- ユーザープロフィール編集
-- アカウント削除
+このリポジトリは以下のディレクトリで構成されています：
 
-### タスク管理機能
-- ドラッグ＆ドロップでのタスク管理
-- タイムブロックへのタスク割り当て
-- タスクの完了/未完了の切り替え
-- カレンダービューでのタスク表示
-- リマインダー機能
-- 繰り返しタスクの設定
+- `web` - TaskVisionのWebアプリケーション（Next.js）
+- `chrome-extension` - TaskVisionのChrome拡張機能
+- `.github` - GitHub Actions ワークフロー設定
 
-### その他の機能
-- ダークモード/ライトモードの切り替え
-- レスポンシブデザイン（モバイル対応）
-- PWA対応（インストール可能なアプリとして利用可能）
+## 開発を始める
 
-## 技術スタック
+### 前提条件
 
-- フロントエンド: Next.js, React, TypeScript, TailwindCSS
-- バックエンド: Firebase (Authentication, Firestore)
-- デプロイ: Vercel
+- Node.js (18以上)
+- npm (9以上)
 
-## ローカル開発環境のセットアップ
+### インストール
 
-1. リポジトリをクローン
+リポジトリをクローンします：
+
 ```bash
-git clone https://github.com/your-username/taskvision-app.git
-cd taskvision-app
+git clone https://github.com/your-username/taskvision.git
+cd taskvision
 ```
 
-2. 依存関係をインストール
+### Webアプリケーション開発
+
+Webアプリケーションの依存関係をインストールし、開発サーバーを起動します：
+
 ```bash
+cd web
 npm install
-```
-
-3. 環境変数を設定
-`.env.local`ファイルを作成し、Firebaseの設定を記述：
-```
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
-```
-
-4. 開発サーバーを起動
-```bash
 npm run dev
 ```
 
-5. ブラウザでアクセス
-`http://localhost:3000`でアプリケーションにアクセスできます。
+ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションを確認できます。
 
-## 本番環境へのデプロイ
+### Chrome拡張機能開発
 
-このアプリケーションはVercelを使用して簡単にデプロイできます：
+Chrome拡張機能の依存関係をインストールし、開発サーバーを起動します：
 
-1. [Vercel](https://vercel.com)にアカウントを作成
-2. GitHubリポジトリを連携
-3. 環境変数を設定
-4. デプロイボタンをクリック
+```bash
+cd chrome-extension
+npm install
+npm run start
+```
+
+拡張機能をブラウザにインストールするには：
+
+1. Chromeで `chrome://extensions` を開きます
+2. 「デベロッパーモード」をオンにします
+3. 「パッケージ化されていない拡張機能を読み込む」をクリックし、`chrome-extension/dist` ディレクトリを選択します
+
+### ビルド
+
+ルートディレクトリから全てのプロジェクトをビルドするには：
+
+```bash
+npm run build
+```
+
+または個別に各ディレクトリでビルドすることもできます：
+
+```bash
+# Webアプリケーションのみをビルド
+cd web
+npm run build
+
+# Chrome拡張機能のみをビルド
+cd chrome-extension
+npm run build
+```
+
+### Chrome拡張機能をパッケージ化
+
+Chrome拡張機能をCRXファイルとしてパッケージ化するには：
+
+```bash
+cd chrome-extension
+npm run package
+```
+
+## CI/CD
+
+GitHub Actionsを使用して継続的インテグレーション/デプロイを行っています。設定ファイルは `.github/workflows` ディレクトリにあります。
+
+- Webアプリケーションは、Firebaseホスティングに自動デプロイされます
+- Chrome拡張機能は、ビルドとパッケージ化が自動化されています
 
 ## ライセンス
 
-MIT License
+MIT
