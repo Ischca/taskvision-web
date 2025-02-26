@@ -232,7 +232,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                     description: description.trim(),
                     blockId: selectedBlock || null,
                     date: isDateUnassigned ? null : selectedDate,
-                    status: "open" as "open",
+                    status: "open" as const,
                     createdAt: serverTimestamp() as any,
                     deadline: deadline || null,
                     reminderSettings: taskData.reminderSettings || null,
