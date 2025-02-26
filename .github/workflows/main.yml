@@ -69,7 +69,7 @@ jobs:
           projectId: taskvision-3f130
 
       - name: Upload web build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-build
           path: web/out
@@ -108,7 +108,7 @@ jobs:
           CI=true npm run package
 
       - name: Upload CRX/ZIP Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chrome-extension-package
           path: |
@@ -117,7 +117,7 @@ jobs:
           retention-days: 7
 
       - name: Upload Unpacked Extension
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chrome-extension-unpacked
           path: chrome-extension/dist
