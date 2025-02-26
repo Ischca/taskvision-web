@@ -12,7 +12,8 @@ import {
     BellIcon,
     BellSlashIcon,
     ChevronDownIcon,
-    ArrowPathRoundedSquareIcon
+    ArrowPathRoundedSquareIcon,
+    ChevronUpIcon
 } from "@heroicons/react/24/outline";
 import { useTheme } from "./ThemeProvider";
 import { useAuth } from "./AuthProvider";
@@ -27,6 +28,9 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const { theme } = useTheme();
     const { userId } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
+    const [quickTitle, setQuickTitle] = useState("");
+    const [isQuickSubmitting, setIsQuickSubmitting] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [selectedBlock, setSelectedBlock] = useState("");
@@ -39,7 +43,12 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const [toastMessage, setToastMessage] = useState("");
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const titleInputRef = useRef<HTMLInputElement>(null);
+    const quickTitleInputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+    const drawerRef = useRef<HTMLDivElement>(null);
+    const handleRef = useRef<HTMLDivElement>(null);
+    const startYRef = useRef<number | null>(null);
+    const drawerStartYRef = useRef<number | null>(null);
 
     // リマインド設定
     const [showReminderSettings, setShowReminderSettings] = useState(false);
@@ -119,6 +128,155 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isModalOpen]);
+
+    // スワイプ操作の処理（下部ハンドル用）
+    useEffect(() => {
+        const handleEl = handleRef.current;
+        if (!handleEl) return;
+
+        // タッチ開始時の位置を記録
+        const handleTouchStart = (e: TouchEvent) => {
+            startYRef.current = e.touches[0].clientY;
+        };
+
+        // タッチ移動中の処理
+        const handleTouchMove = (e: TouchEvent) => {
+            if (startYRef.current === null) return;
+
+            const currentY = e.touches[0].clientY;
+            const diff = startYRef.current - currentY;
+
+            // 上に50px以上スワイプしたらドロワーを開く
+            if (diff > 50) {
+                setIsQuickDrawerOpen(true);
+                startYRef.current = null;
+            }
+        };
+
+        // タッチ終了時の処理
+        const handleTouchEnd = () => {
+            startYRef.current = null;
+        };
+
+        handleEl.addEventListener('touchstart', handleTouchStart);
+        handleEl.addEventListener('touchmove', handleTouchMove);
+        handleEl.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+            handleEl.removeEventListener('touchstart', handleTouchStart);
+            handleEl.removeEventListener('touchmove', handleTouchMove);
+            handleEl.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, []);
+
+    // ドロワーでのスワイプ操作処理（閉じる動作）
+    useEffect(() => {
+        const drawerEl = drawerRef.current;
+        if (!drawerEl || !isQuickDrawerOpen) return;
+
+        // タッチ開始時の位置を記録
+        const drawerTouchStart = (e: TouchEvent) => {
+            drawerStartYRef.current = e.touches[0].clientY;
+        };
+
+        // タッチ移動中の処理
+        const drawerTouchMove = (e: TouchEvent) => {
+            if (drawerStartYRef.current === null) return;
+
+            const currentY = e.touches[0].clientY;
+            const diff = currentY - drawerStartYRef.current;
+
+            // 下に50px以上スワイプしたらドロワーを閉じる
+            if (diff > 50) {
+                setIsQuickDrawerOpen(false);
+                drawerStartYRef.current = null;
+            }
+        };
+
+        // タッチ終了時の処理
+        const drawerTouchEnd = () => {
+            drawerStartYRef.current = null;
+        };
+
+        drawerEl.addEventListener('touchstart', drawerTouchStart);
+        drawerEl.addEventListener('touchmove', drawerTouchMove);
+        drawerEl.addEventListener('touchend', drawerTouchEnd);
+
+        return () => {
+            drawerEl.removeEventListener('touchstart', drawerTouchStart);
+            drawerEl.removeEventListener('touchmove', drawerTouchMove);
+            drawerEl.removeEventListener('touchend', drawerTouchEnd);
+        };
+    }, [isQuickDrawerOpen]);
+
+    // クイックタスク追加機能
+    const handleQuickSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!quickTitle.trim() || !userId) {
+            if (!userId) showToastNotification("ログインが必要です");
+            return;
+        }
+
+        try {
+            setIsQuickSubmitting(true);
+
+            // シンプルなタスクデータを準備
+            const taskData = {
+                userId,
+                title: quickTitle.trim(),
+                description: "",
+                blockId: null,
+                date: todayStr,
+                status: "open",
+                createdAt: serverTimestamp(),
+            };
+
+            // タスクをFirestoreに追加
+            await addDoc(collection(db, "tasks"), taskData);
+
+            // フォームをリセットしてドロワーを閉じる
+            setQuickTitle("");
+            setIsQuickDrawerOpen(false);
+
+            // 成功メッセージを表示
+            showToastNotification("タスクを追加しました！");
+        } catch (error) {
+            console.error("Error adding quick task:", error);
+            showToastNotification("タスクの作成に失敗しました。もう一度お試しください。", "error");
+        } finally {
+            setIsQuickSubmitting(false);
+        }
+    };
+
+    // モバイルのクイックドロワーがオープンしたらタイトル入力にフォーカス
+    useEffect(() => {
+        if (isQuickDrawerOpen && quickTitleInputRef.current) {
+            // 少し遅延させてフォーカス（アニメーション完了後）
+            setTimeout(() => {
+                quickTitleInputRef.current?.focus();
+            }, 300);
+        }
+    }, [isQuickDrawerOpen]);
+
+    // ドロワー外クリックでクローズ
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+                setIsQuickDrawerOpen(false);
+            }
+        }
+
+        if (isQuickDrawerOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isQuickDrawerOpen]);
 
     // トースト表示関数
     const showToastNotification = (message: string, type: "success" | "error" = "success") => {
@@ -299,14 +457,109 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                 タスクを追加
             </button>
 
-            {/* モバイル表示用フローティングボタン */}
-            <button
-                className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg flex items-center justify-center"
-                onClick={() => setIsModalOpen(true)}
-                aria-label="タスクを追加"
+            {/* モバイル用 下部ハンドル - 引っ張り上げ印象のデザイン */}
+            <div
+                ref={handleRef}
+                className="sm:hidden fixed bottom-0 left-0 right-0 z-40 cursor-pointer px-4 pb-1"
+                onClick={() => setIsQuickDrawerOpen(true)}
             >
-                <PlusIcon className="h-6 w-6" />
-            </button>
+                <div className="relative mx-auto max-w-sm">
+                    <div className="flex flex-col items-center">
+                        {/* 上向き矢印アニメーション */}
+                        <div className="text-gray-400 dark:text-gray-500 mb-1 animate-bounce">
+                            <ChevronUpIcon className="h-5 w-5" />
+                        </div>
+
+                        {/* メインハンドル */}
+                        <div
+                            className="backdrop-blur-md bg-white/60 dark:bg-gray-900/60 border-t border-x border-white/20 dark:border-gray-700/30 shadow-md rounded-t-xl w-full py-2 flex flex-col items-center"
+                            style={{ boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)' }}
+                        >
+                            {/* ハンドルバー */}
+                            <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mb-1"></div>
+
+                            {/* 短いテキスト */}
+                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                上にスワイプしてタスクを追加
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* モバイル用クイックタスク追加ドロワー */}
+            <div className={`fixed inset-x-0 bottom-0 z-50 sm:hidden transition-transform duration-300 ease-in-out ${isQuickDrawerOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div
+                    ref={drawerRef}
+                    className="bg-white dark:bg-gray-800 rounded-t-xl shadow-xl p-4 border-t border-gray-200 dark:border-gray-700"
+                >
+                    <div className="flex justify-center mb-2">
+                        <div className="w-16 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                    </div>
+
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+                            クイックタスク追加
+                        </h3>
+                        <div className="flex space-x-2">
+                            <button
+                                className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                onClick={() => {
+                                    setIsQuickDrawerOpen(false);
+                                    setIsModalOpen(true);
+                                }}
+                            >
+                                <ChevronUpIcon className="h-5 w-5" />
+                                <span className="sr-only">詳細設定</span>
+                            </button>
+                            <button
+                                className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                onClick={() => setIsQuickDrawerOpen(false)}
+                            >
+                                <XMarkIcon className="h-5 w-5" />
+                                <span className="sr-only">閉じる</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleQuickSubmit} className="space-y-4">
+                        <div className="flex space-x-2">
+                            <input
+                                ref={quickTitleInputRef}
+                                type="text"
+                                className="input input-bordered flex-1 focus-ring"
+                                value={quickTitle}
+                                onChange={(e) => setQuickTitle(e.target.value)}
+                                placeholder="タスク名を入力"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={!quickTitle.trim() || isQuickSubmitting}
+                            >
+                                {isQuickSubmitting ? (
+                                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <CheckIcon className="h-5 w-5" />
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                            <p>※ 今日のタスクとして登録されます</p>
+                            <p>※ 詳細設定するには<button type="button" className="text-primary-600 dark:text-primary-400 underline" onClick={() => {
+                                setQuickTitle("");
+                                setIsQuickDrawerOpen(false);
+                                setIsModalOpen(true);
+                            }}>こちら</button></p>
+                            <p className="mt-1.5 flex items-center justify-center text-gray-400 dark:text-gray-500">
+                                <span>↓ 下にスワイプで閉じる</span>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             {/* Task Add Modal */}
             {isModalOpen && (
