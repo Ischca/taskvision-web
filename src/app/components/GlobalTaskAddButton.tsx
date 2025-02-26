@@ -289,13 +289,23 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
     return (
         <>
+            {/* デスクトップ表示用ボタン */}
             <button
-                className="btn btn-primary sm:btn-md btn-sm"
+                className="hidden sm:flex btn btn-primary sm:btn-md btn-sm"
                 onClick={() => setIsModalOpen(true)}
                 aria-label="タスクを追加"
             >
                 <PlusIcon className="h-5 w-5 mr-1" />
                 タスクを追加
+            </button>
+
+            {/* モバイル表示用フローティングボタン */}
+            <button
+                className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg flex items-center justify-center"
+                onClick={() => setIsModalOpen(true)}
+                aria-label="タスクを追加"
+            >
+                <PlusIcon className="h-6 w-6" />
             </button>
 
             {/* Task Add Modal */}

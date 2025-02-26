@@ -8,8 +8,26 @@ export default function InstallPWA() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [dismissed, setDismissed] = useState(false);
+    const [isInstalled, setIsInstalled] = useState(false);
 
     useEffect(() => {
+        // PWAが既にインストールされているかどうかを確認
+        const checkIfInstalled = () => {
+            // スタンドアロンモードでの実行か、iOSのフルスクリーンモードでの実行かを確認
+            if (window.matchMedia('(display-mode: standalone)').matches ||
+                window.matchMedia('(display-mode: fullscreen)').matches ||
+                (window.navigator as any).standalone === true) {
+                setIsInstalled(true);
+                return true;
+            }
+            return false;
+        };
+
+        if (checkIfInstalled()) {
+            // インストール済みの場合はプロンプトを表示しない
+            return;
+        }
+
         // PWAインストールが可能かどうかをチェック
         const handler = (e: any) => {
             // インストールプロンプトを表示する前にイベントをキャプチャ
@@ -26,8 +44,15 @@ export default function InstallPWA() {
 
         window.addEventListener("beforeinstallprompt", handler);
 
+        // 'appinstalled' イベントを監視して、PWAがインストールされたときに通知を非表示にする
+        window.addEventListener('appinstalled', () => {
+            setIsInstalled(true);
+            setShowInstallPrompt(false);
+        });
+
         return () => {
             window.removeEventListener("beforeinstallprompt", handler);
+            window.removeEventListener('appinstalled', () => { });
         };
     }, []);
 
@@ -57,8 +82,8 @@ export default function InstallPWA() {
         localStorage.setItem("pwaPromptDismissed", "true");
     };
 
-    // 表示条件: プロンプトが利用可能で、かつユーザーが閉じていない場合
-    if (!showInstallPrompt || !deferredPrompt || dismissed) {
+    // 表示条件: プロンプトが利用可能で、かつユーザーが閉じていない場合、かつPWAがインストールされていない場合
+    if (!showInstallPrompt || !deferredPrompt || dismissed || isInstalled) {
         return null;
     }
 
