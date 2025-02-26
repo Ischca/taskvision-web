@@ -16,11 +16,11 @@ import {
 import { Block } from "@/types";
 import { PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useAuth } from "@/app/components/AuthProvider";
+import useRequireAuth from "@/app/hooks/useRequireAuth";
 
 export default function BlockManagePage() {
     // 認証から実際のユーザーIDを取得
-    const { userId, loading: authLoading } = useAuth();
+    const { userId, loading: authLoading } = useRequireAuth();
 
     // ブロック一覧
     const [blocks, setBlocks] = useState<Block[]>([]);

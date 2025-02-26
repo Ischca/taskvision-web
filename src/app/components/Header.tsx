@@ -74,18 +74,23 @@ const Header: FC = () => {
                             >
                                 ホーム
                             </Link>
-                            <Link
-                                href="/calendar"
-                                className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors ${isActive("/calendar") ? activeLinkStyle : theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
-                            >
-                                カレンダー
-                            </Link>
-                            <Link
-                                href="/blocks/manage"
-                                className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors ${isActive("/blocks/manage") ? activeLinkStyle : theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
-                            >
-                                ブロック管理
-                            </Link>
+
+                            {userId && (
+                                <>
+                                    <Link
+                                        href="/calendar"
+                                        className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors ${isActive("/calendar") ? activeLinkStyle : theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
+                                    >
+                                        カレンダー
+                                    </Link>
+                                    <Link
+                                        href="/blocks/manage"
+                                        className={`px-3 py-2 text-sm font-medium hover:text-primary transition-colors ${isActive("/blocks/manage") ? activeLinkStyle : theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}
+                                    >
+                                        ブロック管理
+                                    </Link>
+                                </>
+                            )}
                         </nav>
                     </div>
 
@@ -176,22 +181,27 @@ const Header: FC = () => {
                                             ホーム
                                         </Link>
                                     </li>
-                                    <li>
-                                        <Link
-                                            href="/calendar"
-                                            className={isActive("/calendar") ? "font-bold text-primary" : ""}
-                                        >
-                                            カレンダー
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            href="/blocks/manage"
-                                            className={isActive("/blocks/manage") ? "font-bold text-primary" : ""}
-                                        >
-                                            ブロック管理
-                                        </Link>
-                                    </li>
+
+                                    {userId && (
+                                        <>
+                                            <li>
+                                                <Link
+                                                    href="/calendar"
+                                                    className={isActive("/calendar") ? "font-bold text-primary" : ""}
+                                                >
+                                                    カレンダー
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link
+                                                    href="/blocks/manage"
+                                                    className={isActive("/blocks/manage") ? "font-bold text-primary" : ""}
+                                                >
+                                                    ブロック管理
+                                                </Link>
+                                            </li>
+                                        </>
+                                    )}
 
                                     {/* ログイン状態に応じた表示（モバイル用） */}
                                     {!loading && (

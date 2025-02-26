@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
 import { Task } from "@/types";
-import { useAuth } from "@/app/components/AuthProvider";
 import Calendar from "@/app/components/Calendar";
 import TaskItem from "@/app/components/TaskItem";
 import UnassignedTasksSection from "@/app/components/UnassignedTasksSection";
 import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import useRequireAuth from "@/app/hooks/useRequireAuth";
 
 export default function CalendarPage() {
-    const { userId } = useAuth();
+    const { userId, loading: authLoading } = useRequireAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date());
