@@ -20,7 +20,7 @@ import useRequireAuth from "@/app/hooks/useRequireAuth";
 
 export default function BlockManagePage() {
     // 認証から実際のユーザーIDを取得
-    const { userId, loading: authLoading } = useRequireAuth();
+    const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
 
     // ブロック一覧
     const [blocks, setBlocks] = useState<Block[]>([]);

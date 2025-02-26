@@ -11,7 +11,7 @@ import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/rea
 import useRequireAuth from "@/app/hooks/useRequireAuth";
 
 export default function CalendarPage() {
-    const { userId, loading: authLoading } = useRequireAuth();
+    const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date());

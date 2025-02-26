@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/components/AuthProvider';
 
@@ -10,18 +10,33 @@ import { useAuth } from '@/app/components/AuthProvider';
  * @returns 認証情報（userId, user, loading）
  */
 export default function useRequireAuth(redirectUrl: string = '/login') {
-  const { userId, user, loading: authLoading } = useAuth();
+  const auth = useAuth();
+  const { userId, user, loading: authLoading } = auth;
   const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // より厳格な認証チェック
+  const isAuthenticated =
+    userId !== null && userId !== undefined && userId !== '';
 
   useEffect(() => {
-    // 認証ロード完了後、ユーザーIDがない場合はリダイレクト
-    if (!authLoading && !userId) {
-      console.log(
-        `認証が必要なページへの未認証アクセスを検出、${redirectUrl}へリダイレクト中...`
-      );
+    // ローディング中は何もしない
+    if (authLoading) {
+      return;
+    }
+
+    // 認証チェックが完了したらフラグを設定
+    if (!authChecked) {
+      setAuthChecked(true);
+      return; // 最初のチェック時は早期リターン
+    }
+
+    // 認証チェックが完了し、未認証の場合はリダイレクト
+    if (!isAuthenticated && authChecked) {
       router.push(redirectUrl);
     }
-  }, [authLoading, userId, router, redirectUrl]);
+  }, [authLoading, userId, isAuthenticated, router, redirectUrl, authChecked]);
 
-  return { userId, user, loading: authLoading };
+  // useAuthの全ての値をそのまま返す
+  return { ...auth, isAuthenticated };
 }
