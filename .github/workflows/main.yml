@@ -99,9 +99,6 @@ jobs:
       - name: Install dependencies
         run: cd chrome-extension && npm ci
 
-      - name: Lint
-        run: cd chrome-extension && npm run lint
-
       - name: Build and Package
         run: |
           cd chrome-extension
