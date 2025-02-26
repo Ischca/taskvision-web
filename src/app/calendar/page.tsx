@@ -147,7 +147,12 @@ export default function CalendarPage() {
                 </div>
 
                 {/* 未割り当てタスクセクション */}
-                <UnassignedTasksSection />
+                <UnassignedTasksSection
+                    blocks={[]} // 必要に応じてブロックをfetchする処理を追加
+                    tasks={tasks.filter(task => task.date === null)} // 日付未設定のタスク
+                    loading={loading}
+                    date=""
+                />
 
                 {/* カレンダー */}
                 <div className="bg-white rounded-xl shadow-md overflow-hidden">

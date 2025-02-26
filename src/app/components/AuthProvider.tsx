@@ -11,14 +11,14 @@ import { checkAndGenerateNextRepeatTasks } from "@/lib/repeatTaskUtils";
 type AuthContextType = {
     user: User | null;
     loading: boolean;
-    userId: string; // 簡易的な実装としてユーザーIDを公開
+    userId: string | null; // nullも許容するよう変更
 };
 
 // 認証コンテキストの作成（デフォルト値を設定）
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
-    userId: "TEST_USER", // デフォルト値として仮のユーザーIDを使用
+    userId: null, // DEFAULTをnullに変更
 });
 
 // 認証コンテキストを使用するカスタムフック
@@ -32,8 +32,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [reminderTimerId, setReminderTimerId] = useState<NodeJS.Timeout | null>(null);
 
-    // 実際のユーザーIDまたは仮のID
-    const userId = user?.uid || "TEST_USER";
+    // 実際のユーザーIDのみを使用
+    const userId = user?.uid || null;
 
     // 認証状態の監視
     useEffect(() => {
@@ -59,7 +59,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             requestNotificationPermission().then(granted => {
                 console.log("通知パーミッション:", granted ? "許可" : "拒否");
 
-                if (granted && reminderTimerId === null) {
+                if (granted && reminderTimerId === null && userId !== null) {
                     // リマインダータイマーを開始
                     const timerId = startReminderTimer(userId);
                     setReminderTimerId(timerId);
@@ -70,37 +70,42 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             // 繰り返しタスクの確認と生成
             const checkRepeatTasks = async () => {
                 try {
-                    await checkAndGenerateNextRepeatTasks(userId);
-                    console.log("繰り返しタスクの確認と生成を完了しました");
+                    if (userId !== null) {
+                        await checkAndGenerateNextRepeatTasks(userId);
+                        console.log("繰り返しタスクの確認と生成を完了しました");
+                    }
                 } catch (error) {
                     console.error("繰り返しタスクの確認と生成中にエラーが発生しました:", error);
                 }
             };
 
-            // 初回実行
-            checkRepeatTasks();
+            // ユーザーがログインしている場合のみ実行
+            if (userId !== null) {
+                // 初回実行
+                checkRepeatTasks();
 
-            // 毎日AM 1:00に実行するための設定
-            const now = new Date();
-            const tomorrow1AM = new Date(
-                now.getFullYear(),
-                now.getMonth(),
-                now.getDate() + 1,
-                1, 0, 0
-            );
-            const timeUntil1AM = tomorrow1AM.getTime() - now.getTime();
+                // 毎日AM 1:00に実行するための設定
+                const now = new Date();
+                const tomorrow1AM = new Date(
+                    now.getFullYear(),
+                    now.getMonth(),
+                    now.getDate() + 1,
+                    1, 0, 0
+                );
+                const timeUntil1AM = tomorrow1AM.getTime() - now.getTime();
 
-            // 最初は明日の1AMに設定し、その後は24時間ごとに実行
-            const scheduleNextCheck = () => {
-                console.log("次回の繰り返しタスクチェックをスケジュール: ", new Date(Date.now() + timeUntil1AM));
-                setTimeout(() => {
-                    checkRepeatTasks();
-                    // 以降は24時間ごとにチェック
-                    setInterval(checkRepeatTasks, 24 * 60 * 60 * 1000);
-                }, timeUntil1AM);
-            };
+                // 最初は明日の1AMに設定し、その後は24時間ごとに実行
+                const scheduleNextCheck = () => {
+                    console.log("次回の繰り返しタスクチェックをスケジュール: ", new Date(Date.now() + timeUntil1AM));
+                    setTimeout(() => {
+                        checkRepeatTasks();
+                        // 以降は24時間ごとにチェック
+                        setInterval(checkRepeatTasks, 24 * 60 * 60 * 1000);
+                    }, timeUntil1AM);
+                };
 
-            scheduleNextCheck();
+                scheduleNextCheck();
+            }
         }
 
         // クリーンアップ関数

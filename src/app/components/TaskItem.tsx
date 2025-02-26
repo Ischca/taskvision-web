@@ -254,9 +254,17 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
         // ドラッグ中のスタイルを適用
         e.currentTarget.classList.add("dragging");
 
+        // 現在のターゲット要素を保存
+        const targetElement = e.currentTarget;
+
         // ドラッグ終了時のイベントリスナーを追加
         const handleDragEnd = () => {
-            e.currentTarget.classList.remove("dragging");
+            // nullチェックを追加
+            const dragElements = document.querySelectorAll('.dragging');
+            dragElements.forEach(el => {
+                el.classList.remove('dragging');
+            });
+
             document.removeEventListener("dragend", handleDragEnd);
         };
         document.addEventListener("dragend", handleDragEnd);

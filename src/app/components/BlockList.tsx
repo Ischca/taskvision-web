@@ -18,10 +18,11 @@ import { useAuth } from "./AuthProvider";
 type BlockListProps = {
     blocks: Block[];
     tasks: Task[];
-    todayStr: string;
+    date: string;
+    loading: boolean;
 };
 
-const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
+const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
     const [expandedBlocks, setExpandedBlocks] = useState<{ [key: string]: boolean }>({});
     const [dragOverBlock, setDragOverBlock] = useState<string | null>(null);
     const { userId } = useAuth();
@@ -93,7 +94,7 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
             // Firestoreでタスクを更新
             await updateDoc(doc(db, "tasks", taskData.id), {
                 blockId: blockId,
-                date: todayStr
+                date: date
             });
         } catch (error) {
             console.error("ドロップ処理中にエラーが発生しました:", error);
@@ -121,7 +122,7 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
                         onDrop={(e) => handleDrop(e, block.id)}
                     >
                         <div
-                            className={`p-3 sm:p-4 border-b border-gray-200 cursor-pointer ${isCurrent ? "bg-primary-50" : ""
+                            className={`p-3 sm:p-4 border-b border-gray-200 cursor-pointer ${isCurrent ? "bg-primary-50 dark:bg-primary-900/20" : ""
                                 }`}
                             onClick={() => toggleBlock(block.id)}
                         >
@@ -133,12 +134,12 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
                                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
                                             </div>
                                         ) : (
-                                            <span className="inline-block h-3 w-3 rounded-full bg-gray-300"></span>
+                                            <span className="inline-block h-3 w-3 rounded-full bg-gray-300 dark:bg-gray-600"></span>
                                         )}
                                     </div>
-                                    <h3 className="text-base sm:text-lg font-medium truncate">
+                                    <h3 className="text-base sm:text-lg font-medium truncate text-gray-900 dark:text-white">
                                         {block.name}
-                                        <span className="ml-2 text-xs sm:text-sm font-normal text-gray-500 block sm:inline">
+                                        <span className="ml-2 text-xs sm:text-sm font-normal text-gray-500 dark:text-gray-400 block sm:inline">
                                             {block.startTime} - {block.endTime}
                                         </span>
                                     </h3>
@@ -196,7 +197,7 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
                                 })}
 
                                 {blockTasks.length === 0 && (
-                                    <div className="p-4 text-center text-gray-500 text-sm italic">
+                                    <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm italic">
                                         このブロックにタスクはありません。タスクをここにドラッグしてください。
                                     </div>
                                 )}
@@ -207,10 +208,10 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, todayStr }) => {
             })}
 
             {blocks.length === 0 && (
-                <div className="text-center py-8 bg-white rounded-xl shadow-sm">
+                <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                     <ExclamationCircleIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500 mb-2">ブロックが設定されていません</p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">ブロックが設定されていません</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
                         ブロック管理画面からブロックを作成してください
                     </p>
                 </div>

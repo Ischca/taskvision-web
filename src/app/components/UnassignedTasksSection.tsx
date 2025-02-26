@@ -3,159 +3,125 @@
 import { FC, useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
-import { Task } from "@/types";
+import { Task, Block } from "@/types";
 import TaskItem from "./TaskItem";
 import { InboxIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthProvider";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
-const UnassignedTasksSection: FC = () => {
-    const [unassignedTasks, setUnassignedTasks] = useState<Task[]>([]);
-    const [loading, setLoading] = useState(true);
+// プロパティの型定義
+type UnassignedTasksSectionProps = {
+    blocks: Block[];
+    tasks: Task[];
+    loading: boolean;
+    date: string;
+};
+
+const UnassignedTasksSection: FC<UnassignedTasksSectionProps> = ({ blocks, tasks, loading, date }) => {
     const [isExpanded, setIsExpanded] = useState(true);
     const [dragOver, setDragOver] = useState(false);
     const { userId } = useAuth();
 
-    // 日付もブロックも未割り当てのタスクを取得
-    useEffect(() => {
-        const tasksRef = collection(db, "tasks");
-        const q = query(
-            tasksRef,
-            where("userId", "==", userId),
-            where("date", "==", null)
-        );
+    // Firebaseを使用した未割り当てのタスク取得はもう必要ありません
+    // 親コンポーネントから渡されたタスクを使用します
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const tasks = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            })) as Task[];
-
-            // ブロックIDがないものをフィルタリング
-            const fullyUnassignedTasks = tasks.filter(task => !task.blockId);
-            setUnassignedTasks(fullyUnassignedTasks);
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching unassigned tasks:", error);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [userId]);
-
-    // タスク進捗率を計算
     const calculateProgress = (): number => {
-        if (unassignedTasks.length === 0) return 0;
-        const completedTasks = unassignedTasks.filter((task) => task.status === "done");
-        return Math.round((completedTasks.length / unassignedTasks.length) * 100);
+        const total = tasks.length;
+        if (total === 0) return 0;
+
+        const completed = tasks.filter(task => task.status === "done").length;
+        return Math.round((completed / total) * 100);
     };
 
-    // ドラッグオーバーイベントハンドラー
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
-        setDragOver(true);
+        if (!dragOver) setDragOver(true);
     };
 
-    // ドラッグリーブイベントハンドラー
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-        // 子要素へのドラッグリーブイベントを無視
-        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+        e.preventDefault();
         setDragOver(false);
     };
 
-    // ドロップイベントハンドラー
     const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         setDragOver(false);
 
         try {
             const taskData = JSON.parse(e.dataTransfer.getData("application/json")) as Task;
-            console.log(`タスク "${taskData.title}" を未割り当てに移動します`);
 
-            // Firestoreでタスクを更新
-            const taskRef = doc(db, "tasks", taskData.id);
-            await updateDoc(taskRef, {
-                blockId: null,
-                date: null
+            // タスクのブロックIDをnullに更新
+            await updateDoc(doc(db, "tasks", taskData.id), {
+                blockId: null
             });
         } catch (error) {
-            console.error("未割り当てへの移動中にエラーが発生しました:", error);
+            console.error("Error updating task:", error);
         }
     };
 
+    // 進捗率を計算
     const progress = calculateProgress();
 
     return (
         <div
-            className={`mb-8 bg-white rounded-xl shadow-sm overflow-hidden ${dragOver ? "ring-2 ring-primary-500 drag-over" : ""}`}
+            className={`mt-4 p-4 border rounded-lg bg-white shadow-sm ${dragOver ? "border-primary-500 bg-primary-50" : "border-gray-200"}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
             <div
-                className="p-3 sm:p-4 border-b border-gray-200 cursor-pointer"
+                className="flex items-center justify-between cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
-                <div className="flex flex-wrap sm:flex-nowrap items-center justify-between">
-                    <div className="flex items-center w-full sm:w-auto">
-                        <InboxIcon className="h-5 w-5 text-gray-500 mr-2" />
-                        <h3 className="text-base sm:text-lg font-medium">
-                            未割り当てタスク
-                        </h3>
+                <div className="flex items-center">
+                    <InboxIcon className="h-5 w-5 text-gray-500 mr-2" />
+                    <h3 className="text-lg font-medium text-gray-900">未割り当てタスク</h3>
+                    <div className="ml-3 text-sm text-gray-500">
+                        {tasks.length} 件
                     </div>
-
-                    <div className="flex items-center w-full sm:w-auto justify-end mt-2 sm:mt-0">
-                        {unassignedTasks.length > 0 && (
-                            <div className="flex items-center mr-4">
-                                <div className="w-16 sm:w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-primary-500"
-                                        style={{ width: `${progress}%` }}
-                                    ></div>
-                                </div>
-                                <span className="ml-2 text-xs text-gray-500">
-                                    {progress}%
-                                </span>
+                </div>
+                <div className="flex items-center">
+                    {tasks.length > 0 && (
+                        <div className="mr-4 w-32">
+                            <div className="text-xs text-gray-500 mb-1 flex justify-between">
+                                <span>進捗</span>
+                                <span>{progress}%</span>
                             </div>
-                        )}
-
-                        <div className="flex items-center">
-                            <span className="text-sm text-gray-500 mr-2">
-                                {unassignedTasks.length}件
-                            </span>
-                            <button
-                                className="p-1.5 rounded-full hover:bg-gray-100"
-                                aria-label={isExpanded ? "折りたたむ" : "展開する"}
-                            >
-                                {isExpanded ? (
-                                    <ChevronUpIcon className="h-5 w-5 text-gray-500" />
-                                ) : (
-                                    <ChevronDownIcon className="h-5 w-5 text-gray-500" />
-                                )}
-                            </button>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className="bg-primary-600 h-2 rounded-full"
+                                    style={{ width: `${progress}%` }}
+                                ></div>
+                            </div>
                         </div>
-                    </div>
+                    )}
+                    <button className="p-1 rounded-full hover:bg-gray-100">
+                        {isExpanded ?
+                            <ChevronUpIcon className="h-5 w-5 text-gray-500" /> :
+                            <ChevronDownIcon className="h-5 w-5 text-gray-500" />
+                        }
+                    </button>
                 </div>
             </div>
 
             {isExpanded && (
-                <div className="divide-y divide-gray-100">
+                <div className="mt-3">
                     {loading ? (
-                        <div className="p-4 text-center">
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600 mx-auto"></div>
-                            <p className="mt-2 text-sm text-gray-500">読み込み中...</p>
+                        <div className="py-4 text-center text-gray-500">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600 mx-auto"></div>
+                            <p className="mt-2">読み込み中...</p>
                         </div>
-                    ) : unassignedTasks.length > 0 ? (
-                        unassignedTasks.map((task) => (
-                            <div key={task.id} className="task-container">
-                                <TaskItem task={task} isDraggable={true} />
-                            </div>
-                        ))
+                    ) : tasks.length === 0 ? (
+                        <div className="py-6 text-center text-gray-500">
+                            未割り当てのタスクはありません
+                        </div>
                     ) : (
-                        <div className="p-4 text-center text-gray-500 text-sm italic">
-                            未割り当てのタスクはありません。タスクをここにドラッグしてください。
-                        </div>
+                        <ul className="space-y-2">
+                            {tasks.map(task => (
+                                <TaskItem key={task.id} task={task} isDraggable={true} />
+                            ))}
+                        </ul>
                     )}
                 </div>
             )}

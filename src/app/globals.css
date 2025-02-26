@@ -32,11 +32,34 @@ html.light .dark\:text-gray-400,
 html.light .dark\:text-gray-300,
 html.light .dark\:text-gray-200,
 html.light .dark\:text-gray-100,
-html.light .dark\:hover\:bg-gray-700 {
+html.light .dark\:hover\:bg-gray-700,
+html.light .dark\:text-white,
+html.light .dark\:text-gray-500 {
   /* !importantを使用してダークモードのスタイルを強制的に上書き */
   background-color: transparent !important;
   color: inherit !important;
   border-color: inherit !important;
+}
+
+/* メディアクエリでのダークモード対応を無効化 */
+@media (prefers-color-scheme: dark) {
+  /* html要素に明示的にlightクラスがある場合は、ダークモードを無効化 */
+  html.light, html.light * {
+    color-scheme: light !important;
+  }
+  
+  html.light .dark\:text-white,
+  html.light .dark\:text-gray-100,
+  html.light .dark\:text-gray-200,
+  html.light .dark\:text-gray-300,
+  html.light .dark\:text-gray-400,
+  html.light .dark\:text-gray-500,
+  html.light .dark\:bg-gray-700,
+  html.light .dark\:bg-gray-800,
+  html.light .dark\:bg-gray-900 {
+    color: inherit !important;
+    background-color: transparent !important;
+  }
 }
 
 /* ダークモード専用スタイル */

@@ -9,6 +9,7 @@ import {
     CheckIcon,
     ArrowPathIcon
 } from "@heroicons/react/24/outline";
+import { useAuth } from "./AuthProvider";
 
 type TaskAddButtonProps = {
     blockId: string;
@@ -22,9 +23,9 @@ const TaskAddButton: FC<TaskAddButtonProps> = ({ blockId, todayStr }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
-
     const modalRef = useRef<HTMLDivElement>(null);
     const titleInputRef = useRef<HTMLInputElement>(null);
+    const { userId } = useAuth();
 
     // モーダルが開いたらタイトル入力にフォーカス
     useEffect(() => {
@@ -67,12 +68,18 @@ const TaskAddButton: FC<TaskAddButtonProps> = ({ blockId, todayStr }) => {
 
         if (!title.trim()) return;
 
+        // ユーザーがログインしていない場合は処理しない
+        if (!userId) {
+            showToastNotification("ログインが必要です");
+            return;
+        }
+
         try {
             setIsSubmitting(true);
 
             // Add new task to Firestore
             await addDoc(collection(db, "tasks"), {
-                userId: "TEST_USER", // 実際の実装では認証情報から取得すべき
+                userId, // 認証情報から取得したユーザーID
                 title: title.trim(),
                 description: description.trim(),
                 blockId,
