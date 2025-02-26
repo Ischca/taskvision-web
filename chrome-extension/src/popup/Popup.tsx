@@ -23,19 +23,53 @@ const Popup: React.FC = () => {
             setTaskTitle(tab.title || '');
         });
 
-        // 選択されたテキストを取得
-        chrome.tabs.executeScript({
-            code: 'window.getSelection().toString();',
-        }, (selection: string[]) => {
-            if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError);
-                return;
+        // 選択されたテキストを取得（Manifest V3対応版）
+        if (chrome.scripting) {
+            // Manifest V3
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs[0].id) {
+                    try {
+                        chrome.scripting.executeScript({
+                            target: { tabId: tabs[0].id },
+                            func: () => window.getSelection()?.toString() || '',
+                        }, (result) => {
+                            if (chrome.runtime.lastError) {
+                                console.error(chrome.runtime.lastError);
+                                return;
+                            }
+                            if (result && result[0] && result[0].result) {
+                                setSelectedText(result[0].result);
+                                if (result[0].result.trim() !== '') {
+                                    setTaskDescription(result[0].result);
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error('実行エラー:', e);
+                    }
+                }
+            });
+        } else {
+            // 以前のバージョンとの互換性のために残す（通常は実行されない）
+            try {
+                chrome.tabs.executeScript({
+                    code: 'window.getSelection().toString();',
+                }, (selection: string[]) => {
+                    if (chrome.runtime.lastError) {
+                        // エラーがあるが、無視して処理を続行
+                        return;
+                    }
+                    if (selection && selection[0]) {
+                        setSelectedText(selection[0]);
+                        if (selection[0].trim() !== '') {
+                            setTaskDescription(selection[0]);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('executeScript error:', e);
             }
-            if (selection && selection[0]) {
-                setSelectedText(selection[0]);
-                setTaskDescription(selection[0]);
-            }
-        });
+        }
 
         // 認証状態を監視
         const unsubscribe = onAuthStateChanged(auth, (user) => {

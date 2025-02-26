@@ -36,18 +36,46 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 // メッセージリスナー
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSelectedText') {
-    chrome.tabs.executeScript(
-      {
-        code: 'window.getSelection().toString();',
-      },
-      (selection) => {
-        if (chrome.runtime.lastError) {
-          sendResponse({ error: chrome.runtime.lastError.message });
-        } else {
-          sendResponse({ text: selection && selection[0] ? selection[0] : '' });
+    // Manifest V3対応
+    if (chrome.scripting && request.tabId) {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: request.tabId },
+          func: () => window.getSelection()?.toString() || '',
+        },
+        (results) => {
+          if (chrome.runtime.lastError) {
+            sendResponse({ error: chrome.runtime.lastError.message });
+          } else {
+            const text = results && results[0] ? results[0].result : '';
+            sendResponse({ text });
+          }
         }
+      );
+      return true; // 非同期レスポンスを示すために true を返す
+    } else {
+      // 後方互換性のため残す
+      try {
+        chrome.tabs.executeScript(
+          {
+            code: 'window.getSelection().toString();',
+          },
+          (selection) => {
+            if (chrome.runtime.lastError) {
+              sendResponse({ error: chrome.runtime.lastError.message });
+            } else {
+              sendResponse({
+                text: selection && selection[0] ? selection[0] : '',
+              });
+            }
+          }
+        );
+        return true; // 非同期レスポンスを示すために true を返す
+      } catch (e) {
+        sendResponse({ error: 'Script execution failed' });
+        return false;
       }
-    );
-    return true; // 非同期レスポンスを示すために true を返す
+    }
   }
+  return false;
 });
