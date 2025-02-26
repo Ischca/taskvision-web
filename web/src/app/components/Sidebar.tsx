@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Block, Task } from "@/types";
-import { CheckCircleIcon, ClockIcon, ExclamationCircleIcon, LinkIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon, ClockIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
 interface SidebarProps {
@@ -98,13 +98,6 @@ const Sidebar: React.FC<SidebarProps> = ({ blocks, tasks }) => {
                     className="text-primary text-sm hover:underline block"
                 >
                     ブロック管理画面へ
-                </Link>
-                <Link
-                    href="/integrations"
-                    className="text-primary text-sm hover:underline flex items-center justify-center mt-2"
-                >
-                    <LinkIcon className="h-4 w-4 mr-1" />
-                    連携サービス設定
                 </Link>
             </div>
         </div>
