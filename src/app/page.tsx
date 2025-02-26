@@ -302,9 +302,14 @@ export default function Home() {
     );
   }
 
+  // 認証状態のチェックをより厳格に
+  const isAuthenticated = userId !== null && userId !== undefined && userId !== '';
+
+  console.log('認証状態:', { isAuthenticated, userId, authLoading });
+
   return (
     <div className="container mx-auto max-w-7xl">
-      {userId ? renderTaskManagement() : renderLoginPromotion()}
+      {isAuthenticated ? renderTaskManagement() : renderLoginPromotion()}
     </div>
   );
 }
