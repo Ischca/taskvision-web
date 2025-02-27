@@ -13,6 +13,10 @@ on:
         default: false
         type: boolean
 
+# リポジトリ全体のワークフローに対する権限を設定
+permissions:
+  contents: write
+
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -81,6 +85,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
 
@@ -147,3 +153,4 @@ jobs:
 
             または開発者モードでインストールする場合は、unpacked版を使用してください。
           token: ${{ secrets.GITHUB_TOKEN }}
+          replacesArtifacts: true
