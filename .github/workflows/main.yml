@@ -118,6 +118,7 @@ jobs:
         run: |
           cd chrome-extension
           CI=true npm run package
+          ls -la # ファイルの存在を確認
 
       - name: Upload CRX/ZIP Artifact
         uses: actions/upload-artifact@v4
@@ -125,7 +126,7 @@ jobs:
           name: chrome-extension-package
           path: |
             chrome-extension/taskvision-chrome-extension.crx
-            chrome-extension/extension.zip
+            chrome-extension/taskvision-chrome-extension.zip
           retention-days: 7
 
       - name: Upload Unpacked Extension
@@ -141,7 +142,7 @@ jobs:
         with:
           tag: v${{ steps.get_version.outputs.version }}
           name: TaskVision Extension v${{ steps.get_version.outputs.version }}
-          artifacts: 'chrome-extension/taskvision-chrome-extension.crx,chrome-extension/extension.zip'
+          artifacts: 'chrome-extension/taskvision-chrome-extension.crx,chrome-extension/taskvision-chrome-extension.zip'
           body: |
             TaskVision Chrome拡張機能の最新ビルドです。
 

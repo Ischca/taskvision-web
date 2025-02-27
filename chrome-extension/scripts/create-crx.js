@@ -71,9 +71,16 @@ try {
     // Chromeコマンドラインでパッケージ化を実行
     execSync(`${chromePath} --pack-extension="${distDir}" --pack-extension-key="${pemFile}" ${noMessageBox}`);
     
+    // Chromeが生成したdist.crxファイルをtaskvision-chrome-extension.crxにコピー
+    const generatedCrxFile = distDir + '.crx';
+    if (fs.existsSync(generatedCrxFile)) {
+      fs.copyFileSync(generatedCrxFile, crxFile);
+      console.log(`CRXファイルをコピーしました: ${generatedCrxFile} -> ${crxFile}`);
+    }
+    
     // 成功メッセージ
     console.log(`\n✅ CRXパッケージ生成が完了しました！`);
-    console.log(`CRXファイルの場所: ${path.resolve(distDir + '.crx')}`);
+    console.log(`CRXファイルの場所: ${crxFile}`);
     
   } catch (error) {
     console.error('❌ Chromeでのパッケージ化に失敗しました:', error.message);
@@ -81,8 +88,9 @@ try {
     
     // 代替方法: ZIPファイルを作成
     console.log('拡張機能のZIPファイルを作成しています...');
-    execSync(`cd "${distDir}" && zip -r ../extension.zip *`);
-    console.log('✅ ZIPファイルが生成されました: extension.zip');
+    const zipFile = path.resolve(__dirname, '../taskvision-chrome-extension.zip');
+    execSync(`cd "${distDir}" && zip -r "${zipFile}" *`);
+    console.log(`✅ ZIPファイルが生成されました: ${zipFile}`);
   }
   
   // インストール方法のガイダンスを表示
