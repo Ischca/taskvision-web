@@ -1,3 +1,14 @@
+// Firebase認証関連
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../utils/firebase';
+
+// ウェブアプリのURLを環境変数から取得
+const webAppUrl =
+  process.env.NEXT_PUBLIC_WEB_APP_URL || 'https://task-vision.com';
+
+// 認証状態を監視
+let userAuthenticated = false;
+
 // コンテキストメニューを設定
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -11,10 +22,30 @@ chrome.runtime.onInstalled.addListener(() => {
     title: '現在のページをTaskVisionタスクに追加',
     contexts: ['page'],
   });
+
+  // 認証状態の監視を開始
+  startAuthStateObserver();
 });
+
+// 認証状態監視を開始
+function startAuthStateObserver() {
+  onAuthStateChanged(auth, (user) => {
+    userAuthenticated = !!user;
+    console.log(
+      '認証状態変更:',
+      userAuthenticated ? 'ログイン済み' : '未ログイン'
+    );
+  });
+}
 
 // コンテキストメニューのクリックイベントをハンドル
 chrome.contextMenus.onClicked.addListener((info, tab) => {
+  // 未ログイン状態の場合はログインページにリダイレクト
+  if (!userAuthenticated) {
+    chrome.tabs.create({ url: `${webAppUrl}/login` });
+    return;
+  }
+
   if (info.menuItemId === 'add-task' && info.selectionText) {
     chrome.tabs.create({
       url:
@@ -76,6 +107,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return false;
       }
     }
+  } else if (request.action === 'checkAuthState') {
+    // 認証状態を確認
+    sendResponse({ authenticated: userAuthenticated });
+    return false; // 同期レスポンス
   }
   return false;
 });

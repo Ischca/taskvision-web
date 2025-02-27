@@ -8,10 +8,12 @@
         "storage",
         "contextMenus",
         "tabs",
-        "scripting"
+        "scripting",
+        "identity"
     ],
     "host_permissions": [
-        "*://*/*"
+        "*://*/*",
+        "https://task-vision.com/*"
     ],
     "background": {
         "service_worker": "background.js"

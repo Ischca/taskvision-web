@@ -11,6 +11,10 @@ const Popup: React.FC = () => {
     const [taskDescription, setTaskDescription] = useState<string>('');
     const [selectedText, setSelectedText] = useState<string>('');
     const [message, setMessage] = useState<{ type: 'success' | 'error' | ''; text: string }>({ type: '', text: '' });
+    const [authChecking, setAuthChecking] = useState<boolean>(true);
+
+    // ウェブアプリのURLを環境変数から取得
+    const webAppUrl = process.env.NEXT_PUBLIC_WEB_APP_URL || 'https://task-vision.com';
 
     // 現在のタブ情報を取得
     useEffect(() => {
@@ -71,19 +75,31 @@ const Popup: React.FC = () => {
             }
         }
 
+        // ブラウザのFirebase認証状態を確認
+        setAuthChecking(true);
+
+        // バックグラウンドから認証状態を確認
+        chrome.runtime.sendMessage({ action: 'checkAuthState' }, (response) => {
+            if (chrome.runtime.lastError) {
+                console.error('バックグラウンド通信エラー:', chrome.runtime.lastError);
+            }
+        });
+
         // 認証状態を監視
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setCurrentUser(user);
+            setAuthChecking(false);
         });
 
         return () => unsubscribe();
     }, []);
 
-    // Googleでログイン
+    // ログイン処理 - ウェブ版にリダイレクト
     const handleLogin = async () => {
         try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            // ウェブアプリのログインページにリダイレクト
+            chrome.tabs.create({ url: `${webAppUrl}/login` });
+            window.close(); // ポップアップを閉じる
         } catch (error) {
             console.error('ログインエラー:', error);
             setMessage({ type: 'error', text: 'ログインに失敗しました。' });
@@ -141,6 +157,23 @@ const Popup: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // 認証チェック中の表示
+    if (authChecking) {
+        return (
+            <div className="p-4">
+                <header className="flex justify-center items-center mb-4">
+                    <h1 className="text-xl font-bold">TaskVision</h1>
+                </header>
+                <div className="text-center py-6">
+                    <div className="flex justify-center mb-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                    <p className="text-gray-600">ログイン状態を確認中...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4">
@@ -234,7 +267,7 @@ const Popup: React.FC = () => {
                         onClick={handleLogin}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                        Googleでログイン
+                        TaskVision Webでログイン
                     </button>
                 </div>
             )}
