@@ -1,6 +1,6 @@
 {
     "name": "taskvision-chrome-extension",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "TaskVision Chrome Extension - ウェブページからタスクを簡単に追加",
     "main": "index.js",
     "scripts": {
