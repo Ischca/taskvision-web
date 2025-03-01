@@ -23,8 +23,12 @@ jobs:
     outputs:
       web-changed: ${{ steps.filter.outputs.web }}
       extension-changed: ${{ steps.filter.outputs.extension }}
+      extension-version-changed: ${{ steps.check_extension_version.outputs.version_changed }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # すべての履歴を取得
+
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -35,6 +39,30 @@ jobs:
             extension:
               - 'chrome-extension/**'
               - '.github/workflows/main.yml'
+
+      - name: Check extension version change
+        id: check_extension_version
+        if: ${{ steps.filter.outputs.extension == 'true' }}
+        run: |
+          # 現在のブランチまたはPRの変更を確認
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+            HEAD_SHA=${{ github.event.pull_request.head.sha }}
+          else
+            BASE_SHA=$(git rev-parse HEAD~1)
+            HEAD_SHA=$(git rev-parse HEAD)
+          fi
+
+          # package.jsonのバージョン変更を確認
+          CHANGED=$(git diff $BASE_SHA $HEAD_SHA -- chrome-extension/package.json | grep '"version"')
+
+          if [[ ! -z "$CHANGED" ]]; then
+            echo "Extension version changed in package.json"
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "Extension version not changed in package.json"
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
 
   build-web:
     needs: detect-changes
@@ -81,7 +109,7 @@ jobs:
 
   build-extension:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.extension-changed == 'true' }}
+    if: ${{ needs.detect-changes.outputs.extension-version-changed == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_version.outputs.version }}
