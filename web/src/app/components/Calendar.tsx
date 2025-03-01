@@ -80,12 +80,12 @@ const Calendar: FC<CalendarProps> = ({
             <div className="flex flex-col items-center h-full w-full">
                 <div
                     className={`flex justify-center items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full mb-1 ${isSelected(day)
-                            ? 'bg-primary-500 text-white'
-                            : isSunday
-                                ? 'text-red-500'
-                                : isSaturday
-                                    ? 'text-blue-500'
-                                    : ''
+                        ? 'bg-primary-500 text-white'
+                        : isSunday
+                            ? 'text-red-500'
+                            : isSaturday
+                                ? 'text-blue-500'
+                                : ''
                         }`}
                 >
                     {day.getDate()}
@@ -98,8 +98,8 @@ const Calendar: FC<CalendarProps> = ({
                             <div
                                 key={i}
                                 className={`text-xs truncate rounded px-1 py-0.5 mb-0.5 ${task.status === 'done'
-                                        ? 'line-through text-gray-500 bg-gray-100'
-                                        : 'bg-primary-100 text-primary-800'
+                                    ? 'line-through text-gray-500 bg-gray-100'
+                                    : 'bg-primary-100 text-primary-800'
                                     }`}
                             >
                                 {task.title}
@@ -125,8 +125,8 @@ const Calendar: FC<CalendarProps> = ({
                     <button
                         onClick={onPrevMonth}
                         className={`p-1.5 sm:p-2 rounded-full ${isDark
-                                ? 'hover:bg-gray-700 text-gray-300'
-                                : 'hover:bg-gray-100 text-gray-700'
+                            ? 'hover:bg-gray-700 text-gray-300'
+                            : 'hover:bg-gray-100 text-gray-700'
                             }`}
                     >
                         <ChevronLeftIcon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -134,8 +134,8 @@ const Calendar: FC<CalendarProps> = ({
                     <button
                         onClick={onNextMonth}
                         className={`p-1.5 sm:p-2 rounded-full ${isDark
-                                ? 'hover:bg-gray-700 text-gray-300'
-                                : 'hover:bg-gray-100 text-gray-700'
+                            ? 'hover:bg-gray-700 text-gray-300'
+                            : 'hover:bg-gray-100 text-gray-700'
                             }`}
                     >
                         <ChevronRightIcon className="h-4 w-4 sm:h-5 sm:w-5" />
