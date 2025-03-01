@@ -1,0 +1,38 @@
+{
+    "popup": {
+        "title": "TaskVision",
+        "login": "Login",
+        "logout": "Logout",
+        "taskTitle": "Task Title",
+        "taskDescription": "Task Description",
+        "addTask": "Add Task",
+        "successMessage": "Task has been added",
+        "errorMessage": "An error occurred",
+        "webAppLink": "Open Web App",
+        "pageInfo": "Current Page Info",
+        "placeholderTitle": "Enter title",
+        "placeholderDescription": "Enter description",
+        "selectedText": "Selected Text",
+        "priority": "Priority",
+        "priorityOptions": {
+            "low": "Low",
+            "medium": "Medium",
+            "high": "High"
+        },
+        "dueDate": "Due Date"
+    },
+    "options": {
+        "title": "Settings",
+        "language": "Language",
+        "theme": "Theme",
+        "save": "Save",
+        "reset": "Reset"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+    }
+}

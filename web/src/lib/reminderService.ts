@@ -94,9 +94,9 @@ export const createReminder = async (
         break;
     }
 
-    const reminder: Omit<Reminder, 'id'> = {
+    // blockIdが未定義の場合は除外する
+    const reminderData: Omit<Reminder, 'id'> = {
       taskId,
-      blockId: blockId || undefined,
       type,
       time: time.toISOString(),
       message,
@@ -104,7 +104,12 @@ export const createReminder = async (
       minutesBefore: 0, // 実際の分数は計算して設定
     };
 
-    const docRef = await addDoc(collection(db, 'reminders'), reminder);
+    // blockIdが定義されている場合のみ追加
+    if (blockId) {
+      reminderData.blockId = blockId;
+    }
+
+    const docRef = await addDoc(collection(db, 'reminders'), reminderData);
     console.log('リマインダーを作成しました:', docRef.id);
     return docRef.id;
   } catch (error) {

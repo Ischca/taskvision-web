@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/firebase";
 import {
   collection,
@@ -8,13 +8,16 @@ import {
   where,
   onSnapshot,
   orderBy,
+  doc,
+  updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { Task, Block } from "@/types";
 import { useAuth } from "./components/AuthProvider";
 import Link from "next/link";
-
-// 既存コンポーネントのインポート
-import TaskList from "./components/TaskList";
+import { useRouter } from "next/navigation";
+import { useTheme } from "./components/ThemeProvider";
+import { useMessages } from '@/app/hooks/useMessages';
 import Sidebar from "./components/Sidebar";
 import GlobalTaskAddButton from "./components/GlobalTaskAddButton";
 import BlockList from "./components/BlockList";
@@ -27,6 +30,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { userId, loading: authLoading } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const { theme } = useTheme();
+  const { t } = useMessages();
 
   // 日付を1日進める
   const goToNextDay = () => {
@@ -53,18 +58,15 @@ export default function Home() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const dateObj = new Date(dateString);
-    dateObj.setHours(0, 0, 0, 0);
-
-    const diffTime = dateObj.getTime() - today.getTime();
+    const diffTime = date.getTime() - today.getTime();
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
     let prefix = '';
-    if (diffDays === 0) prefix = '今日 - ';
-    else if (diffDays === 1) prefix = '明日 - ';
-    else if (diffDays === -1) prefix = '昨日 - ';
+    if (diffDays === 0) prefix = `${t('common.dates.today')} - `;
+    else if (diffDays === 1) prefix = `${t('common.dates.tomorrow')} - `;
+    else if (diffDays === -1) prefix = `${t('common.dates.yesterday')} - `;
 
-    return `${prefix}${date.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })}`;
+    return `${prefix}${date.toLocaleDateString(t('common.locale') || 'ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })}`;
   };
 
   // ユーザーIDが利用可能になったら、タスクとブロックをフェッチ

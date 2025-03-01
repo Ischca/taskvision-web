@@ -35,6 +35,9 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
     // テーマの更新を適用する関数
     const updateTheme = (newTheme: string) => {
+        // デバッグのために前の状態を記録
+        console.log("更新前のHTML classes:", document.documentElement.className);
+
         // 現在のクラスをリセット
         document.documentElement.classList.remove("dark", "light");
 
@@ -45,38 +48,67 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
         document.documentElement.setAttribute("data-theme", newTheme);
         document.documentElement.style.colorScheme = newTheme;
 
-        // ダークモード用のクラスをbodyから削除（Tailwindの動作のため）
+        // メタタグを動的に更新
+        let themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (!themeColorMeta) {
+            themeColorMeta = document.createElement('meta');
+            themeColorMeta.setAttribute('name', 'theme-color');
+            document.head.appendChild(themeColorMeta);
+        }
+        themeColorMeta.setAttribute('content', newTheme === 'dark' ? '#1f2937' : '#ffffff');
+
+        // ダークモード用のクラスをbodyに適用
         if (newTheme === 'dark') {
+            document.documentElement.classList.add('dark');
             document.body.classList.add('dark-mode');
             document.body.classList.remove('light-mode');
+            document.body.classList.add('bg-gray-900', 'text-gray-100');
+            document.body.classList.remove('bg-white', 'text-gray-900');
         } else {
+            document.documentElement.classList.remove('dark');
             document.body.classList.add('light-mode');
             document.body.classList.remove('dark-mode');
+            document.body.classList.add('bg-white', 'text-gray-900');
+            document.body.classList.remove('bg-gray-900', 'text-gray-100');
         }
+
+        // スタイルシートの再計算を強制するハック
+        // これによりブラウザが再計算を強制されTailwindのダークモードが即座に反映される
+        const tempStyle = document.createElement('style');
+        document.head.appendChild(tempStyle);
+        document.head.removeChild(tempStyle);
 
         // デバッグ情報
         console.log(`テーマ適用完了: ${newTheme}`);
-        console.log("HTML classes:", document.documentElement.className);
+        console.log("更新後のHTML classes:", document.documentElement.className);
+    };
+
+    // システムのカラースキーム設定を取得する関数
+    const getSystemTheme = () => {
+        if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+        }
+        return 'light';
     };
 
     // 初期化時にテーマを設定
     useEffect(() => {
         setMounted(true);
         try {
-            // ストレージから保存されたテーマを取得するか、デフォルトとしてlightを使用
-            let storedTheme = "light";
+            // ストレージから保存されたテーマを取得
+            let storedTheme = null;
             try {
-                const saved = localStorage.getItem("theme");
-                if (saved) {
-                    storedTheme = saved;
-                }
+                storedTheme = localStorage.getItem("theme");
             } catch (e) {
                 console.warn("ローカルストレージへのアクセスエラー:", e);
             }
 
-            console.log("初期テーマを設定します:", storedTheme);
-            setTheme(storedTheme);
-            updateTheme(storedTheme);
+            // ユーザーが明示的に設定したテーマがあればそれを使用、なければシステム設定を使用
+            const initialTheme = storedTheme || getSystemTheme();
+
+            console.log("初期テーマを設定します:", initialTheme);
+            setTheme(initialTheme);
+            updateTheme(initialTheme);
         } catch (e) {
             console.error("テーマ初期化エラー:", e);
             // エラー時はデフォルトテーマを適用
@@ -84,6 +116,31 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
             updateTheme("light");
         }
     }, []);
+
+    // システムテーマの変更を監視するが、ユーザーが明示的に設定した場合は無視
+    useEffect(() => {
+        if (!mounted) return;
+
+        // システムテーマの変更を監視
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+            const userTheme = localStorage.getItem("theme");
+            // ユーザーが明示的にテーマを設定していない場合のみシステムテーマを適用
+            if (!userTheme) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                console.log("システムテーマが変更されました:", newTheme);
+                setTheme(newTheme);
+                updateTheme(newTheme);
+            }
+        };
+
+        mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+        return () => {
+            mediaQuery.removeEventListener('change', handleSystemThemeChange);
+        };
+    }, [mounted]);
 
     // テーマが変更されたときの処理
     useEffect(() => {

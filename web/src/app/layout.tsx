@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
-import Header from "./components/Header";
-import ThemeProvider from "./components/ThemeProvider";
-import AuthProvider from "./components/AuthProvider";
-import PWAComponents from "@/app/components/PWAComponents";
 
 // M PLUS Rounded 1c フォントの設定
 const mPlusRounded = M_PLUS_Rounded_1c({
@@ -31,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-    colorScheme: 'light',
+    colorScheme: 'dark light',
 };
 
 export default function RootLayout({
@@ -40,30 +36,15 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="ja" className="light" suppressHydrationWarning>
+        <html lang="ja" suppressHydrationWarning>
             <head>
-                <meta name="color-scheme" content="light" />
-                <meta name="theme-color" content="#ffffff" />
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
                 <meta name="apple-mobile-web-app-title" content="TaskVision" />
                 <link rel="apple-touch-icon" href="/icons/apple-icon-180.png" />
             </head>
-            <body className={`${mPlusRounded.variable} font-sans bg-white text-gray-900`}>
-                <AuthProvider>
-                    <ThemeProvider>
-                        <PWAComponents />
-                        <div className="flex flex-col min-h-screen">
-                            <Header />
-                            <main className="flex-grow py-6 px-4 md:px-6 lg:px-8 bg-gray-50">
-                                {children}
-                            </main>
-                            <footer className="bg-white shadow-sm py-4 px-4 md:px-6 lg:px-8 text-center text-sm text-gray-500">
-                                <p>© {new Date().getFullYear()} TaskVision - シンプルで使いやすいタスク管理ツール</p>
-                            </footer>
-                        </div>
-                    </ThemeProvider>
-                </AuthProvider>
+            <body className={`${mPlusRounded.variable} font-sans`} suppressHydrationWarning>
+                {children}
             </body>
         </html>
     );

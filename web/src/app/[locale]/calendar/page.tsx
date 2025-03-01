@@ -9,14 +9,40 @@ import TaskItem from "@/app/components/TaskItem";
 import UnassignedTasksSection from "@/app/components/UnassignedTasksSection";
 import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
+import { useMessages } from "@/app/hooks/useMessages";
 
 export default function CalendarPage() {
+    const { messages } = useMessages();
     const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedDateTasks, setSelectedDateTasks] = useState<Task[]>([]);
+
+    // messagesからテキストを取得するヘルパー関数
+    const t = (key: string) => {
+        try {
+            if (!messages) {
+                return key;
+            }
+
+            const parts = key.split('.');
+            let current = messages;
+
+            for (const part of parts) {
+                if (current && typeof current === 'object' && part in current) {
+                    current = (current as any)[part];
+                } else {
+                    return key;
+                }
+            }
+
+            return current && typeof current === 'string' ? current : key;
+        } catch (error) {
+            return key;
+        }
+    };
 
     // 月の最初と最後の日を取得
     const getMonthRange = (date: Date) => {
@@ -118,8 +144,8 @@ export default function CalendarPage() {
         <div className="container mx-auto max-w-4xl px-4 sm:px-6 py-4 sm:py-8" onDragOver={handleDragOver}>
             <div className="flex flex-col space-y-6">
                 {/* カレンダーヘッダー */}
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6">
-                    <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-0">カレンダー</h1>
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-0">
+                    <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-0">{t('calendar.title')}</h1>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={goToPreviousMonth}
@@ -128,7 +154,7 @@ export default function CalendarPage() {
                             <ChevronLeftIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                         <span className="text-base sm:text-lg font-medium">
-                            {currentMonth.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
+                            {currentMonth.toLocaleDateString(t('common.locale') || 'ja-JP', { year: 'numeric', month: 'long' })}
                         </span>
                         <button
                             onClick={goToNextMonth}
@@ -141,7 +167,7 @@ export default function CalendarPage() {
                             className="ml-2 px-3 py-1 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-50 border border-primary-300 rounded-md flex items-center"
                         >
                             <ArrowPathIcon className="h-4 w-4 mr-1" />
-                            今日
+                            {t('calendar.today')}
                         </button>
                     </div>
                 </div>
@@ -172,11 +198,11 @@ export default function CalendarPage() {
                         <h2 className="text-lg font-medium">
                             {selectedDate ? (
                                 <>
-                                    {selectedDate.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'long' })}
-                                    のタスク
+                                    {selectedDate.toLocaleDateString(t('common.locale') || 'ja-JP', { month: 'long', day: 'numeric', weekday: 'long' })}
+                                    {t('calendar.tasksForDay')}
                                 </>
                             ) : (
-                                '日付を選択してください'
+                                t('calendar.selectDate')
                             )}
                         </h2>
                     </div>
@@ -185,7 +211,7 @@ export default function CalendarPage() {
                         {loading ? (
                             <div className="p-8 text-center">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                                <p className="mt-2 text-gray-600">タスクを読み込み中...</p>
+                                <p className="mt-2 text-gray-600">{t('calendar.loadingTasks')}</p>
                             </div>
                         ) : selectedDateTasks.length > 0 ? (
                             <div>
@@ -197,7 +223,7 @@ export default function CalendarPage() {
                             </div>
                         ) : (
                             <div className="p-8 text-center text-gray-500">
-                                {selectedDate ? 'この日のタスクはありません' : '日付を選択してタスクを表示'}
+                                {selectedDate ? t('calendar.noTasksForDay') : t('calendar.selectDateToViewTasks')}
                             </div>
                         )}
                     </div>

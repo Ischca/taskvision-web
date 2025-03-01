@@ -1,8 +1,9 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "./ThemeProvider";
+import { useMessages } from '@/app/hooks/useMessages';
 
 interface DatePickerProps {
     selectedDate: Date;
@@ -17,6 +18,7 @@ const DatePicker: FC<DatePickerProps> = ({
 }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
     const { theme } = useTheme();
+    const { t } = useMessages();
     const isDark = theme === "dark";
 
     // 月の日数を取得
@@ -135,8 +137,10 @@ const DatePicker: FC<DatePickerProps> = ({
         );
     };
 
-    // 曜日の表示
-    const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+    // 曜日の表示 - 国際化対応
+    const weekdays = t('common.locale') === 'en-US'
+        ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        : ["日", "月", "火", "水", "木", "金", "土"];
 
     const calendarDays = generateCalendarDays();
 
@@ -150,7 +154,7 @@ const DatePicker: FC<DatePickerProps> = ({
                     <ChevronLeftIcon className="h-5 w-5 text-gray-500" />
                 </button>
                 <h3 className="text-sm sm:text-base font-medium">
-                    {currentMonth.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' })}
+                    {currentMonth.toLocaleDateString(t('common.locale') || 'ja-JP', { year: 'numeric', month: 'long' })}
                 </h3>
                 <button
                     onClick={goToNextMonth}
@@ -217,13 +221,13 @@ const DatePicker: FC<DatePickerProps> = ({
                     }}
                     className="px-2 py-1 text-xs sm:text-sm text-primary-600 hover:bg-primary-50 rounded"
                 >
-                    今日
+                    {t('common.buttons.today')}
                 </button>
                 <button
                     onClick={onClose}
                     className="px-2 py-1 text-xs sm:text-sm text-gray-600 hover:bg-gray-100 rounded"
                 >
-                    閉じる
+                    {t('common.buttons.close')}
                 </button>
             </div>
         </div>

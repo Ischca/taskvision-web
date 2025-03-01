@@ -1,0 +1,82 @@
+{
+    "app": {
+        "title": "TaskVision",
+        "description": "Efficient Task Management Tool"
+    },
+    "navigation": {
+        "home": "Home",
+        "calendar": "Calendar",
+        "profile": "Profile",
+        "blockManage": "Manage Blocks",
+        "help": "Help",
+        "installApp": "Install App"
+    },
+    "actions": {
+        "login": "Login",
+        "logout": "Logout",
+        "signup": "Sign Up",
+        "save": "Save",
+        "cancel": "Cancel",
+        "add": "Add",
+        "edit": "Edit",
+        "delete": "Delete",
+        "create": "Create"
+    },
+    "auth": {
+        "loginWithGoogle": "Login with Google",
+        "loginRequired": "Login required",
+        "registerSuccess": "Registration successful",
+        "loginSuccess": "Login successful",
+        "logoutSuccess": "Logout successful"
+    },
+    "user": {
+        "anonymous": "User",
+        "profile": "Profile",
+        "settings": "Settings"
+    },
+    "tasks": {
+        "task": "Task",
+        "tasks": "Tasks",
+        "addTask": "Add Task",
+        "editTask": "Edit Task",
+        "title": "Title",
+        "description": "Description",
+        "dueDate": "Due Date",
+        "priority": "Priority",
+        "status": "Status",
+        "unassigned": "Unassigned Tasks",
+        "completed": "Completed Tasks",
+        "incomplete": "Incomplete Tasks"
+    },
+    "blocks": {
+        "block": "Block",
+        "blocks": "Blocks",
+        "addBlock": "Add Block",
+        "editBlock": "Edit Block",
+        "name": "Name",
+        "time": "Time"
+    },
+    "dates": {
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "yesterday": "Yesterday",
+        "nextDay": "Next Day",
+        "previousDay": "Previous Day"
+    },
+    "validation": {
+        "required": "This field is required",
+        "invalidInput": "Invalid input"
+    },
+    "messages": {
+        "welcome": "Welcome to TaskVision",
+        "loginPrompt": "Please login to use the features",
+        "taskAdded": "Task has been added",
+        "taskUpdated": "Task has been updated",
+        "taskDeleted": "Task has been deleted",
+        "error": "An error occurred"
+    },
+    "theme": {
+        "switchToDark": "Switch to dark mode",
+        "switchToLight": "Switch to light mode"
+    }
+}

@@ -13,6 +13,8 @@ import {
     BellIcon
 } from "@heroicons/react/24/outline";
 import { useAuth } from "./AuthProvider";
+import { useParams } from "next/navigation";
+import { loadMessages } from "../components/i18n";
 
 // プロパティの型定義
 type BlockListProps = {
@@ -26,6 +28,46 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
     const [expandedBlocks, setExpandedBlocks] = useState<{ [key: string]: boolean }>({});
     const [dragOverBlock, setDragOverBlock] = useState<string | null>(null);
     const { userId } = useAuth();
+    const params = useParams();
+    const locale = (params?.locale as string) || 'ja';
+
+    // i18n用のメッセージ取得
+    const [messages, setMessages] = useState<Record<string, any>>({});
+    const [messagesLoading, setMessagesLoading] = useState(true);
+
+    // messagesから直接テキストを取得するヘルパー関数
+    const t = (key: string) => {
+        try {
+            // common.key形式のキーを処理
+            const parts = key.split('.');
+            let current = messages;
+
+            for (const part of parts) {
+                if (current && typeof current === 'object' && part in current) {
+                    current = current[part];
+                } else {
+                    return key; // キーが見つからない場合はキー自体を返す
+                }
+            }
+
+            return current && typeof current === 'string' ? current : key;
+        } catch (error) {
+            console.error('Translation error:', error);
+            return key; // エラーが発生した場合はキー自体を返す
+        }
+    };
+
+    // メッセージを読み込む
+    useEffect(() => {
+        const fetchMessages = async () => {
+            setMessagesLoading(true);
+            const loadedMessages = await loadMessages(locale);
+            setMessages(loadedMessages);
+            setMessagesLoading(false);
+        };
+
+        fetchMessages();
+    }, [locale]);
 
     // 現在のブロックを判定（時間ベース）
     const getCurrentBlock = (): string | null => {
@@ -162,11 +204,11 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
 
                                     <div className="flex items-center">
                                         <span className="text-sm text-gray-500 mr-2">
-                                            {blockTasks.length}件
+                                            {blockTasks.length}{t('common.tasks.items')}
                                         </span>
                                         <button
                                             className="p-1.5 rounded-full hover:bg-gray-100"
-                                            aria-label={isExpanded ? "折りたたむ" : "展開する"}
+                                            aria-label={isExpanded ? t('common.blocks.collapse') : t('common.blocks.expand')}
                                         >
                                             {isExpanded ? (
                                                 <ChevronUpIcon className="h-5 w-5 text-gray-500" />
@@ -198,7 +240,7 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
 
                                 {blockTasks.length === 0 && (
                                     <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm italic">
-                                        このブロックにタスクはありません。タスクをここにドラッグしてください。
+                                        {t('common.blocks.noTasksInBlock')}
                                     </div>
                                 )}
                             </div>
@@ -210,9 +252,9 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
             {blocks.length === 0 && (
                 <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                     <ExclamationCircleIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500 dark:text-gray-400 mb-2">ブロックが設定されていません</p>
+                    <p className="text-gray-500 dark:text-gray-400 mb-2">{t('common.blocks.noBlocks')}</p>
                     <p className="text-sm text-gray-400 dark:text-gray-500">
-                        ブロック管理画面からブロックを作成してください
+                        {t('common.blocks.createBlocksPrompt')}
                     </p>
                 </div>
             )}

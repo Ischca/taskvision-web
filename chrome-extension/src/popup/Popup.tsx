@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Popup: React.FC = () => {
+    const { t } = useTranslation();
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [pageInfo, setPageInfo] = useState<{ title: string; url: string }>({ title: '', url: '' });
     const [loading, setLoading] = useState<boolean>(false);
@@ -99,178 +102,178 @@ const Popup: React.FC = () => {
         try {
             // ウェブアプリのログインページにリダイレクト
             chrome.tabs.create({ url: `${webAppUrl}/login` });
-            window.close(); // ポップアップを閉じる
         } catch (error) {
             console.error('ログインエラー:', error);
-            setMessage({ type: 'error', text: 'ログインに失敗しました。' });
+            setMessage({
+                type: 'error',
+                text: t('popup.errorMessage')
+            });
         }
     };
 
-    // ログアウト
-    const handleLogout = async () => {
-        try {
-            await auth.signOut();
-            setMessage({ type: 'success', text: 'ログアウトしました。' });
-        } catch (error) {
-            console.error('ログアウトエラー:', error);
-            setMessage({ type: 'error', text: 'ログアウトに失敗しました。' });
-        }
-    };
-
-    // タスクを作成
-    const createTask = async () => {
-        if (!currentUser) {
-            setMessage({ type: 'error', text: 'タスクを作成するにはログインしてください。' });
-            return;
-        }
-
+    // タスク追加処理
+    const handleAddTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!currentUser) return;
         if (!taskTitle.trim()) {
-            setMessage({ type: 'error', text: 'タスク名は必須です。' });
+            setMessage({
+                type: 'error',
+                text: t('validation.required')
+            });
             return;
         }
 
         setLoading(true);
+
         try {
-            await addDoc(collection(db, 'tasks'), {
-                userId: currentUser.uid,
+            const taskData = {
                 title: taskTitle,
                 description: taskDescription,
-                status: 'open',
-                blockId: null,
-                date: null,
-                createdAt: serverTimestamp(),
-                source: {
-                    type: 'chrome_extension',
-                    url: pageInfo.url,
-                    pageTitle: pageInfo.title,
-                    capturedAt: new Date().toISOString(),
-                },
+                sourceUrl: pageInfo.url,
+                sourcePage: pageInfo.title,
+                status: 'todo',
+                userId: currentUser.uid,
+                created: serverTimestamp(),
+                updated: serverTimestamp(),
+                dueDate: null,
+                priority: 'medium',
+                date: new Date(),
+                blockId: null
+            };
+
+            await addDoc(collection(db, 'tasks'), taskData);
+
+            setMessage({
+                type: 'success',
+                text: t('popup.successMessage')
             });
 
-            setMessage({ type: 'success', text: 'タスクを作成しました！' });
-            setTaskTitle('');
-            setTaskDescription('');
+            // フォームリセット
+            setTaskTitle(pageInfo.title);
+            setTaskDescription(selectedText || '');
         } catch (error) {
-            console.error('タスク作成エラー:', error);
-            setMessage({ type: 'error', text: 'タスクの作成に失敗しました。' });
+            console.error('タスク追加エラー:', error);
+            setMessage({
+                type: 'error',
+                text: t('popup.errorMessage')
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    // 認証チェック中の表示
+    // ウェブアプリを開く
+    const openWebApp = () => {
+        chrome.tabs.create({ url: webAppUrl });
+    };
+
+    // ローディング表示
     if (authChecking) {
         return (
-            <div className="p-4">
-                <header className="flex justify-center items-center mb-4">
-                    <h1 className="text-xl font-bold">TaskVision</h1>
-                </header>
-                <div className="text-center py-6">
-                    <div className="flex justify-center mb-4">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    </div>
-                    <p className="text-gray-600">ログイン状態を確認中...</p>
+            <div className="flex flex-col items-center justify-center min-h-[300px] p-4">
+                <div className="w-10 h-10 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
+                <p className="mt-4 text-gray-600">{t('common.loading')}</p>
+            </div>
+        );
+    }
+
+    // ログインしていない場合のUI
+    if (!currentUser) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[300px] p-4">
+                <h1 className="text-xl font-bold mb-4">{t('popup.title')}</h1>
+                <p className="mb-6 text-center text-gray-600">{t('messages.loginPrompt')}</p>
+                <button
+                    onClick={handleLogin}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                    {t('popup.login')}
+                </button>
+                <div className="mt-6">
+                    <LanguageSwitcher />
                 </div>
             </div>
         );
     }
 
+    // ログイン済みの場合のUI
     return (
-        <div className="p-4">
-            <header className="flex justify-between items-center mb-4">
-                <h1 className="text-xl font-bold">TaskVision</h1>
-                {currentUser ? (
+        <div className="p-4 max-w-md">
+            <div className="flex justify-between items-center mb-4">
+                <h1 className="text-xl font-bold">{t('popup.title')}</h1>
+                <div className="flex items-center space-x-2">
                     <button
-                        onClick={handleLogout}
-                        className="text-sm text-blue-600 hover:text-blue-800"
+                        onClick={openWebApp}
+                        className="text-xs text-blue-500 hover:text-blue-700"
                     >
-                        ログアウト
+                        {t('popup.webAppLink')}
                     </button>
-                ) : (
-                    <button
-                        onClick={handleLogin}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                        ログイン
-                    </button>
-                )}
-            </header>
+                    <LanguageSwitcher />
+                </div>
+            </div>
 
-            {message.text && (
-                <div
-                    className={`p-2 mb-3 rounded ${message.type === 'success'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}
-                >
+            {message.type && (
+                <div className={`mb-4 p-2 rounded text-sm ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
                     {message.text}
                 </div>
             )}
 
-            {currentUser ? (
-                <div>
-                    <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            タスク名
-                        </label>
-                        <input
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            value={taskTitle}
-                            onChange={(e) => setTaskTitle(e.target.value)}
-                            placeholder="タスク名を入力"
-                        />
-                    </div>
+            <div className="mb-4">
+                <h2 className="text-sm font-medium text-gray-600 mb-1">{t('popup.pageInfo')}</h2>
+                <p className="text-sm truncate">{pageInfo.title}</p>
+                <p className="text-xs truncate text-gray-500">{pageInfo.url}</p>
+            </div>
 
-                    <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            説明
-                        </label>
-                        <textarea
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            rows={3}
-                            value={taskDescription}
-                            onChange={(e) => setTaskDescription(e.target.value)}
-                            placeholder="説明を入力（選択したテキストが自動入力されます）"
-                        />
-                    </div>
+            <form onSubmit={handleAddTask}>
+                <div className="mb-3">
+                    <label htmlFor="taskTitle" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('popup.taskTitle')}
+                    </label>
+                    <input
+                        type="text"
+                        id="taskTitle"
+                        value={taskTitle}
+                        onChange={(e) => setTaskTitle(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder={t('popup.placeholderTitle')}
+                        required
+                    />
+                </div>
 
-                    <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            URL
-                        </label>
-                        <input
-                            type="text"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
-                            value={pageInfo.url}
-                            readOnly
-                        />
-                    </div>
+                <div className="mb-3">
+                    <label htmlFor="taskDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                        {t('popup.taskDescription')}
+                    </label>
+                    <textarea
+                        id="taskDescription"
+                        value={taskDescription}
+                        onChange={(e) => setTaskDescription(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        rows={4}
+                        placeholder={t('popup.placeholderDescription')}
+                    />
+                </div>
 
+                <div className="flex justify-between">
                     <button
-                        onClick={createTask}
+                        type="submit"
                         disabled={loading}
-                        className={`w-full py-2 px-4 rounded-md text-white ${loading
-                            ? 'bg-blue-400 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700'
+                        className={`px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''
                             }`}
                     >
-                        {loading ? 'タスク作成中...' : 'タスクを作成'}
+                        {loading ? (
+                            <span className="flex items-center">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                {t('common.loading')}
+                            </span>
+                        ) : t('popup.addTask')}
                     </button>
                 </div>
-            ) : (
-                <div className="text-center py-6">
-                    <p className="mb-4 text-gray-600">
-                        タスクを作成するには、ログインしてください。
-                    </p>
-                    <button
-                        onClick={handleLogin}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                        TaskVision Webでログイン
-                    </button>
-                </div>
-            )}
+            </form>
         </div>
     );
 };

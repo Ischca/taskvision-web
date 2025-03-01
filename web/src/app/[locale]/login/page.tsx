@@ -7,21 +7,61 @@ import {
     GoogleAuthProvider,
     signInWithPopup
 } from "firebase/auth";
-import { useAuth } from "../components/AuthProvider";
-import Link from "next/link";
+import { useAuth } from "@/app/components/AuthProvider";
+import { Link } from "@/app/components/Link";
+import { useParams } from "next/navigation";
+import { loadMessages } from "@/app/components/i18n";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { userId, loading } = useAuth();
+    const { userId, loading: authLoading } = useAuth();
     const [errorMessage, setErrorMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // i18n
+    const params = useParams();
+    const locale = (params?.locale as string) || 'ja';
+    const [messages, setMessages] = useState<Record<string, any>>({});
+    const [messagesLoading, setMessagesLoading] = useState(true);
+
+    // メッセージのロード
+    useEffect(() => {
+        const loadMessageData = async () => {
+            const loadedMessages = await loadMessages(locale);
+            setMessages(loadedMessages);
+            setMessagesLoading(false);
+        };
+        loadMessageData();
+    }, [locale]);
+
+    // 翻訳関数
+    const t = (key: string) => {
+        try {
+            // common.key形式またはauth.key形式のキーを処理
+            const parts = key.split('.');
+            let current = messages;
+
+            for (const part of parts) {
+                if (current && typeof current === 'object' && part in current) {
+                    current = current[part];
+                } else {
+                    return key; // キーが見つからない場合はキー自体を返す
+                }
+            }
+
+            return current && typeof current === 'string' ? current : key;
+        } catch (error) {
+            console.error('Translation error:', error);
+            return key; // エラーが発生した場合はキー自体を返す
+        }
+    };
+
     // ログイン済みの場合はホームにリダイレクト
     useEffect(() => {
-        if (!loading && userId) {
-            router.push("/");
+        if (!authLoading && userId) {
+            router.push(`/${locale}`);
         }
-    }, [loading, userId, router]);
+    }, [authLoading, userId, router, locale]);
 
     // Googleでログイン
     const handleGoogleLogin = async () => {
@@ -31,21 +71,21 @@ export default function LoginPage() {
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
-            router.push("/");
+            router.push(`/${locale}`);
         } catch (error: any) {
             console.error("Googleログインエラー:", error);
-            setErrorMessage("Googleログインに失敗しました。");
+            setErrorMessage(t('auth.errors.googleLoginFailed'));
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    if (loading) {
+    if (authLoading || messagesLoading) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <div className="text-center">
-                    <div className="loading loading-spinner loading-lg"></div>
-                    <p className="mt-4 text-lg">読み込み中...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                    <p className="mt-4 text-lg">{t('common.states.loading')}</p>
                 </div>
             </div>
         );
@@ -57,7 +97,7 @@ export default function LoginPage() {
                 <div className="text-center">
                     <h1 className="text-3xl font-bold">TaskVision</h1>
                     <h2 className="mt-6 text-2xl font-bold text-gray-900">
-                        アカウントにログイン
+                        {t('auth.login.title')}
                     </h2>
                 </div>
 
@@ -79,7 +119,7 @@ export default function LoginPage() {
                 <div className="mt-8">
                     <button
                         onClick={handleGoogleLogin}
-                        className="btn btn-primary w-full flex items-center justify-center"
+                        className="btn btn-primary w-full flex items-center justify-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
                         disabled={isSubmitting}
                     >
                         <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -100,17 +140,17 @@ export default function LoginPage() {
                                 fill="#EA4335"
                             />
                         </svg>
-                        Googleでログイン
+                        {t('auth.login.googleButton')}
                     </button>
 
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-600">
-                            アカウントをお持ちでないですか？{' '}
+                            {t('auth.login.noAccount')}{' '}
                             <Link
                                 href="/signup"
-                                className="text-primary-600 hover:text-primary-500"
+                                className="text-blue-600 hover:text-blue-500"
                             >
-                                新規登録
+                                {t('auth.login.signup')}
                             </Link>
                         </p>
                     </div>

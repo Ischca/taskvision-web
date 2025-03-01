@@ -17,8 +17,10 @@ import { Block } from "@/types";
 import { PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
+import { useMessages } from "@/app/hooks/useMessages";
 
 export default function BlockManagePage() {
+    const { messages } = useMessages();
     // 認証から実際のユーザーIDを取得
     const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
 
@@ -34,6 +36,30 @@ export default function BlockManagePage() {
     const [newBlockName, setNewBlockName] = useState("");
     const [newBlockStartTime, setNewBlockStartTime] = useState("09:00");
     const [newBlockEndTime, setNewBlockEndTime] = useState("10:00");
+
+    // messagesからテキストを取得するヘルパー関数
+    const t = (key: string) => {
+        try {
+            if (!messages) {
+                return key;
+            }
+
+            const parts = key.split('.');
+            let current = messages;
+
+            for (const part of parts) {
+                if (current && typeof current === 'object' && part in current) {
+                    current = (current as any)[part];
+                } else {
+                    return key;
+                }
+            }
+
+            return current && typeof current === 'string' ? current : key;
+        } catch (error) {
+            return key;
+        }
+    };
 
     // ブロック一覧を取得
     useEffect(() => {
@@ -96,7 +122,7 @@ export default function BlockManagePage() {
 
     // ブロックを削除
     const deleteBlock = async (blockId: string) => {
-        if (!window.confirm("このブロックを削除しますか？関連するタスクも未割り当てになります。")) {
+        if (!window.confirm(t('blocks.confirmDelete'))) {
             return;
         }
 
@@ -105,7 +131,7 @@ export default function BlockManagePage() {
             // 必要に応じて、ブロックに紐づくタスクを未割り当てにする処理を追加
         } catch (error) {
             console.error("Error deleting block:", error);
-            alert("ブロックの削除に失敗しました");
+            alert(t('blocks.errorDelete'));
         }
     };
 
@@ -123,14 +149,14 @@ export default function BlockManagePage() {
             setEditingBlock(null);
         } catch (error) {
             console.error("Error updating block:", error);
-            alert("ブロックの更新に失敗しました");
+            alert(t('blocks.errorUpdate'));
         }
     };
 
     // ブロックを追加
     const addBlock = async () => {
         if (newBlockName.trim() === "") {
-            alert("ブロック名を入力してください");
+            alert(t('blocks.emptyNameError'));
             return;
         }
 
@@ -154,16 +180,16 @@ export default function BlockManagePage() {
             setIsAddingBlock(false);
         } catch (error) {
             console.error("Error adding block:", error);
-            alert("ブロックの追加に失敗しました");
+            alert(t('blocks.errorAdd'));
         }
     };
 
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ブロック管理</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('blocks.title')}</h1>
                 <Link href="/" className="btn btn-outline">
-                    ホームに戻る
+                    {t('common.backToHome')}
                 </Link>
             </div>
 
@@ -174,11 +200,11 @@ export default function BlockManagePage() {
             ) : !userId ? (
                 <div className="card bg-base-100 shadow-xl">
                     <div className="card-body">
-                        <h2 className="card-title text-gray-800 dark:text-gray-200">ログインが必要です</h2>
-                        <p className="text-gray-600 dark:text-gray-400">ブロック管理機能を使用するにはログインしてください。</p>
+                        <h2 className="card-title text-gray-800 dark:text-gray-200">{t('common.loginRequired')}</h2>
+                        <p className="text-gray-600 dark:text-gray-400">{t('blocks.loginMessage')}</p>
                         <div className="card-actions justify-end mt-4">
                             <Link href="/login" className="btn btn-primary">
-                                ログイン画面へ
+                                {t('common.goToLogin')}
                             </Link>
                         </div>
                     </div>
@@ -186,7 +212,7 @@ export default function BlockManagePage() {
             ) : (
                 <div className="card bg-base-100 shadow-xl">
                     <div className="card-body">
-                        <h2 className="card-title text-gray-800 dark:text-gray-200">ブロック一覧</h2>
+                        <h2 className="card-title text-gray-800 dark:text-gray-200">{t('blocks.list')}</h2>
 
                         {loading ? (
                             <div className="flex justify-center items-center h-40">
@@ -197,10 +223,10 @@ export default function BlockManagePage() {
                                 <table className="table w-full">
                                     <thead>
                                         <tr className="text-gray-700 dark:text-gray-300">
-                                            <th>順序</th>
-                                            <th>ブロック名</th>
-                                            <th>時間帯</th>
-                                            <th>操作</th>
+                                            <th>{t('blocks.table.order')}</th>
+                                            <th>{t('blocks.table.name')}</th>
+                                            <th>{t('blocks.table.timeRange')}</th>
+                                            <th>{t('blocks.table.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-gray-800 dark:text-gray-200">
@@ -256,7 +282,7 @@ export default function BlockManagePage() {
                                                                     })
                                                                 }
                                                             />
-                                                            <span>-</span>
+                                                            <span>〜</span>
                                                             <input
                                                                 type="time"
                                                                 className="input input-bordered input-sm"
@@ -270,35 +296,37 @@ export default function BlockManagePage() {
                                                             />
                                                         </div>
                                                     ) : (
-                                                        `${block.startTime} - ${block.endTime}`
+                                                        <span>
+                                                            {block.startTime} 〜 {block.endTime}
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td>
                                                     {editingBlock?.id === block.id ? (
                                                         <div className="flex space-x-2">
                                                             <button
-                                                                className="btn btn-sm btn-primary"
+                                                                className="btn btn-xs btn-primary"
                                                                 onClick={updateBlock}
                                                             >
-                                                                保存
+                                                                {t('common.save')}
                                                             </button>
                                                             <button
-                                                                className="btn btn-sm"
+                                                                className="btn btn-xs btn-outline"
                                                                 onClick={() => setEditingBlock(null)}
                                                             >
-                                                                キャンセル
+                                                                {t('common.cancel')}
                                                             </button>
                                                         </div>
                                                     ) : (
                                                         <div className="flex space-x-2">
                                                             <button
-                                                                className="btn btn-sm btn-ghost btn-square"
+                                                                className="btn btn-xs btn-ghost btn-square text-gray-600 dark:text-gray-400"
                                                                 onClick={() => setEditingBlock(block)}
                                                             >
                                                                 <PencilIcon className="h-4 w-4" />
                                                             </button>
                                                             <button
-                                                                className="btn btn-sm btn-ghost btn-square text-error"
+                                                                className="btn btn-xs btn-ghost btn-square text-gray-600 dark:text-gray-400"
                                                                 onClick={() => deleteBlock(block.id)}
                                                             >
                                                                 <TrashIcon className="h-4 w-4" />
@@ -308,72 +336,75 @@ export default function BlockManagePage() {
                                                 </td>
                                             </tr>
                                         ))}
+
+                                        {/* 新規ブロック追加行 */}
+                                        {isAddingBlock && (
+                                            <tr className="bg-gray-50 dark:bg-gray-800/50">
+                                                <td>
+                                                    <span className="ml-5">{blocks.length + 1}</span>
+                                                </td>
+                                                <td>
+                                                    <input
+                                                        type="text"
+                                                        className="input input-bordered input-sm w-full max-w-xs"
+                                                        placeholder={t('blocks.placeholders.blockName')}
+                                                        value={newBlockName}
+                                                        onChange={(e) => setNewBlockName(e.target.value)}
+                                                    />
+                                                </td>
+                                                <td>
+                                                    <div className="flex items-center space-x-2">
+                                                        <input
+                                                            type="time"
+                                                            className="input input-bordered input-sm"
+                                                            value={newBlockStartTime}
+                                                            onChange={(e) => setNewBlockStartTime(e.target.value)}
+                                                        />
+                                                        <span>〜</span>
+                                                        <input
+                                                            type="time"
+                                                            className="input input-bordered input-sm"
+                                                            value={newBlockEndTime}
+                                                            onChange={(e) => setNewBlockEndTime(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="flex space-x-2">
+                                                        <button
+                                                            className="btn btn-xs btn-primary"
+                                                            onClick={addBlock}
+                                                        >
+                                                            {t('common.add')}
+                                                        </button>
+                                                        <button
+                                                            className="btn btn-xs btn-outline"
+                                                            onClick={() => setIsAddingBlock(false)}
+                                                        >
+                                                            {t('common.cancel')}
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
-                            </div>
-                        )}
 
-                        {isAddingBlock ? (
-                            <div className="mt-4 border rounded-lg p-4 bg-base-200">
-                                <h3 className="font-bold mb-2">新規ブロックを追加</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="label">ブロック名</label>
-                                        <input
-                                            type="text"
-                                            className="input input-bordered w-full"
-                                            value={newBlockName}
-                                            onChange={(e) => setNewBlockName(e.target.value)}
-                                            placeholder="例: 午後ブロック"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="label">開始時刻</label>
-                                        <input
-                                            type="time"
-                                            className="input input-bordered w-full"
-                                            value={newBlockStartTime}
-                                            onChange={(e) => setNewBlockStartTime(e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="label">終了時刻</label>
-                                        <input
-                                            type="time"
-                                            className="input input-bordered w-full"
-                                            value={newBlockEndTime}
-                                            onChange={(e) => setNewBlockEndTime(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end mt-4 space-x-2">
+                                {/* 新規ブロック追加ボタン */}
+                                {!isAddingBlock && (
                                     <button
-                                        className="btn"
-                                        onClick={() => setIsAddingBlock(false)}
+                                        className="btn btn-sm btn-outline mt-4"
+                                        onClick={() => setIsAddingBlock(true)}
                                     >
-                                        キャンセル
+                                        <PlusIcon className="h-4 w-4 mr-1" />
+                                        {t('blocks.addNewBlock')}
                                     </button>
-                                    <button
-                                        className="btn btn-primary"
-                                        onClick={addBlock}
-                                        disabled={!newBlockName.trim()}
-                                    >
-                                        追加
-                                    </button>
-                                </div>
+                                )}
                             </div>
-                        ) : (
-                            <button
-                                className="btn btn-primary mt-4"
-                                onClick={() => setIsAddingBlock(true)}
-                            >
-                                <PlusIcon className="h-5 w-5 mr-2" />
-                                新規ブロックを追加
-                            </button>
                         )}
                     </div>
                 </div>
             )}
         </div>
     );
-}
+} 

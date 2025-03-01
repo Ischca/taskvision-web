@@ -1,12 +1,13 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
+import ReactDOM from 'react-dom/client';
 import Popup from './Popup';
+import './index.css';
+import '../i18n/i18n'; // i18n初期化をインポート
 
-const container = document.getElementById('root');
-const root = createRoot(container!);
-root.render(
-    <React.StrictMode>
-        <Popup />
-    </React.StrictMode>
-); 
+// DOMコンテンツがロードされたらReactをマウント
+document.addEventListener('DOMContentLoaded', () => {
+    const root = document.getElementById('root');
+    if (root) {
+        ReactDOM.createRoot(root).render(<Popup />);
+    }
+}); 

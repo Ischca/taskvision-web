@@ -22,6 +22,9 @@ import { useAuth } from "./AuthProvider";
 import { RepeatSettings, RepeatType, RepeatEndType } from "@/types";
 import { generateRepeatTaskInstances } from "@/lib/repeatTaskUtils";
 import { useBlocks } from "../hooks/useBlocks";
+import { useParams } from "next/navigation";
+import { loadMessages } from "../components/i18n";
+import { useMessages } from '@/app/hooks/useMessages';
 
 type TaskItemProps = {
     task: Task;
@@ -95,6 +98,16 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
     const initialRender = useRef(true);
     const { userId } = useAuth();
     const { blocks } = useBlocks();
+    const params = useParams();
+    const locale = (params?.locale as string) || 'ja';
+    const { t } = useMessages();
+    const daysJA = ['日', '月', '火', '水', '木', '金', '土'];
+    const daysEN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = locale === 'en' ? daysEN : daysJA;
+
+    // i18n用のメッセージ取得
+    const [messages, setMessages] = useState<Record<string, any>>({});
+    const [messagesLoading, setMessagesLoading] = useState(true);
 
     // チェックボックス状態の変更を視覚的にアニメーション
     useEffect(() => {
@@ -130,15 +143,19 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
         };
     }, [isModalOpen]);
 
-    // トースト表示関数
-    const showToastNotification = (message: string, type: "success" | "error" = "success") => {
+    // トースト表示
+    const showSuccessToast = (message: string = t('common.tasks.taskUpdated')) => {
+        setToastType("success");
         setToastMessage(message);
-        setToastType(type);
         setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+    };
 
-        setTimeout(() => {
-            setShowToast(false);
-        }, 3000);
+    const showErrorToast = (message: string = t('common.tasks.taskUpdateFailed')) => {
+        setToastType("error");
+        setToastMessage(message);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
     };
 
     const handleCheck = async () => {
@@ -150,12 +167,12 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
             });
 
             if (newStatus === "done") {
-                showToastNotification("タスクを完了しました！", "success");
+                showSuccessToast(t('common.tasks.taskUpdated'));
             }
         } catch (err) {
             console.error("Failed to update task status:", err);
             setChecked(checked);
-            showToastNotification("ステータスの更新に失敗しました", "error");
+            showErrorToast(t('common.tasks.taskUpdateFailed'));
         }
     };
 
@@ -219,26 +236,26 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
             }
 
             setIsModalOpen(false);
-            showToastNotification("タスクを更新しました", "success");
+            showSuccessToast(t('common.tasks.taskUpdated'));
         } catch (error) {
             console.error("Error updating task:", error);
-            showToastNotification("タスクの更新に失敗しました", "error");
+            showErrorToast(t('common.tasks.taskUpdateFailed'));
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!window.confirm("このタスクを削除しますか？この操作は元に戻せません。")) return;
-
-        try {
-            setIsDeleting(true);
-            await deleteDoc(doc(db, "tasks", task.id));
-            showToastNotification("タスクを削除しました", "success");
-        } catch (error) {
-            console.error("Error deleting task:", error);
-            showToastNotification("タスクの削除に失敗しました", "error");
-            setIsDeleting(false);
+        if (window.confirm(t('common.tasks.deleteConfirmation'))) {
+            try {
+                setIsDeleting(true);
+                await deleteDoc(doc(db, "tasks", task.id));
+                showSuccessToast(t('common.tasks.taskDeleted'));
+            } catch (error) {
+                console.error("Error deleting task:", error);
+                showErrorToast(t('common.tasks.taskDeleteFailed'));
+                setIsDeleting(false);
+            }
         }
     };
 
@@ -289,9 +306,8 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
         }
     };
 
-    // 曜日の日本語表示
+    // 曜日の表示（ロケールに合わせて切り替え）
     const getDayName = (day: number): string => {
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
         return days[day];
     };
 
@@ -330,13 +346,12 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
 
     // 日付を見やすい形式にフォーマット
     const formatDisplayDate = (dateStr: string): string => {
-        if (!dateStr) return "指定なし";
+        if (!dateStr) return t('common.tasks.unassigned');
         const date = new Date(dateStr);
-        return date.toLocaleDateString('ja-JP', {
+        return date.toLocaleDateString(t('common.locale') || 'ja-JP', {
             year: 'numeric',
             month: 'long',
-            day: 'numeric',
-            weekday: 'short'
+            day: 'numeric'
         });
     };
 
@@ -425,6 +440,270 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
         }
     };
 
+    // 編集モーダル
+    const renderTaskDetailModal = () => {
+        if (!isModalOpen) return null;
+
+        return (
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4 modal-appear">
+                <div
+                    ref={modalRef}
+                    className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full modal-content-appear overflow-y-auto max-h-[90vh]"
+                >
+                    <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                            {t('common.tasks.taskDetails')}
+                        </h3>
+                        <button
+                            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            <XMarkIcon className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleUpdate} className="p-4">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="form-label" htmlFor="task-title">
+                                    {t('common.tasks.taskName')}
+                                </label>
+                                <input
+                                    id="task-title"
+                                    type="text"
+                                    className="input input-bordered w-full focus-ring"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="form-label" htmlFor="task-deadline">
+                                    {t('common.tasks.deadline')}
+                                </label>
+                                <input
+                                    id="task-deadline"
+                                    type="datetime-local"
+                                    className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                    value={deadline}
+                                    onChange={(e) => setDeadline(e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <button
+                                    type="button"
+                                    className={`flex items-center justify-between w-full px-3 py-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'} transition-colors`}
+                                    onClick={toggleReminderSettings}
+                                >
+                                    <div className="flex items-center">
+                                        {showReminderSettings ? (
+                                            <BellIcon className="h-5 w-5 mr-2 text-primary-500" />
+                                        ) : (
+                                            <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
+                                        )}
+                                        <span>{showReminderSettings ? t('common.tasks.hideReminderSettings') : t('common.tasks.showReminderSettings')}</span>
+                                    </div>
+                                    <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
+                                </button>
+                            </div>
+
+                            {showReminderSettings && (
+                                <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    id="edit-enable-block-start"
+                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
+                                                    checked={enableBlockStartReminder}
+                                                    onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
+                                                />
+                                                <label htmlFor="edit-enable-block-start" className="text-sm">
+                                                    {t('common.tasks.notifyBeforeBlockStart')}
+                                                </label>
+                                            </div>
+                                            <select
+                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                                value={blockStartReminderMinutes}
+                                                onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
+                                                disabled={!enableBlockStartReminder}
+                                            >
+                                                <option value="5">5{t('common.time.minutesBefore')}</option>
+                                                <option value="10">10{t('common.time.minutesBefore')}</option>
+                                                <option value="15">15{t('common.time.minutesBefore')}</option>
+                                                <option value="30">30{t('common.time.minutesBefore')}</option>
+                                                <option value="60">1{t('common.time.hourBefore')}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    id="edit-enable-block-end"
+                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
+                                                    checked={enableBlockEndReminder}
+                                                    onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
+                                                />
+                                                <label htmlFor="edit-enable-block-end" className="text-sm">
+                                                    {t('common.tasks.notifyBeforeBlockEnd')}
+                                                </label>
+                                            </div>
+                                            <select
+                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                                value={blockEndReminderMinutes}
+                                                onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
+                                                disabled={!enableBlockEndReminder}
+                                            >
+                                                <option value="5">5{t('common.time.minutesBefore')}</option>
+                                                <option value="10">10{t('common.time.minutesBefore')}</option>
+                                                <option value="15">15{t('common.time.minutesBefore')}</option>
+                                                <option value="30">30{t('common.time.minutesBefore')}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    id="edit-enable-deadline"
+                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
+                                                    checked={enableDeadlineReminder}
+                                                    onChange={() => setEnableDeadlineReminder(!enableDeadlineReminder)}
+                                                    disabled={!deadline}
+                                                />
+                                                <label htmlFor="edit-enable-deadline" className="text-sm">
+                                                    {t('common.tasks.notifyBeforeDeadline')}
+                                                </label>
+                                            </div>
+                                            <select
+                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                                value={deadlineReminderMinutes}
+                                                onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
+                                                disabled={!enableDeadlineReminder || !deadline}
+                                            >
+                                                <option value="15">15{t('common.time.minutesBefore')}</option>
+                                                <option value="30">30{t('common.time.minutesBefore')}</option>
+                                                <option value="60">1{t('common.time.hourBefore')}</option>
+                                                <option value="120">2{t('common.time.hoursBefore')}</option>
+                                                <option value="1440">1{t('common.time.dayBefore')}</option>
+                                            </select>
+                                        </div>
+                                        {!deadline && enableDeadlineReminder && (
+                                            <p className="text-xs text-orange-500 mt-1">
+                                                {t('common.tasks.pleaseSetDeadline')}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="form-label" htmlFor="task-description">
+                                    {t('common.tasks.details')}
+                                </label>
+                                <textarea
+                                    id="task-description"
+                                    className="textarea textarea-bordered w-full focus-ring min-h-24"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder={t('common.tasks.detailsPlaceholder')}
+                                    rows={4}
+                                ></textarea>
+                            </div>
+
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium mb-1">
+                                    {t('common.tasks.blockAssignment')}
+                                </label>
+                                <select
+                                    value={selectedBlock || ""}
+                                    onChange={(e) => setSelectedBlock(e.target.value || null)}
+                                    className={`w-full p-2 border rounded-md ${theme === "dark"
+                                        ? "bg-gray-700 border-gray-600 text-white"
+                                        : "bg-white border-gray-300 text-gray-900"
+                                        }`}
+                                >
+                                    <option value="">{t('common.tasks.unassigned')}</option>
+                                    {blocks.map((block) => (
+                                        <option key={block.id} value={block.id}>
+                                            {block.name} ({block.startTime}〜{block.endTime})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex items-center pt-3">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        id="task-status"
+                                        type="checkbox"
+                                        className="checkbox checkbox-sm checkbox-primary"
+                                        checked={checked}
+                                        onChange={handleCheck}
+                                    />
+                                </div>
+                                <label
+                                    htmlFor="task-status"
+                                    className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
+                                >
+                                    {t('common.tasks.taskCompleted')}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <button
+                                type="button"
+                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                                onClick={handleDelete}
+                                disabled={isSubmitting || isDeleting}
+                            >
+                                <TrashIcon className="h-4 w-4 mr-1" />
+                                {isDeleting ? t('common.tasks.deleting') : t('common.actions.delete')}
+                            </button>
+
+                            <div className="flex space-x-2">
+                                <button
+                                    type="button"
+                                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                                    onClick={() => setIsModalOpen(false)}
+                                    disabled={isSubmitting}
+                                >
+                                    {t('common.actions.cancel')}
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                                    disabled={!title.trim() || isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
+                                            {t('common.tasks.saving')}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckIcon className="h-4 w-4 mr-1" />
+                                            {t('common.actions.save')}
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
             <li
@@ -464,7 +743,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                                     <div className="flex items-center">
                                         <CalendarDaysIcon className="h-3 w-3 text-orange-500 mr-1" />
                                         <span className="text-xs text-orange-500">
-                                            {new Date(task.deadline).toLocaleString('ja-JP', {
+                                            {new Date(task.deadline).toLocaleDateString(t('common.locale') || 'ja-JP', {
                                                 month: 'short',
                                                 day: 'numeric',
                                                 hour: '2-digit',
@@ -479,7 +758,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                                         <div className="flex items-center">
                                             <BellIcon className="h-3 w-3 text-primary-500 mr-1" />
                                             <span className="text-xs text-primary-500">
-                                                リマインド設定あり
+                                                {t('common.tasks.reminderSettingsAvailable')}
                                             </span>
                                         </div>
                                     )}
@@ -488,7 +767,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                                     <div className="flex items-center">
                                         <ArrowPathRoundedSquareIcon className="h-3 w-3 text-green-600 mr-1" />
                                         <span className="text-xs text-green-600">
-                                            繰り返し設定あり
+                                            {t('common.tasks.repeatSettingsAvailable')}
                                         </span>
                                     </div>
                                 )}
@@ -524,265 +803,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                 </div>
             </li>
 
-            {/* Task Detail/Edit Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4 modal-appear">
-                    <div
-                        ref={modalRef}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full modal-content-appear"
-                    >
-                        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                タスク詳細
-                            </h3>
-                            <button
-                                className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                onClick={() => setIsModalOpen(false)}
-                            >
-                                <XMarkIcon className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleUpdate} className="p-4">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="form-label" htmlFor="task-title">
-                                        タスク名
-                                    </label>
-                                    <input
-                                        id="task-title"
-                                        type="text"
-                                        className="input input-bordered w-full focus-ring"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="form-label" htmlFor="task-deadline">
-                                        締切日時（任意）
-                                    </label>
-                                    <input
-                                        id="task-deadline"
-                                        type="datetime-local"
-                                        className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                        value={deadline}
-                                        onChange={(e) => setDeadline(e.target.value)}
-                                    />
-                                </div>
-
-                                <div>
-                                    <button
-                                        type="button"
-                                        className={`flex items-center justify-between w-full px-3 py-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'} transition-colors`}
-                                        onClick={toggleReminderSettings}
-                                    >
-                                        <div className="flex items-center">
-                                            {showReminderSettings ? (
-                                                <BellIcon className="h-5 w-5 mr-2 text-primary-500" />
-                                            ) : (
-                                                <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            )}
-                                            <span>{showReminderSettings ? 'リマインド設定を隠す' : 'リマインド設定を表示'}</span>
-                                        </div>
-                                        <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
-                                    </button>
-                                </div>
-
-                                {showReminderSettings && (
-                                    <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="edit-enable-block-start"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableBlockStartReminder}
-                                                        onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
-                                                    />
-                                                    <label htmlFor="edit-enable-block-start" className="text-sm">
-                                                        ブロック開始前に通知
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={blockStartReminderMinutes}
-                                                    onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableBlockStartReminder}
-                                                >
-                                                    <option value="5">5分前</option>
-                                                    <option value="10">10分前</option>
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
-                                                    <option value="60">1時間前</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="edit-enable-block-end"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableBlockEndReminder}
-                                                        onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
-                                                    />
-                                                    <label htmlFor="edit-enable-block-end" className="text-sm">
-                                                        ブロック終了前に通知
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={blockEndReminderMinutes}
-                                                    onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableBlockEndReminder}
-                                                >
-                                                    <option value="5">5分前</option>
-                                                    <option value="10">10分前</option>
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="edit-enable-deadline"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableDeadlineReminder}
-                                                        onChange={() => setEnableDeadlineReminder(!enableDeadlineReminder)}
-                                                        disabled={!deadline}
-                                                    />
-                                                    <label htmlFor="edit-enable-deadline" className="text-sm">
-                                                        締切時刻前に通知
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={deadlineReminderMinutes}
-                                                    onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableDeadlineReminder || !deadline}
-                                                >
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
-                                                    <option value="60">1時間前</option>
-                                                    <option value="120">2時間前</option>
-                                                    <option value="1440">1日前</option>
-                                                </select>
-                                            </div>
-                                            {!deadline && enableDeadlineReminder && (
-                                                <p className="text-xs text-orange-500 mt-1">
-                                                    締切日時を設定してください
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="form-label" htmlFor="task-description">
-                                        詳細 (任意)
-                                    </label>
-                                    <textarea
-                                        id="task-description"
-                                        className="textarea textarea-bordered w-full focus-ring min-h-24"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="詳細な説明を入力（任意）"
-                                        rows={4}
-                                    ></textarea>
-                                </div>
-
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium mb-1">
-                                        ブロック割り当て
-                                    </label>
-                                    <select
-                                        value={selectedBlock || ""}
-                                        onChange={(e) => setSelectedBlock(e.target.value || null)}
-                                        className={`w-full p-2 border rounded-md ${theme === "dark"
-                                            ? "bg-gray-700 border-gray-600 text-white"
-                                            : "bg-white border-gray-300 text-gray-900"
-                                            }`}
-                                    >
-                                        <option value="">未割り当て</option>
-                                        {blocks.map((block) => (
-                                            <option key={block.id} value={block.id}>
-                                                {block.name} ({block.startTime}〜{block.endTime})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="flex items-center pt-3">
-                                    <div className="flex items-center h-5">
-                                        <input
-                                            id="task-status"
-                                            type="checkbox"
-                                            className="checkbox checkbox-sm checkbox-primary"
-                                            checked={checked}
-                                            onChange={handleCheck}
-                                        />
-                                    </div>
-                                    <label
-                                        htmlFor="task-status"
-                                        className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                                    >
-                                        タスク完了
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                                    onClick={handleDelete}
-                                    disabled={isSubmitting || isDeleting}
-                                >
-                                    <TrashIcon className="h-4 w-4 mr-1" />
-                                    {isDeleting ? "削除中..." : "削除"}
-                                </button>
-
-                                <div className="flex space-x-2">
-                                    <button
-                                        type="button"
-                                        className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                        onClick={() => setIsModalOpen(false)}
-                                        disabled={isSubmitting}
-                                    >
-                                        キャンセル
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                        disabled={!title.trim() || isSubmitting}
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                                                保存中...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CheckIcon className="h-4 w-4 mr-1" />
-                                                保存
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {renderTaskDetailModal()}
 
             {/* トースト通知 */}
             {showToast && (

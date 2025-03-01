@@ -19,6 +19,8 @@ import { useTheme } from "./ThemeProvider";
 import { useAuth } from "./AuthProvider";
 import { generateRepeatTaskInstances } from "@/lib/repeatTaskUtils";
 import { RepeatSettings, RepeatType, RepeatEndType, Task } from "@/types";
+import { useMessages } from '@/app/hooks/useMessages';
+import ShadcnDatePicker from "./ShadcnDatePicker";
 
 type GlobalTaskAddButtonProps = {
     todayStr: string;
@@ -27,6 +29,7 @@ type GlobalTaskAddButtonProps = {
 const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const { theme } = useTheme();
     const { userId } = useAuth();
+    const { t } = useMessages();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
     const [quickTitle, setQuickTitle] = useState("");
@@ -35,6 +38,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const [description, setDescription] = useState("");
     const [selectedBlock, setSelectedBlock] = useState("");
     const [selectedDate, setSelectedDate] = useState(todayStr);
+    const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
     const [isDateUnassigned, setIsDateUnassigned] = useState(false);
     const [deadline, setDeadline] = useState("");
     const [blocks, setBlocks] = useState<{ id: string; name: string }[]>([]);
@@ -69,6 +73,29 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const [repeatEndType, setRepeatEndType] = useState<RepeatEndType>('never');
     const [repeatOccurrences, setRepeatOccurrences] = useState(10);
     const [repeatEndDate, setRepeatEndDate] = useState("");
+
+    // ポップオーバーが開いているかどうかを追跡
+    const [isAnyPopoverOpen, setIsAnyPopoverOpen] = useState(false);
+
+    // 曜日名変換（日本語 or 英語）
+    const getDayName = (day: number) => {
+        const daysJA = ['日', '月', '火', '水', '木', '金', '土'];
+        const daysEN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const days = t('common.locale') === 'en-US' ? daysEN : daysJA;
+        return days[day];
+    };
+
+    // 日付を読みやすいフォーマットで表示
+    const formatDateDisplay = (dateStr: string) => {
+        if (!dateStr) return "";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(t('common.locale') || 'ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short'
+        });
+    };
 
     // ブロック一覧を取得
     useEffect(() => {
@@ -112,22 +139,47 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
     // モーダル外クリックでクローズ
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-                setIsModalOpen(false);
+        // モーダル外クリックでクローズ処理
+        const handleClickOutside = (event: MouseEvent) => {
+            // モーダル自体、または子要素をクリックした場合は何もしない
+            if (modalRef.current && modalRef.current.contains(event.target as Node)) {
+                return;
             }
-        }
+
+            // ポップオーバーが開いている場合は処理しない
+            if (isAnyPopoverOpen) {
+                return;
+            }
+
+            // カレンダー関連の要素がクリックされた場合は無視する
+            const targetElement = event.target as HTMLElement;
+            if (
+                targetElement.closest('.rdp') || // react-day-pickerのルート要素
+                targetElement.closest('[role="dialog"]') || // ポップオーバーダイアログ
+                targetElement.closest('[role="presentation"]') || // ポップオーバーの背景
+                targetElement.closest('[data-state="open"]') || // 開いている状態のRadix UI要素
+                targetElement.closest('.popover-content-calendar') // カレンダーポップオーバー
+            ) {
+                return;
+            }
+
+            // それ以外でモーダル外をクリックした場合は閉じる
+            setIsModalOpen(false);
+        };
 
         if (isModalOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
+            // イベントリスナーを追加（キャプチャーフェーズで）
+            setTimeout(() => {
+                document.addEventListener("click", handleClickOutside, { capture: true });
+            }, 0);
         } else {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("click", handleClickOutside, { capture: true });
         }
 
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("click", handleClickOutside, { capture: true });
         };
-    }, [isModalOpen]);
+    }, [isModalOpen, isAnyPopoverOpen]);
 
     // スワイプ操作の処理（下部ハンドル用）
     useEffect(() => {
@@ -337,6 +389,37 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
         return settings;
     };
 
+    // 日付文字列⇔Dateオブジェクト変換ヘルパー関数
+    const dateToString = (date: Date | undefined): string => {
+        if (!date) return '';
+        // ローカルタイムゾーンのまま処理するために、UTC変換を避ける
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const stringToDate = (dateStr: string): Date | undefined => {
+        if (!dateStr) return undefined;
+        // タイムゾーンの問題を避けるために、日付部分のみを指定して新しいDateオブジェクトを作成する
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day, 0, 0, 0, 0);
+    };
+
+    // 日付変更ハンドラ
+    const handleDateChange = (date: Date | undefined) => {
+        if (date) {
+            const dateStr = dateToString(date);
+            setSelectedDate(dateStr);
+            setSelectedDateObj(date);
+        }
+    };
+
+    // DatePickerの初期化
+    useEffect(() => {
+        setSelectedDateObj(stringToDate(selectedDate));
+    }, [selectedDate]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -439,22 +522,16 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
         }
     };
 
-    // 曜日の日本語表示
-    const getDayName = (day: number): string => {
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
-        return days[day];
-    };
-
     return (
         <>
             {/* デスクトップ表示用ボタン */}
             <button
                 className="hidden sm:flex btn btn-primary sm:btn-md btn-sm"
                 onClick={() => setIsModalOpen(true)}
-                aria-label="タスクを追加"
+                aria-label={t('common.tasks.addTask')}
             >
                 <PlusIcon className="h-5 w-5 mr-1" />
-                タスクを追加
+                {t('common.tasks.addTask')}
             </button>
 
             {/* モバイル用 下部ハンドル - 引っ張り上げ印象のデザイン */}
@@ -480,7 +557,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
                             {/* 短いテキスト */}
                             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                上にスワイプしてタスクを追加
+                                {t('common.tasks.swipeUpToAdd')}
                             </span>
                         </div>
                     </div>
@@ -499,7 +576,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                            クイックタスク追加
+                            {t('common.tasks.quickAdd')}
                         </h3>
                         <div className="flex space-x-2">
                             <button
@@ -510,14 +587,14 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                 }}
                             >
                                 <ChevronUpIcon className="h-5 w-5" />
-                                <span className="sr-only">詳細設定</span>
+                                <span className="sr-only">{t('common.tasks.advancedSettings')}</span>
                             </button>
                             <button
                                 className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                                 onClick={() => setIsQuickDrawerOpen(false)}
                             >
                                 <XMarkIcon className="h-5 w-5" />
-                                <span className="sr-only">閉じる</span>
+                                <span className="sr-only">{t('common.tasks.close')}</span>
                             </button>
                         </div>
                     </div>
@@ -530,7 +607,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                 className="input input-bordered flex-1 focus-ring"
                                 value={quickTitle}
                                 onChange={(e) => setQuickTitle(e.target.value)}
-                                placeholder="タスク名を入力"
+                                placeholder={t('common.tasks.taskName')}
                                 required
                             />
                             <button
@@ -547,14 +624,16 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                         </div>
 
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            <p>※ 今日のタスクとして登録されます</p>
-                            <p>※ 詳細設定するには<button type="button" className="text-primary-600 dark:text-primary-400 underline" onClick={() => {
-                                setQuickTitle("");
-                                setIsQuickDrawerOpen(false);
-                                setIsModalOpen(true);
-                            }}>こちら</button></p>
+                            <p>{t('common.tasks.willBeRegisteredToday')}</p>
+                            <p>{t('common.tasks.forDetailedSettings')}
+                                <button type="button" className="text-primary-600 dark:text-primary-400 underline" onClick={() => {
+                                    setQuickTitle("");
+                                    setIsQuickDrawerOpen(false);
+                                    setIsModalOpen(true);
+                                }}>{t('common.tasks.here')}</button>
+                            </p>
                             <p className="mt-1.5 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                                <span>↓ 下にスワイプで閉じる</span>
+                                <span>{t('common.tasks.swipeDownToClose')}</span>
                             </p>
                         </div>
                     </form>
@@ -570,7 +649,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                     >
                         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                新しいタスク
+                                {t('common.tasks.taskDetails')}
                             </h3>
                             <button
                                 className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -584,7 +663,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                             <div className="space-y-4">
                                 <div>
                                     <label className="form-label" htmlFor="task-title">
-                                        タスク名
+                                        {t('common.tasks.taskName')}
                                     </label>
                                     <input
                                         id="task-title"
@@ -599,7 +678,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
                                 <div>
                                     <label className="form-label" htmlFor="task-date">
-                                        日付
+                                        {t('common.dates.date')}
                                     </label>
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center">
@@ -611,23 +690,29 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                 onChange={toggleDateAssigned}
                                             />
                                             <label htmlFor="date-unassigned" className="text-sm">
-                                                日付未割り当て
+                                                {t('common.tasks.unassignedDate')}
                                             </label>
                                         </div>
                                     </div>
-                                    <input
-                                        id="task-date"
-                                        type="date"
-                                        className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                        value={selectedDate}
-                                        onChange={(e) => setSelectedDate(e.target.value)}
-                                        disabled={isDateUnassigned}
-                                    />
+                                    {isDateUnassigned ? (
+                                        <div className="text-sm text-gray-500 dark:text-gray-400 italic p-2">
+                                            {t('common.tasks.dateNotAssigned')}
+                                        </div>
+                                    ) : (
+                                        <ShadcnDatePicker
+                                            date={selectedDateObj}
+                                            onDateChange={handleDateChange}
+                                            disabled={isDateUnassigned}
+                                            onOpenChange={(open) => {
+                                                setIsAnyPopoverOpen(open);
+                                            }}
+                                        />
+                                    )}
                                 </div>
 
                                 <div>
                                     <label className="form-label" htmlFor="task-block">
-                                        ブロック
+                                        {t('common.blocks.blockName')}
                                     </label>
                                     <select
                                         id="task-block"
@@ -635,7 +720,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                         value={selectedBlock}
                                         onChange={(e) => setSelectedBlock(e.target.value)}
                                     >
-                                        <option value="">ブロックを選択（任意）</option>
+                                        <option value="">{t('common.tasks.selectBlockOptional')}</option>
                                         {blocks.map((block) => (
                                             <option key={block.id} value={block.id}>
                                                 {block.name}
@@ -645,16 +730,35 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                 </div>
 
                                 <div>
-                                    <label className="form-label" htmlFor="task-deadline">
-                                        締切日時（任意）
-                                    </label>
-                                    <input
-                                        id="task-deadline"
-                                        type="datetime-local"
-                                        className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                        value={deadline}
-                                        onChange={(e) => setDeadline(e.target.value)}
-                                    />
+                                    <div className="form-label mb-1">{t('common.tasks.deadline')}</div>
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <div className="flex-1 w-full">
+                                            <ShadcnDatePicker
+                                                date={deadline ? new Date(deadline) : undefined}
+                                                onDateChange={(date) => {
+                                                    if (date) {
+                                                        // 既存の時間があれば維持する
+                                                        const existingTime = deadline ? deadline.split('T')[1] : '00:00';
+                                                        setDeadline(`${dateToString(date)}T${existingTime}`);
+                                                    } else {
+                                                        setDeadline('');
+                                                    }
+                                                }}
+                                                onOpenChange={(open) => setIsAnyPopoverOpen(open)}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="time"
+                                                value={deadline ? deadline.split('T')[1] : ''}
+                                                onChange={(e) => {
+                                                    const dateStr = deadline ? deadline.split('T')[0] : dateToString(new Date());
+                                                    setDeadline(`${dateStr}T${e.target.value}`);
+                                                }}
+                                                className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -669,7 +773,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                             ) : (
                                                 <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
                                             )}
-                                            <span>{showReminderSettings ? 'リマインド設定を隠す' : 'リマインド設定を表示'}</span>
+                                            <span>{showReminderSettings ? t('common.tasks.hideReminderSettings') : t('common.tasks.showReminderSettings')}</span>
                                         </div>
                                         <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
                                     </button>
@@ -688,7 +792,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                         onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
                                                     />
                                                     <label htmlFor="enable-block-start" className="text-sm">
-                                                        ブロック開始前に通知
+                                                        {t('common.tasks.notifyBeforeBlockStart')}
                                                     </label>
                                                 </div>
                                                 <select
@@ -697,11 +801,11 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
                                                     disabled={!enableBlockStartReminder}
                                                 >
-                                                    <option value="5">5分前</option>
-                                                    <option value="10">10分前</option>
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
-                                                    <option value="60">1時間前</option>
+                                                    <option value="5">5 {t('common.time.minutesBefore')}</option>
+                                                    <option value="10">10 {t('common.time.minutesBefore')}</option>
+                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
+                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
+                                                    <option value="60">1 {t('common.time.hourBefore')}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -717,7 +821,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                         onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
                                                     />
                                                     <label htmlFor="enable-block-end" className="text-sm">
-                                                        ブロック終了前に通知
+                                                        {t('common.tasks.notifyBeforeBlockEnd')}
                                                     </label>
                                                 </div>
                                                 <select
@@ -726,10 +830,10 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
                                                     disabled={!enableBlockEndReminder}
                                                 >
-                                                    <option value="5">5分前</option>
-                                                    <option value="10">10分前</option>
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
+                                                    <option value="5">5 {t('common.time.minutesBefore')}</option>
+                                                    <option value="10">10 {t('common.time.minutesBefore')}</option>
+                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
+                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -746,7 +850,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                         disabled={!deadline}
                                                     />
                                                     <label htmlFor="enable-deadline" className="text-sm">
-                                                        締切時刻前に通知
+                                                        {t('common.tasks.notifyBeforeDeadline')}
                                                     </label>
                                                 </div>
                                                 <select
@@ -755,16 +859,16 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
                                                     disabled={!enableDeadlineReminder || !deadline}
                                                 >
-                                                    <option value="15">15分前</option>
-                                                    <option value="30">30分前</option>
-                                                    <option value="60">1時間前</option>
-                                                    <option value="120">2時間前</option>
-                                                    <option value="1440">1日前</option>
+                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
+                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
+                                                    <option value="60">1 {t('common.time.hourBefore')}</option>
+                                                    <option value="120">2 {t('common.time.hoursBefore')}</option>
+                                                    <option value="1440">1 {t('common.time.dayBefore')}</option>
                                                 </select>
                                             </div>
                                             {!deadline && enableDeadlineReminder && (
                                                 <p className="text-xs text-orange-500 mt-1">
-                                                    締切日時を設定してください
+                                                    {t('common.tasks.pleaseSetDeadline')}
                                                 </p>
                                             )}
                                         </div>
@@ -784,7 +888,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                             ) : (
                                                 <ArrowPathRoundedSquareIcon className="h-5 w-5 mr-2 text-gray-500" />
                                             )}
-                                            <span>{showRepeatSettings ? '繰り返し設定を隠す' : '繰り返し設定を表示'}</span>
+                                            <span>{showRepeatSettings ? t('common.tasks.hideRepeatSettings') : t('common.tasks.showRepeatSettings')}</span>
                                         </div>
                                         <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showRepeatSettings ? 'transform rotate-180' : ''}`} />
                                     </button>
@@ -803,7 +907,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     onChange={() => setEnableRepeat(!enableRepeat)}
                                                 />
                                                 <label htmlFor="enable-repeat" className="text-sm font-medium">
-                                                    タスクを繰り返す
+                                                    {t('common.tasks.repeatTask')}
                                                 </label>
                                             </div>
 
@@ -812,7 +916,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     {/* 繰り返しタイプ */}
                                                     <div>
                                                         <label className="form-label text-sm" htmlFor="repeat-type">
-                                                            繰り返しパターン
+                                                            {t('common.tasks.repeatPattern')}
                                                         </label>
                                                         <select
                                                             id="repeat-type"
@@ -820,11 +924,11 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                             value={repeatType}
                                                             onChange={(e) => setRepeatType(e.target.value as RepeatType)}
                                                         >
-                                                            <option value="daily">毎日</option>
-                                                            <option value="weekdays">平日のみ（月〜金）</option>
-                                                            <option value="weekly">毎週特定の曜日</option>
-                                                            <option value="monthly">毎月特定の日</option>
-                                                            <option value="custom">カスタム</option>
+                                                            <option value="daily">{t('common.tasks.repeatDaily')}</option>
+                                                            <option value="weekdays">{t('common.tasks.repeatWeekdays')}</option>
+                                                            <option value="weekly">{t('common.tasks.repeatWeekly')}</option>
+                                                            <option value="monthly">{t('common.tasks.repeatMonthly')}</option>
+                                                            <option value="custom">{t('common.tasks.repeatCustom')}</option>
                                                         </select>
                                                     </div>
 
@@ -832,21 +936,21 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     {(repeatType === 'daily' || repeatType === 'custom') && (
                                                         <div>
                                                             <label className="form-label text-sm" htmlFor="repeat-frequency">
-                                                                頻度
+                                                                {t('common.tasks.frequency')}
                                                             </label>
                                                             <div className="flex items-center">
-                                                                <span className="mr-2">間隔:</span>
+                                                                <span className="mr-2">{t('common.tasks.interval')}:</span>
                                                                 <select
                                                                     id="repeat-frequency"
                                                                     className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                                                                     value={repeatFrequency}
                                                                     onChange={(e) => setRepeatFrequency(Number(e.target.value))}
                                                                 >
-                                                                    <option value="1">毎日</option>
-                                                                    <option value="2">2日ごと</option>
-                                                                    <option value="3">3日ごと</option>
-                                                                    <option value="5">5日ごと</option>
-                                                                    <option value="7">7日ごと</option>
+                                                                    <option value="1">{t('common.tasks.everyDay')}</option>
+                                                                    <option value="2">{t('common.tasks.everyTwoDays')}</option>
+                                                                    <option value="3">{t('common.tasks.everyThreeDays')}</option>
+                                                                    <option value="5">{t('common.tasks.everyFiveDays')}</option>
+                                                                    <option value="7">{t('common.tasks.everyWeek')}</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -856,7 +960,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     {repeatType === 'weekly' && (
                                                         <div>
                                                             <label className="form-label text-sm mb-2 block">
-                                                                曜日を選択
+                                                                {t('common.tasks.selectDaysOfWeek')}
                                                             </label>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {[0, 1, 2, 3, 4, 5, 6].map((day) => (
@@ -878,7 +982,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                             </div>
                                                             {repeatDaysOfWeek.length === 0 && (
                                                                 <p className="text-xs text-orange-500 mt-1">
-                                                                    少なくとも1つの曜日を選択してください
+                                                                    {t('common.tasks.selectAtLeastOneDay')}
                                                                 </p>
                                                             )}
                                                         </div>
@@ -888,7 +992,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     {repeatType === 'monthly' && (
                                                         <div>
                                                             <label className="form-label text-sm" htmlFor="repeat-day-of-month">
-                                                                日付を選択
+                                                                {t('common.tasks.selectDate')}
                                                             </label>
                                                             <select
                                                                 id="repeat-day-of-month"
@@ -898,7 +1002,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                             >
                                                                 {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                                                                     <option key={day} value={day}>
-                                                                        {day}日
+                                                                        {day} {t('common.tasks.dayOfMonth')}
                                                                     </option>
                                                                 ))}
                                                             </select>
@@ -908,7 +1012,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                     {/* 繰り返し終了設定 */}
                                                     <div>
                                                         <label className="form-label text-sm mb-2 block">
-                                                            終了条件
+                                                            {t('common.tasks.endCondition')}
                                                         </label>
                                                         <div className="space-y-2">
                                                             <div className="flex items-center">
@@ -921,7 +1025,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                                     onChange={() => setRepeatEndType('never')}
                                                                 />
                                                                 <label htmlFor="end-never" className="text-sm">
-                                                                    終了日なし
+                                                                    {t('common.tasks.noEndDate')}
                                                                 </label>
                                                             </div>
 
@@ -935,7 +1039,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                                     onChange={() => setRepeatEndType('after')}
                                                                 />
                                                                 <label htmlFor="end-after" className="text-sm flex items-center">
-                                                                    <span className="mr-2">回数指定:</span>
+                                                                    <span className="mr-2">{t('common.tasks.specifyCount')}:</span>
                                                                     <input
                                                                         type="number"
                                                                         className={`input input-bordered input-sm w-16 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
@@ -945,7 +1049,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                                         max="100"
                                                                         disabled={repeatEndType !== 'after'}
                                                                     />
-                                                                    <span className="ml-2">回</span>
+                                                                    <span className="ml-2">{t('common.tasks.times')}</span>
                                                                 </label>
                                                             </div>
 
@@ -958,15 +1062,16 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                                                     checked={repeatEndType === 'on_date'}
                                                                     onChange={() => setRepeatEndType('on_date')}
                                                                 />
-                                                                <label htmlFor="end-on-date" className="text-sm flex items-center">
-                                                                    <span className="mr-2">日付指定:</span>
-                                                                    <input
-                                                                        type="date"
-                                                                        className={`input input-bordered input-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                                        value={repeatEndDate}
-                                                                        onChange={(e) => setRepeatEndDate(e.target.value)}
-                                                                        disabled={repeatEndType !== 'on_date'}
-                                                                    />
+                                                                <label htmlFor="end-on-date" className="text-sm flex items-center flex-wrap">
+                                                                    <span className="mr-2 mb-2">{t('common.tasks.specifyDate')}:</span>
+                                                                    <div className="w-full">
+                                                                        <ShadcnDatePicker
+                                                                            date={repeatEndDate ? new Date(repeatEndDate) : undefined}
+                                                                            onDateChange={(date) => setRepeatEndDate(date ? dateToString(date) : '')}
+                                                                            disabled={repeatEndType !== 'on_date'}
+                                                                            onOpenChange={(open) => setIsAnyPopoverOpen(open)}
+                                                                        />
+                                                                    </div>
                                                                 </label>
                                                             </div>
                                                         </div>
@@ -979,14 +1084,14 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
 
                                 <div>
                                     <label className="form-label" htmlFor="task-description">
-                                        詳細 (任意)
+                                        {t('common.tasks.details')}
                                     </label>
                                     <textarea
                                         id="task-description"
                                         className="textarea textarea-bordered w-full focus-ring min-h-24"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="詳細な説明を入力（任意）"
+                                        placeholder={t('common.tasks.detailsPlaceholder')}
                                         rows={4}
                                     ></textarea>
                                 </div>
@@ -999,7 +1104,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                     onClick={() => setIsModalOpen(false)}
                                     disabled={isSubmitting}
                                 >
-                                    キャンセル
+                                    {t('common.actions.cancel')}
                                 </button>
                                 <button
                                     type="submit"
@@ -1009,12 +1114,12 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                                     {isSubmitting ? (
                                         <>
                                             <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                                            保存中...
+                                            {t('common.tasks.saving')}
                                         </>
                                     ) : (
                                         <>
                                             <CheckIcon className="h-4 w-4 mr-1" />
-                                            保存
+                                            {t('common.actions.save')}
                                         </>
                                     )}
                                 </button>

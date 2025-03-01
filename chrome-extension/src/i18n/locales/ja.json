@@ -1,0 +1,38 @@
+{
+    "popup": {
+        "title": "TaskVision",
+        "login": "ログイン",
+        "logout": "ログアウト",
+        "taskTitle": "タスクタイトル",
+        "taskDescription": "タスクの説明",
+        "addTask": "タスクを追加",
+        "successMessage": "タスクが追加されました",
+        "errorMessage": "エラーが発生しました",
+        "webAppLink": "ウェブアプリを開く",
+        "pageInfo": "現在のページ情報",
+        "placeholderTitle": "タイトルを入力してください",
+        "placeholderDescription": "説明を入力してください",
+        "selectedText": "選択したテキスト",
+        "priority": "優先度",
+        "priorityOptions": {
+            "low": "低",
+            "medium": "中",
+            "high": "高"
+        },
+        "dueDate": "期限日"
+    },
+    "options": {
+        "title": "設定",
+        "language": "言語",
+        "theme": "テーマ",
+        "save": "保存",
+        "reset": "リセット"
+    },
+    "common": {
+        "loading": "読み込み中...",
+        "error": "エラー",
+        "success": "成功",
+        "cancel": "キャンセル",
+        "confirm": "確認"
+    }
+}
