@@ -44,24 +44,74 @@ jobs:
         id: check_extension_version
         if: ${{ steps.filter.outputs.extension == 'true' }}
         run: |
+          # デバッグ情報: イベント名とフィルタ結果の確認
+          echo "Current event: ${{ github.event_name }}"
+          echo "Extension filter result: ${{ steps.filter.outputs.extension }}"
+
           # 現在のブランチまたはPRの変更を確認
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Processing as pull_request event"
             BASE_SHA=${{ github.event.pull_request.base.sha }}
             HEAD_SHA=${{ github.event.pull_request.head.sha }}
+            echo "PR BASE_SHA: $BASE_SHA"
+            echo "PR HEAD_SHA: $HEAD_SHA"
           else
+            echo "Processing as push or other event"
+            # git rev-parseの実行前にgitリポジトリの状態を確認
+            echo "Git status:"
+            git status
+            echo "Git log (last 2 commits):"
+            git log -n 2 --oneline
+            
             BASE_SHA=$(git rev-parse HEAD~1)
+            if [ $? -ne 0 ]; then
+              echo "Error executing git rev-parse HEAD~1, checking commit count"
+              COMMIT_COUNT=$(git rev-list --count HEAD)
+              echo "Repository has $COMMIT_COUNT commits"
+              if [ "$COMMIT_COUNT" -eq 1 ]; then
+                echo "Repository has only one commit, using HEAD as both BASE_SHA and HEAD_SHA"
+                BASE_SHA=$(git rev-parse HEAD)
+              else
+                echo "Error: Failed to determine BASE_SHA"
+                exit 1
+              fi
+            fi
+            
             HEAD_SHA=$(git rev-parse HEAD)
+            echo "PUSH BASE_SHA: $BASE_SHA"
+            echo "PUSH HEAD_SHA: $HEAD_SHA"
+          fi
+
+          # package.jsonファイルの存在確認
+          if [ -f "chrome-extension/package.json" ]; then
+            echo "chrome-extension/package.json exists"
+          else
+            echo "Warning: chrome-extension/package.json does not exist"
+            echo "Current directory contents:"
+            ls -la
+            echo "Chrome extension directory contents:"
+            ls -la chrome-extension || echo "chrome-extension directory not found"
           fi
 
           # package.jsonのバージョン変更を確認
-          CHANGED=$(git diff $BASE_SHA $HEAD_SHA -- chrome-extension/package.json | grep '"version"')
+          echo "Running git diff command to check version changes"
+          DIFF_OUTPUT=$(git diff $BASE_SHA $HEAD_SHA -- chrome-extension/package.json || echo "git diff command failed")
+          echo "Diff output length: $(echo "$DIFF_OUTPUT" | wc -l) lines"
+          echo "Searching for version changes in diff..."
+
+          CHANGED=$(echo "$DIFF_OUTPUT" | grep '"version"' || true)
+          echo "CHANGED value: '$CHANGED'"
 
           if [[ ! -z "$CHANGED" ]]; then
             echo "Extension version changed in package.json"
             echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "GITHUB_OUTPUT content after adding version_changed:"
+            cat $GITHUB_OUTPUT || echo "Failed to read $GITHUB_OUTPUT"
           else
             echo "Extension version not changed in package.json"
             echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "GITHUB_OUTPUT content after adding version_changed:"
+            cat $GITHUB_OUTPUT || echo "Failed to read $GITHUB_OUTPUT"
           fi
 
   build-web:
