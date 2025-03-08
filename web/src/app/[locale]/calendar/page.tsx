@@ -140,90 +140,122 @@ export default function CalendarPage() {
         e.dataTransfer.dropEffect = "move";
     };
 
+    // 日付選択ハンドラ
+    const handleDateSelect = (date: Date) => {
+        setSelectedDate(date);
+    };
+
     return (
-        <div className="container mx-auto max-w-4xl px-4 sm:px-6 py-4 sm:py-8" onDragOver={handleDragOver}>
-            <div className="flex flex-col space-y-6">
-                {/* カレンダーヘッダー */}
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-0">
-                    <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-0">{t('calendar.title')}</h1>
-                    <div className="flex items-center space-x-2">
-                        <button
-                            onClick={goToPreviousMonth}
-                            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 text-gray-700"
-                        >
-                            <ChevronLeftIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </button>
-                        <span className="text-base sm:text-lg font-medium">
-                            {currentMonth.toLocaleDateString(t('common.locale') || 'ja-JP', { year: 'numeric', month: 'long' })}
-                        </span>
-                        <button
-                            onClick={goToNextMonth}
-                            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-200 text-gray-700"
-                        >
-                            <ChevronRightIcon className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </button>
-                        <button
-                            onClick={goToToday}
-                            className="ml-2 px-3 py-1 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-50 border border-primary-300 rounded-md flex items-center"
-                        >
-                            <ArrowPathIcon className="h-4 w-4 mr-1" />
-                            {t('calendar.today')}
-                        </button>
-                    </div>
+        <div className="container mx-auto px-4 py-6">
+            {/* ヘッダー部分 */}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">
+                    {t('calendar.title')}
+                </h1>
+
+                <div className="flex space-x-2">
+                    <button
+                        onClick={goToPreviousMonth}
+                        className="px-3 py-1.5 rounded-lg border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                        ← {t('calendar.prevMonth')}
+                    </button>
+                    <button
+                        onClick={goToToday}
+                        className="px-3 py-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600"
+                    >
+                        {t('calendar.today')}
+                    </button>
+                    <button
+                        onClick={goToNextMonth}
+                        className="px-3 py-1.5 rounded-lg border dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                        {t('calendar.nextMonth')} →
+                    </button>
+                </div>
+            </div>
+
+            {/* カレンダーとタスク表示部分 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 左側: 未割り当てタスク */}
+                <div className="lg:col-span-1">
+                    <UnassignedTasksSection
+                        blocks={[]}
+                        tasks={tasks.filter(task => !task.date)}
+                        loading={loading}
+                        date=""
+                    />
                 </div>
 
-                {/* 未割り当てタスクセクション */}
-                <UnassignedTasksSection
-                    blocks={[]} // 必要に応じてブロックをfetchする処理を追加
-                    tasks={tasks.filter(task => task.date === null)} // 日付未設定のタスク
-                    loading={loading}
-                    date=""
-                />
-
-                {/* カレンダー */}
-                <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                {/* 右側: カレンダーと選択した日付のタスク */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* カレンダー */}
                     <Calendar
                         currentMonth={currentMonth}
                         tasks={tasks}
                         onPrevMonth={goToPreviousMonth}
                         onNextMonth={goToNextMonth}
-                        onSelectDate={setSelectedDate}
+                        onSelectDate={handleDateSelect}
                         selectedDate={selectedDate}
                     />
-                </div>
 
-                {/* 選択された日付のタスク一覧 */}
-                <div className="bg-white rounded-xl shadow-md overflow-hidden">
-                    <div className="p-4 border-b border-gray-200">
-                        <h2 className="text-lg font-medium">
-                            {selectedDate ? (
-                                <>
-                                    {selectedDate.toLocaleDateString(t('common.locale') || 'ja-JP', { month: 'long', day: 'numeric', weekday: 'long' })}
-                                    {t('calendar.tasksForDay')}
-                                </>
-                            ) : (
-                                t('calendar.selectDate')
-                            )}
-                        </h2>
-                    </div>
+                    {/* 選択した日付のタスク */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                        {selectedDate ? (
+                            <>
+                                <h2 className="text-xl font-semibold mb-4">
+                                    {selectedDate.toLocaleDateString(t('common.locale'), {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}のタスク
+                                </h2>
 
-                    <div className="divide-y divide-gray-100">
-                        {loading ? (
-                            <div className="p-8 text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-                                <p className="mt-2 text-gray-600">{t('calendar.loadingTasks')}</p>
-                            </div>
-                        ) : selectedDateTasks.length > 0 ? (
-                            <div>
-                                {selectedDateTasks.map((task) => (
-                                    <div key={task.id} className="task-container">
-                                        <TaskItem task={task} isDraggable={true} />
+                                {loading ? (
+                                    <div className="flex justify-center py-8">
+                                        <svg className="animate-spin h-8 w-8 text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
                                     </div>
-                                ))}
-                            </div>
+                                ) : selectedDateTasks.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {selectedDateTasks.map((task) => (
+                                            <div
+                                                key={task.id}
+                                                className={`p-3 rounded-lg border ${task.status === 'done'
+                                                    ? 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+                                                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                                                    }`}
+                                            >
+                                                <div className="flex items-start justify-between">
+                                                    <div className={`flex-1 ${task.status === 'done' ? 'line-through text-gray-500' : ''}`}>
+                                                        <h3 className="font-medium">{task.title}</h3>
+                                                        {task.description && (
+                                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{task.description}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="empty-state">
+                                        <svg className="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                        </svg>
+                                        <p>{t('calendar.noTasksForDate')}</p>
+                                    </div>
+                                )}
+                            </>
                         ) : (
-                            <div className="p-8 text-center text-gray-500">
-                                {selectedDate ? t('calendar.noTasksForDay') : t('calendar.selectDateToViewTasks')}
+                            <div className="empty-state py-12">
+                                <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <h3 className="text-xl font-medium mb-2">{t('calendar.selectDateMessage')}</h3>
+                                <p className="text-gray-500 dark:text-gray-400">{t('calendar.selectDateDescription')}</p>
                             </div>
                         )}
                     </div>

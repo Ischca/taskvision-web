@@ -25,6 +25,7 @@ import { useBlocks } from "../hooks/useBlocks";
 import { useParams } from "next/navigation";
 import { loadMessages } from "../components/i18n";
 import { useMessages } from '@/app/hooks/useMessages';
+import TaskFormModal from "./task/TaskFormModal";
 
 type TaskItemProps = {
     task: Task;
@@ -44,6 +45,30 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
     const [toastMessage, setToastMessage] = useState("");
     const [toastType, setToastType] = useState<"success" | "error">("success");
     const [selectedBlock, setSelectedBlock] = useState<string | null>(task.blockId || null);
+    const [selectedDate, setSelectedDate] = useState<string | undefined>(() => {
+        if (!task.date) return undefined;
+
+        // 日付が有効なフォーマットかチェック
+        try {
+            // yyyy/MM/ddのフォーマットになっているか確認
+            if (/^\d{4}\/\d{2}\/\d{2}$/.test(task.date)) {
+                return task.date;
+            }
+            // それ以外の場合はDate型に変換して正しいフォーマットに整形
+            const date = new Date(task.date);
+            if (isNaN(date.getTime())) {
+                return undefined; // 無効な日付
+            }
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}/${month}/${day}`;
+        } catch (e) {
+            console.error("無効な日付フォーマット:", task.date);
+            return undefined;
+        }
+    });
+    const [isDateUnassigned, setIsDateUnassigned] = useState<boolean>(!task.date);
 
     // リマインド設定
     const [showReminderSettings, setShowReminderSettings] = useState(false);
@@ -96,6 +121,7 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
     const { theme } = useTheme();
     const modalRef = useRef<HTMLDivElement>(null);
     const initialRender = useRef(true);
+    const titleInputRef = useRef<HTMLInputElement>(null);
     const { userId } = useAuth();
     const { blocks } = useBlocks();
     const params = useParams();
@@ -127,6 +153,16 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
     // モーダル外クリックでクローズ
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
+            // カレンダーポップオーバーが開いている場合は閉じる処理をスキップ
+            if (document.querySelector('[data-state="open"]')) {
+                return;
+            }
+
+            // カレンダーポップアップのクリックを無視
+            if ((event.target as HTMLElement).closest('.calendar-popup')) {
+                return;
+            }
+
             if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
                 setIsModalOpen(false);
             }
@@ -203,7 +239,8 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                 description: description.trim(),
                 deadline: deadline || null,
                 reminderSettings,
-                blockId: selectedBlock
+                blockId: selectedBlock,
+                date: isDateUnassigned ? null : (selectedDate || null)
             };
 
             // 繰り返し設定を追加（設定がある場合のみ）
@@ -265,6 +302,8 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
 
         // タスクデータをJSON文字列に変換して転送
         e.dataTransfer.setData("application/json", JSON.stringify(task));
+        // タスクIDも設定（未割り当てエリアへのドロップ用）
+        e.dataTransfer.setData("taskId", task.id);
         // ドラッグ中の要素の見た目を設定
         e.dataTransfer.effectAllowed = "move";
 
@@ -440,268 +479,10 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
         }
     };
 
-    // 編集モーダル
-    const renderTaskDetailModal = () => {
-        if (!isModalOpen) return null;
-
-        return (
-            <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4 modal-appear">
-                <div
-                    ref={modalRef}
-                    className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full modal-content-appear overflow-y-auto max-h-[90vh]"
-                >
-                    <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                            {t('common.tasks.taskDetails')}
-                        </h3>
-                        <button
-                            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            onClick={() => setIsModalOpen(false)}
-                        >
-                            <XMarkIcon className="h-5 w-5" />
-                        </button>
-                    </div>
-
-                    <form onSubmit={handleUpdate} className="p-4">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="form-label" htmlFor="task-title">
-                                    {t('common.tasks.taskName')}
-                                </label>
-                                <input
-                                    id="task-title"
-                                    type="text"
-                                    className="input input-bordered w-full focus-ring"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="form-label" htmlFor="task-deadline">
-                                    {t('common.tasks.deadline')}
-                                </label>
-                                <input
-                                    id="task-deadline"
-                                    type="datetime-local"
-                                    className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                    value={deadline}
-                                    onChange={(e) => setDeadline(e.target.value)}
-                                />
-                            </div>
-
-                            <div>
-                                <button
-                                    type="button"
-                                    className={`flex items-center justify-between w-full px-3 py-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'} transition-colors`}
-                                    onClick={toggleReminderSettings}
-                                >
-                                    <div className="flex items-center">
-                                        {showReminderSettings ? (
-                                            <BellIcon className="h-5 w-5 mr-2 text-primary-500" />
-                                        ) : (
-                                            <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                        )}
-                                        <span>{showReminderSettings ? t('common.tasks.hideReminderSettings') : t('common.tasks.showReminderSettings')}</span>
-                                    </div>
-                                    <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
-                                </button>
-                            </div>
-
-                            {showReminderSettings && (
-                                <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id="edit-enable-block-start"
-                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                    checked={enableBlockStartReminder}
-                                                    onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
-                                                />
-                                                <label htmlFor="edit-enable-block-start" className="text-sm">
-                                                    {t('common.tasks.notifyBeforeBlockStart')}
-                                                </label>
-                                            </div>
-                                            <select
-                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                value={blockStartReminderMinutes}
-                                                onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
-                                                disabled={!enableBlockStartReminder}
-                                            >
-                                                <option value="5">5{t('common.time.minutesBefore')}</option>
-                                                <option value="10">10{t('common.time.minutesBefore')}</option>
-                                                <option value="15">15{t('common.time.minutesBefore')}</option>
-                                                <option value="30">30{t('common.time.minutesBefore')}</option>
-                                                <option value="60">1{t('common.time.hourBefore')}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id="edit-enable-block-end"
-                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                    checked={enableBlockEndReminder}
-                                                    onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
-                                                />
-                                                <label htmlFor="edit-enable-block-end" className="text-sm">
-                                                    {t('common.tasks.notifyBeforeBlockEnd')}
-                                                </label>
-                                            </div>
-                                            <select
-                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                value={blockEndReminderMinutes}
-                                                onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
-                                                disabled={!enableBlockEndReminder}
-                                            >
-                                                <option value="5">5{t('common.time.minutesBefore')}</option>
-                                                <option value="10">10{t('common.time.minutesBefore')}</option>
-                                                <option value="15">15{t('common.time.minutesBefore')}</option>
-                                                <option value="30">30{t('common.time.minutesBefore')}</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    id="edit-enable-deadline"
-                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                    checked={enableDeadlineReminder}
-                                                    onChange={() => setEnableDeadlineReminder(!enableDeadlineReminder)}
-                                                    disabled={!deadline}
-                                                />
-                                                <label htmlFor="edit-enable-deadline" className="text-sm">
-                                                    {t('common.tasks.notifyBeforeDeadline')}
-                                                </label>
-                                            </div>
-                                            <select
-                                                className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                value={deadlineReminderMinutes}
-                                                onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
-                                                disabled={!enableDeadlineReminder || !deadline}
-                                            >
-                                                <option value="15">15{t('common.time.minutesBefore')}</option>
-                                                <option value="30">30{t('common.time.minutesBefore')}</option>
-                                                <option value="60">1{t('common.time.hourBefore')}</option>
-                                                <option value="120">2{t('common.time.hoursBefore')}</option>
-                                                <option value="1440">1{t('common.time.dayBefore')}</option>
-                                            </select>
-                                        </div>
-                                        {!deadline && enableDeadlineReminder && (
-                                            <p className="text-xs text-orange-500 mt-1">
-                                                {t('common.tasks.pleaseSetDeadline')}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div>
-                                <label className="form-label" htmlFor="task-description">
-                                    {t('common.tasks.details')}
-                                </label>
-                                <textarea
-                                    id="task-description"
-                                    className="textarea textarea-bordered w-full focus-ring min-h-24"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder={t('common.tasks.detailsPlaceholder')}
-                                    rows={4}
-                                ></textarea>
-                            </div>
-
-                            <div className="mt-4">
-                                <label className="block text-sm font-medium mb-1">
-                                    {t('common.tasks.blockAssignment')}
-                                </label>
-                                <select
-                                    value={selectedBlock || ""}
-                                    onChange={(e) => setSelectedBlock(e.target.value || null)}
-                                    className={`w-full p-2 border rounded-md ${theme === "dark"
-                                        ? "bg-gray-700 border-gray-600 text-white"
-                                        : "bg-white border-gray-300 text-gray-900"
-                                        }`}
-                                >
-                                    <option value="">{t('common.tasks.unassigned')}</option>
-                                    {blocks.map((block) => (
-                                        <option key={block.id} value={block.id}>
-                                            {block.name} ({block.startTime}〜{block.endTime})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div className="flex items-center pt-3">
-                                <div className="flex items-center h-5">
-                                    <input
-                                        id="task-status"
-                                        type="checkbox"
-                                        className="checkbox checkbox-sm checkbox-primary"
-                                        checked={checked}
-                                        onChange={handleCheck}
-                                    />
-                                </div>
-                                <label
-                                    htmlFor="task-status"
-                                    className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer"
-                                >
-                                    {t('common.tasks.taskCompleted')}
-                                </label>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <button
-                                type="button"
-                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                                onClick={handleDelete}
-                                disabled={isSubmitting || isDeleting}
-                            >
-                                <TrashIcon className="h-4 w-4 mr-1" />
-                                {isDeleting ? t('common.tasks.deleting') : t('common.actions.delete')}
-                            </button>
-
-                            <div className="flex space-x-2">
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                    onClick={() => setIsModalOpen(false)}
-                                    disabled={isSubmitting}
-                                >
-                                    {t('common.actions.cancel')}
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                    disabled={!title.trim() || isSubmitting}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                                            {t('common.tasks.saving')}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckIcon className="h-4 w-4 mr-1" />
-                                            {t('common.actions.save')}
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        );
+    // タスク更新完了時の処理
+    const handleTaskUpdated = () => {
+        setIsModalOpen(false);
+        showSuccessToast(t('common.tasks.taskUpdated'));
     };
 
     return (
@@ -803,7 +584,90 @@ const TaskItem: FC<TaskItemProps> = ({ task, isDraggable = false }) => {
                 </div>
             </li>
 
-            {renderTaskDetailModal()}
+            {/* TaskFormModalを使った編集モード */}
+            {isModalOpen && (
+                <TaskFormModal
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    title={title}
+                    setTitle={setTitle}
+                    description={description}
+                    setDescription={setDescription}
+                    selectedBlock={selectedBlock || ""}
+                    setSelectedBlock={setSelectedBlock}
+                    selectedDate={selectedDate}
+                    setSelectedDate={(date) => {
+                        // タスクの日付を更新（実際の更新はフォーム提出時に行われる）
+                        setSelectedDate(date);
+                        // 日付が設定された場合は、未割り当てフラグをオフにする
+                        if (date) {
+                            setIsDateUnassigned(false);
+                        }
+                    }}
+                    isDateUnassigned={isDateUnassigned}
+                    setIsDateUnassigned={(unassigned) => {
+                        // 未割り当て状態の更新
+                        setIsDateUnassigned(unassigned);
+                        // 未割り当てにチェックが入った場合は日付をクリア
+                        if (unassigned) {
+                            setSelectedDate(undefined);
+                        }
+                    }}
+                    deadlineDate={deadline || undefined}
+                    setDeadlineDate={(date) => {
+                        // 締切日が変更された場合、ここで処理
+                        setDeadline(date || "");
+                    }}
+                    blocks={blocks}
+                    isSubmitting={isSubmitting}
+                    handleSubmit={handleUpdate}
+                    titleInputRef={titleInputRef}
+                    modalRef={modalRef}
+                    showReminderSettings={showReminderSettings}
+                    setShowReminderSettings={setShowReminderSettings}
+                    enableBlockStartReminder={enableBlockStartReminder}
+                    setEnableBlockStartReminder={setEnableBlockStartReminder}
+                    blockStartReminderMinutes={blockStartReminderMinutes}
+                    setBlockStartReminderMinutes={setBlockStartReminderMinutes}
+                    enableBlockEndReminder={enableBlockEndReminder}
+                    setEnableBlockEndReminder={setEnableBlockEndReminder}
+                    blockEndReminderMinutes={blockEndReminderMinutes}
+                    setBlockEndReminderMinutes={setBlockEndReminderMinutes}
+                    enableDeadlineReminder={enableDeadlineReminder}
+                    setEnableDeadlineReminder={setEnableDeadlineReminder}
+                    deadlineReminderMinutes={deadlineReminderMinutes}
+                    setDeadlineReminderMinutes={setDeadlineReminderMinutes}
+                    showRepeatSettings={showRepeatSettings}
+                    setShowRepeatSettings={setShowRepeatSettings}
+                    enableRepeat={enableRepeat}
+                    setEnableRepeat={setEnableRepeat}
+                    repeatType={repeatType}
+                    setRepeatType={setRepeatType}
+                    repeatFrequency={repeatFrequency}
+                    setRepeatFrequency={setRepeatFrequency}
+                    repeatDaysOfWeek={repeatDaysOfWeek}
+                    toggleDayOfWeek={toggleDayOfWeek}
+                    repeatDayOfMonth={repeatDayOfMonth}
+                    setRepeatDayOfMonth={setRepeatDayOfMonth}
+                    repeatEndType={repeatEndType}
+                    setRepeatEndType={setRepeatEndType}
+                    repeatOccurrences={repeatOccurrences}
+                    setRepeatOccurrences={setRepeatOccurrences}
+                    repeatEndDate={repeatEndDate}
+                    setRepeatEndDate={setRepeatEndDate}
+                    getDayName={getDayName}
+                    setIsAnyPopoverOpen={() => { }}
+                    deadline={deadline}
+                    dateToString={(date) => {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        return `${year}/${month}/${day}`;
+                    }}
+                    isEditing={true}
+                    taskId={task.id}
+                />
+            )}
 
             {/* トースト通知 */}
             {showToast && (

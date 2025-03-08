@@ -22,7 +22,17 @@ export type UnifiedCalendarProps = {
     onOpenChange?: (open: boolean) => void;
     className?: string;
     calendarMode?: CalendarMode;
-} & Omit<React.ComponentProps<typeof DayPicker>, 'mode' | 'selected' | 'onSelect' | 'className'>;
+    components?: {
+        DayContent?: (props: { date: Date }) => React.ReactNode;
+    };
+    modifiers?: Record<string, (date: Date) => boolean>;
+    modifiersClassNames?: Record<string, string>;
+    month?: Date;
+    defaultMonth?: Date;
+    fromMonth?: Date;
+    toMonth?: Date;
+    fixedWeeks?: boolean;
+} & Omit<React.ComponentProps<typeof DayPicker>, 'mode' | 'selected' | 'onSelect' | 'className' | 'components' | 'modifiers' | 'modifiersClassNames'>;
 
 /**
  * 統一カレンダーコンポーネント
@@ -39,6 +49,14 @@ function UnifiedCalendar({
     classNames,
     showOutsideDays = true,
     calendarMode = "single",
+    components,
+    modifiers,
+    modifiersClassNames,
+    month,
+    defaultMonth,
+    fromMonth,
+    toMonth,
+    fixedWeeks,
     ...props
 }: UnifiedCalendarProps) {
     const [isOpen, setIsOpen] = React.useState(false);
@@ -106,6 +124,11 @@ function UnifiedCalendar({
                 day_hidden: "invisible",
                 ...classNames,
             },
+            month,
+            defaultMonth,
+            fromMonth,
+            toMonth,
+            fixedWeeks,
             components: {
                 IconLeft: ({ className, ...props }: React.ComponentProps<"svg">) => (
                     <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
@@ -113,7 +136,10 @@ function UnifiedCalendar({
                 IconRight: ({ className, ...props }: React.ComponentProps<"svg">) => (
                     <ChevronRight className={cn("h-4 w-4", className)} {...props} />
                 ),
+                ...(components || {})
             },
+            modifiers: modifiers || {},
+            modifiersClassNames: modifiersClassNames || {},
             ...props,
         };
 

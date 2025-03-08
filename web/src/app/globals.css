@@ -442,6 +442,7 @@ body,
 
 .responsive-calendar .rdp-cell {
   @apply !p-0 !m-0;
+  min-height: 70px; /* セルの最小高さを設定 */
 }
 
 .responsive-calendar table {
@@ -451,6 +452,40 @@ body,
 /* カレンダーボタンスタイル調整 */
 .responsive-calendar .rdp-button {
   @apply !m-0 !p-0;
+  height: 100%;
+  width: 100%;
+  border-radius: 0;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0.25rem !important;
+}
+
+/* タスクがある日付のスタイル */
+.responsive-calendar .has-tasks {
+  position: relative;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.responsive-calendar .has-tasks::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+}
+
+/* タスク表示スタイル */
+.responsive-calendar .rdp-button div {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 60px;
 }
 
 /* ポップオーバータイプのカレンダー用スタイル */
@@ -487,6 +522,14 @@ html.dark .calendar-container .border-t {
   @apply !border-gray-700;
 }
 
+html.dark .responsive-calendar .has-tasks {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+html.dark .responsive-calendar .has-tasks::after {
+  background-color: #60a5fa;
+}
+
 /* メディアクエリによるサイズ調整 */
 @media (max-width: 640px) {
   .responsive-calendar .rdp-day {
@@ -495,6 +538,14 @@ html.dark .calendar-container .border-t {
   
   .responsive-calendar .rdp-head_cell {
     @apply !text-[0.6rem];
+  }
+
+  .responsive-calendar .rdp-cell {
+    min-height: 60px;
+  }
+
+  .responsive-calendar .rdp-button div {
+    min-height: 50px;
   }
 }
 
@@ -529,4 +580,168 @@ html.dark .calendar-container .border-t {
   .popover-content-calendar {
     @apply !mx-1;
   }
+}
+
+/* カレンダースタイル */
+.calendar-grid {
+  @apply grid grid-cols-7 gap-1;
+}
+
+.calendar-cell {
+  @apply relative min-h-[70px] p-1 border border-transparent rounded-md transition-colors cursor-pointer;
+}
+
+.calendar-cell.current-month {
+  @apply bg-white dark:bg-gray-800;
+}
+
+.calendar-cell.other-month {
+  @apply opacity-40;
+}
+
+.calendar-cell.selected {
+  @apply bg-primary-100 border-primary-300;
+}
+
+.calendar-cell.today {
+  @apply border-primary-500;
+}
+
+.calendar-day-number {
+  @apply flex justify-center items-center w-6 h-6 rounded-full text-sm;
+}
+
+.calendar-day-number.selected {
+  @apply bg-primary-500 text-white;
+}
+
+.calendar-day-number.today:not(.selected) {
+  @apply border border-primary-500;
+}
+
+.calendar-day-number.sunday:not(.selected) {
+  @apply text-red-500;
+}
+
+.calendar-day-number.saturday:not(.selected) {
+  @apply text-blue-500;
+}
+
+.calendar-task-count {
+  @apply text-xs px-1 bg-primary-100 text-primary-800 rounded-full;
+}
+
+.calendar-task-item {
+  @apply text-xs truncate rounded px-1 py-0.5 mt-1;
+}
+
+.calendar-task-item.done {
+  @apply line-through text-gray-500 bg-gray-100;
+}
+
+.calendar-task-item.pending {
+  @apply bg-primary-100 text-primary-800;
+}
+
+.calendar-more-tasks {
+  @apply text-xs text-center text-gray-500 mt-1;
+}
+
+/* 曜日ヘッダー */
+.weekday-header {
+  @apply grid grid-cols-7 mb-1;
+}
+
+.weekday-cell {
+  @apply text-center text-xs py-1;
+}
+
+.weekday-cell.sunday {
+  @apply text-red-500;
+}
+
+.weekday-cell.saturday {
+  @apply text-blue-500;
+}
+
+.weekday-cell.weekday {
+  @apply text-gray-500 dark:text-gray-400;
+}
+
+/* 未割り当てタスクセクション */
+.unassigned-tasks-section {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300;
+}
+
+.unassigned-tasks-section.drag-over {
+  @apply ring-2 ring-primary-500;
+}
+
+.unassigned-section-header {
+  @apply p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center cursor-pointer;
+}
+
+.unassigned-section-title {
+  @apply text-lg font-medium mr-2;
+}
+
+.unassigned-task-count {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm px-2 py-0.5 rounded-full;
+}
+
+.unassigned-toggle-button {
+  @apply p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700;
+}
+
+.unassigned-tasks-list {
+  @apply transition-all duration-300 overflow-hidden;
+}
+
+.unassigned-tasks-list.expanded {
+  @apply max-h-96 overflow-y-auto;
+}
+
+.unassigned-tasks-list.collapsed {
+  @apply max-h-0;
+}
+
+/* タスク詳細表示セクション */
+.task-details-section {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-4;
+}
+
+.task-details-title {
+  @apply text-xl font-semibold mb-4;
+}
+
+.task-list-container {
+  @apply space-y-2;
+}
+
+.task-list-item {
+  @apply p-3 rounded-lg border;
+}
+
+.task-list-item.done {
+  @apply bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700;
+}
+
+.task-list-item.pending {
+  @apply bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700;
+}
+
+.task-content {
+  @apply flex items-start justify-between;
+}
+
+.task-title {
+  @apply font-medium;
+}
+
+.task-title.done {
+  @apply line-through text-gray-500;
+}
+
+.task-description {
+  @apply text-sm text-gray-600 dark:text-gray-400 mt-1;
 }

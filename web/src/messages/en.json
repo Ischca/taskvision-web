@@ -201,7 +201,12 @@
         "selectDate": "Please select a date",
         "loadingTasks": "Loading tasks...",
         "noTasksForDay": "No tasks for this day",
-        "selectDateToViewTasks": "Select a date to view tasks"
+        "selectDateToViewTasks": "Select a date to view tasks",
+        "prevMonth": "Previous Month",
+        "nextMonth": "Next Month",
+        "selectDateMessage": "Select Date",
+        "selectDateDescription": "Please select a date to view tasks",
+        "moreTasks": "{count} more tasks"
     },
     "blocks": {
         "title": "Block Management",

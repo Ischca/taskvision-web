@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../utils/firebase';
+import { User } from 'firebase/auth';
+import { auth, db, createTaskSecurely, setupAuthListener, signInWithGoogle } from '../utils/firebase';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const Popup: React.FC = () => {
     const { t } = useTranslation();
     const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [pageInfo, setPageInfo] = useState<{ title: string; url: string }>({ title: '', url: '' });
+    const [pageInfo, setPageInfo] = useState<{ title: string; url: string; faviconUrl: string }>({
+        title: '',
+        url: '',
+        faviconUrl: ''
+    });
     const [loading, setLoading] = useState<boolean>(false);
     const [taskTitle, setTaskTitle] = useState<string>('');
     const [taskDescription, setTaskDescription] = useState<string>('');
@@ -26,6 +29,7 @@ const Popup: React.FC = () => {
             setPageInfo({
                 title: tab.title || '',
                 url: tab.url || '',
+                faviconUrl: tab.favIconUrl || ''
             });
             setTaskTitle(tab.title || '');
         });
@@ -78,30 +82,33 @@ const Popup: React.FC = () => {
             }
         }
 
-        // ブラウザのFirebase認証状態を確認
-        setAuthChecking(true);
-
-        // バックグラウンドから認証状態を確認
-        chrome.runtime.sendMessage({ action: 'checkAuthState' }, (response) => {
-            if (chrome.runtime.lastError) {
-                console.error('バックグラウンド通信エラー:', chrome.runtime.lastError);
-            }
-        });
-
         // 認証状態を監視
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            setCurrentUser(user);
-            setAuthChecking(false);
-        });
+        setAuthChecking(true);
+        const unsubscribe = setupAuthListener(
+            (user) => {
+                setCurrentUser(user);
+                setAuthChecking(false);
+            },
+            () => {
+                setCurrentUser(null);
+                setAuthChecking(false);
+            }
+        );
 
         return () => unsubscribe();
     }, []);
 
-    // ログイン処理 - ウェブ版にリダイレクト
+    // ログイン処理
     const handleLogin = async () => {
         try {
-            // ウェブアプリのログインページにリダイレクト
-            chrome.tabs.create({ url: `${webAppUrl}/login` });
+            // Google認証でサインイン
+            const user = await signInWithGoogle();
+            if (user) {
+                setCurrentUser(user);
+            } else {
+                // 失敗した場合はウェブアプリのログインページにリダイレクト
+                chrome.tabs.create({ url: `${webAppUrl}/login` });
+            }
         } catch (error) {
             console.error('ログインエラー:', error);
             setMessage({
@@ -126,31 +133,34 @@ const Popup: React.FC = () => {
         setLoading(true);
 
         try {
-            const taskData = {
+            // 安全なタスク作成関数を使用
+            const result = await createTaskSecurely({
                 title: taskTitle,
                 description: taskDescription,
-                sourceUrl: pageInfo.url,
-                sourcePage: pageInfo.title,
-                status: 'todo',
-                userId: currentUser.uid,
-                created: serverTimestamp(),
-                updated: serverTimestamp(),
-                dueDate: null,
-                priority: 'medium',
-                date: new Date(),
-                blockId: null
-            };
-
-            await addDoc(collection(db, 'tasks'), taskData);
-
-            setMessage({
-                type: 'success',
-                text: t('popup.successMessage')
+                blockId: null,
+                date: new Date().toISOString().split('T')[0],
+                status: 'open',
+                source: {
+                    type: 'chrome_extension',
+                    url: pageInfo.url,
+                    title: pageInfo.title,
+                    faviconUrl: pageInfo.faviconUrl,
+                    capturedAt: new Date().toISOString()
+                }
             });
 
-            // フォームリセット
-            setTaskTitle(pageInfo.title);
-            setTaskDescription(selectedText || '');
+            if (result) {
+                setMessage({
+                    type: 'success',
+                    text: t('popup.successMessage')
+                });
+
+                // フォームリセット
+                setTaskTitle(pageInfo.title);
+                setTaskDescription(selectedText || '');
+            } else {
+                throw new Error('タスクの作成に失敗しました');
+            }
         } catch (error) {
             console.error('タスク追加エラー:', error);
             setMessage({

@@ -5,7 +5,6 @@ import { Task } from "@/types";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "./ThemeProvider";
 import { useMessages } from '@/app/hooks/useMessages';
-import { UnifiedCalendar } from "@/components/ui/unified-calendar";
 
 interface CalendarProps {
     currentMonth: Date;
@@ -36,6 +35,44 @@ const Calendar: FC<CalendarProps> = ({
         return `${year}-${month}-${day}`;
     };
 
+    // カレンダーに表示する日付を生成
+    const calendarDays = useMemo(() => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+
+        // 月の初日
+        const firstDay = new Date(year, month, 1);
+        // 月の最終日
+        const lastDay = new Date(year, month + 1, 0);
+
+        // 月の初日の曜日（0: 日曜日, 1: 月曜日, ..., 6: 土曜日）
+        const firstDayOfWeek = firstDay.getDay();
+
+        // カレンダーに表示する日付の配列
+        const days: Date[] = [];
+
+        // 前月の日付を追加
+        for (let i = firstDayOfWeek; i > 0; i--) {
+            const day = new Date(year, month, 1 - i);
+            days.push(day);
+        }
+
+        // 当月の日付を追加
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            const day = new Date(year, month, i);
+            days.push(day);
+        }
+
+        // 翌月の日付を追加（6週間分の表示に調整）
+        const daysNeeded = 42 - days.length; // 6週間分（6 * 7 = 42）になるように
+        for (let i = 1; i <= daysNeeded; i++) {
+            const day = new Date(year, month + 1, i);
+            days.push(day);
+        }
+
+        return days;
+    }, [currentMonth]);
+
     // 日付ごとのタスク数を取得
     const getTasksForDate = (date: Date) => {
         const dateStr = formatDateString(date);
@@ -52,6 +89,21 @@ const Calendar: FC<CalendarProps> = ({
         );
     };
 
+    // 現在の月かどうかをチェック
+    const isCurrentMonth = (date: Date) => {
+        return date.getMonth() === currentMonth.getMonth();
+    };
+
+    // 今日の日付かどうかをチェック
+    const isToday = (date: Date) => {
+        const today = new Date();
+        return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+        );
+    };
+
     // 曜日の表示 - 国際化対応
     const weekdays = t('common.locale') === 'en-US'
         ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -63,57 +115,9 @@ const Calendar: FC<CalendarProps> = ({
         month: 'long',
     });
 
-    const handleDateSelect = (date: Date | undefined) => {
-        if (date) {
-            onSelectDate(date);
-        }
-    };
-
-    // カスタムデイコンテンツレンダラー
-    const customDayContent = (day: Date) => {
-        const tasksForDay = getTasksForDate(day);
-        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-        const isSunday = day.getDay() === 0;
-        const isSaturday = day.getDay() === 6;
-
-        return (
-            <div className="flex flex-col items-center h-full w-full">
-                <div
-                    className={`flex justify-center items-center w-6 h-6 sm:w-7 sm:h-7 rounded-full mb-1 ${isSelected(day)
-                        ? 'bg-primary-500 text-white'
-                        : isSunday
-                            ? 'text-red-500'
-                            : isSaturday
-                                ? 'text-blue-500'
-                                : ''
-                        }`}
-                >
-                    {day.getDate()}
-                </div>
-
-                {/* タスク表示 */}
-                {tasksForDay.length > 0 && (
-                    <div className="w-full">
-                        {tasksForDay.slice(0, 2).map((task, i) => (
-                            <div
-                                key={i}
-                                className={`text-xs truncate rounded px-1 py-0.5 mb-0.5 ${task.status === 'done'
-                                    ? 'line-through text-gray-500 bg-gray-100'
-                                    : 'bg-primary-100 text-primary-800'
-                                    }`}
-                            >
-                                {task.title}
-                            </div>
-                        ))}
-                        {tasksForDay.length > 2 && (
-                            <div className="text-xs text-center text-gray-500">
-                                +{tasksForDay.length - 2} {t('common.calendar.moreTasks')}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
+    // 日付クリックハンドラ
+    const handleDateClick = (date: Date) => {
+        onSelectDate(date);
     };
 
     return (
@@ -143,15 +147,80 @@ const Calendar: FC<CalendarProps> = ({
                 </div>
             </div>
 
-            {/* UnifiedCalendarを使用 */}
-            <UnifiedCalendar
-                mode="embedded"
-                date={selectedDate || undefined}
-                onDateChange={handleDateSelect}
-                calendarMode="single"
-                className="custom-calendar"
-            // ここに他のカスタムプロパティを追加
-            />
+            {/* カレンダー本体 */}
+            <div className="p-1 sm:p-2">
+                {/* 曜日ヘッダー */}
+                <div className="weekday-header">
+                    {weekdays.map((day, index) => (
+                        <div
+                            key={index}
+                            className={`weekday-cell ${index === 0
+                                ? 'sunday'
+                                : index === 6
+                                    ? 'saturday'
+                                    : 'weekday'}`}
+                        >
+                            {day}
+                        </div>
+                    ))}
+                </div>
+
+                {/* 日付グリッド */}
+                <div className="calendar-grid">
+                    {calendarDays.map((day, index) => {
+                        const tasksForDay = getTasksForDate(day);
+                        const isSunday = day.getDay() === 0;
+                        const isSaturday = day.getDay() === 6;
+
+                        return (
+                            <div
+                                key={index}
+                                className={`calendar-cell ${isCurrentMonth(day) ? 'current-month' : 'other-month'
+                                    } ${isSelected(day) ? 'selected' : ''} ${isToday(day) ? 'today' : ''
+                                    }`}
+                                onClick={() => handleDateClick(day)}
+                            >
+                                {/* 日付表示 */}
+                                <div className="flex justify-between items-start">
+                                    <div
+                                        className={`calendar-day-number ${isSelected(day) ? 'selected' : ''
+                                            } ${isToday(day) ? 'today' : ''} ${isSunday ? 'sunday' : isSaturday ? 'saturday' : ''
+                                            }`}
+                                    >
+                                        {day.getDate()}
+                                    </div>
+
+                                    {/* タスク数表示 */}
+                                    {tasksForDay.length > 0 && (
+                                        <span className="calendar-task-count">
+                                            {tasksForDay.length}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* タスク表示 */}
+                                <div className="mt-1 space-y-1">
+                                    {tasksForDay.slice(0, 2).map((task, i) => (
+                                        <div
+                                            key={i}
+                                            className={`calendar-task-item ${task.status === 'done' ? 'done' : 'pending'
+                                                }`}
+                                            title={task.title}
+                                        >
+                                            {task.title}
+                                        </div>
+                                    ))}
+                                    {tasksForDay.length > 2 && (
+                                        <div className="calendar-more-tasks">
+                                            +{tasksForDay.length - 2} {t('calendar.moreTasks')}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 };

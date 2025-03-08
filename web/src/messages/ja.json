@@ -201,7 +201,12 @@
         "selectDate": "日付を選択してください",
         "loadingTasks": "タスクを読み込み中...",
         "noTasksForDay": "この日のタスクはありません",
-        "selectDateToViewTasks": "日付を選択してタスクを表示"
+        "selectDateToViewTasks": "日付を選択してタスクを表示",
+        "prevMonth": "前月",
+        "nextMonth": "翌月",
+        "selectDateMessage": "日付を選択",
+        "selectDateDescription": "タスクを表示する日付を選択してください",
+        "moreTasks": "他 {count} 件のタスク"
     },
     "blocks": {
         "title": "ブロック管理",

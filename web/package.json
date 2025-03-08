@@ -40,6 +40,7 @@
     "firebase": "^11.3.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "taskvision-shared": "../shared",
     "typescript": "^5"
   }
 }

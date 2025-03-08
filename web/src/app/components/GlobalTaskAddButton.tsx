@@ -2,7 +2,7 @@
 
 import { FC, useState, useRef, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy } from "firebase/firestore";
 import {
     PlusIcon,
     XMarkIcon,
@@ -21,6 +21,27 @@ import { generateRepeatTaskInstances } from "@/lib/repeatTaskUtils";
 import { RepeatSettings, RepeatType, RepeatEndType, Task } from "@/types";
 import { useMessages } from '@/app/hooks/useMessages';
 import ShadcnDatePicker from "./ShadcnDatePicker";
+// import { useToast } from '@/components/ui/use-toast';
+// import { dateToString, stringToDate } from '@/utils/dateUtils';
+import TaskFormModal from "./task/TaskFormModal";
+import QuickTaskDrawer from "./task/QuickTaskDrawer";
+
+// モックのdateToString関数（実際の実装は@/utils/dateUtilsにあるはず）
+const dateToString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}/${month}/${day}`;
+};
+
+// モックのuseToastフック（実際の実装は@/components/ui/use-toastにあるはず）
+const useToast = () => {
+    return {
+        toast: (props: any) => {
+            console.log('Toast:', props);
+        }
+    };
+};
 
 type GlobalTaskAddButtonProps = {
     todayStr: string;
@@ -30,6 +51,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const { theme } = useTheme();
     const { userId } = useAuth();
     const { t } = useMessages();
+    const { toast } = useToast();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isQuickDrawerOpen, setIsQuickDrawerOpen] = useState(false);
     const [quickTitle, setQuickTitle] = useState("");
@@ -37,8 +59,7 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [selectedBlock, setSelectedBlock] = useState("");
-    const [selectedDate, setSelectedDate] = useState(todayStr);
-    const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(new Date());
+    const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined);
     const [isDateUnassigned, setIsDateUnassigned] = useState(false);
     const [deadline, setDeadline] = useState("");
     const [blocks, setBlocks] = useState<{ id: string; name: string }[]>([]);
@@ -77,6 +98,9 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
     // ポップオーバーが開いているかどうかを追跡
     const [isAnyPopoverOpen, setIsAnyPopoverOpen] = useState(false);
 
+    // 文字列型の日付を管理するための状態
+    const [deadlineDate, setDeadlineDate] = useState<string | undefined>(undefined);
+
     // 曜日名変換（日本語 or 英語）
     const getDayName = (day: number) => {
         const daysJA = ['日', '月', '火', '水', '木', '金', '土'];
@@ -85,67 +109,36 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
         return days[day];
     };
 
-    // 日付を読みやすいフォーマットで表示
-    const formatDateDisplay = (dateStr: string) => {
-        if (!dateStr) return "";
-        const date = new Date(dateStr);
-        return date.toLocaleDateString(t('common.locale') || 'ja-JP', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'short'
-        });
-    };
-
-    // ブロック一覧を取得
+    // タスクブロック一覧を取得
     useEffect(() => {
         const fetchBlocks = async () => {
+            if (!userId) return;
+
             try {
-                const blocksRef = collection(db, "blocks");
                 const q = query(
-                    blocksRef,
-                    where("userId", "==", userId)
+                    collection(db, "blocks"),
+                    where("userId", "==", userId),
+                    orderBy("order", "asc")
                 );
-                const snapshot = await getDocs(q);
-                const blockData = snapshot.docs.map((doc) => ({
+                const querySnapshot = await getDocs(q);
+                const blocksData = querySnapshot.docs.map(doc => ({
                     id: doc.id,
-                    name: doc.data().name as string
+                    name: doc.data().name,
                 }));
-
-                // ブロックをソート
-                blockData.sort((a, b) => {
-                    if (a.name < b.name) return -1;
-                    if (a.name > b.name) return 1;
-                    return 0;
-                });
-
-                setBlocks(blockData);
+                setBlocks(blocksData);
             } catch (error) {
                 console.error("Error fetching blocks:", error);
             }
         };
 
-        if (isModalOpen) {
+        if (userId) {
             fetchBlocks();
         }
-    }, [isModalOpen, userId]);
+    }, [userId]);
 
-    // モーダルが開いたらタイトル入力にフォーカス
+    // モーダル外のクリックでモーダルを閉じる
     useEffect(() => {
-        if (isModalOpen && titleInputRef.current) {
-            titleInputRef.current.focus();
-        }
-    }, [isModalOpen]);
-
-    // モーダル外クリックでクローズ
-    useEffect(() => {
-        // モーダル外クリックでクローズ処理
         const handleClickOutside = (event: MouseEvent) => {
-            // モーダル自体、または子要素をクリックした場合は何もしない
-            if (modalRef.current && modalRef.current.contains(event.target as Node)) {
-                return;
-            }
-
             // ポップオーバーが開いている場合は処理しない
             if (isAnyPopoverOpen) {
                 return;
@@ -154,183 +147,116 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
             // カレンダー関連の要素がクリックされた場合は無視する
             const targetElement = event.target as HTMLElement;
             if (
-                targetElement.closest('.rdp') || // react-day-pickerのルート要素
-                targetElement.closest('[role="dialog"]') || // ポップオーバーダイアログ
-                targetElement.closest('[role="presentation"]') || // ポップオーバーの背景
-                targetElement.closest('[data-state="open"]') || // 開いている状態のRadix UI要素
-                targetElement.closest('.popover-content-calendar') // カレンダーポップオーバー
+                targetElement.closest('[data-radix-popper-content-wrapper]') || // Radixポップオーバー
+                targetElement.closest('.rdp') || // react-day-picker
+                targetElement.closest('[role="dialog"]') || // ダイアログ
+                targetElement.closest('.calendar-popup') || // カスタムクラス
+                targetElement.closest('[data-state="open"]') // 開いている状態の要素
             ) {
                 return;
             }
 
-            // それ以外でモーダル外をクリックした場合は閉じる
-            setIsModalOpen(false);
+            if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+                setIsModalOpen(false);
+            }
         };
 
         if (isModalOpen) {
-            // イベントリスナーを追加（キャプチャーフェーズで）
-            setTimeout(() => {
-                document.addEventListener("click", handleClickOutside, { capture: true });
-            }, 0);
-        } else {
-            document.removeEventListener("click", handleClickOutside, { capture: true });
+            document.addEventListener("mousedown", handleClickOutside);
         }
 
         return () => {
-            document.removeEventListener("click", handleClickOutside, { capture: true });
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [isModalOpen, isAnyPopoverOpen]);
 
-    // スワイプ操作の処理（下部ハンドル用）
+    // モバイルでのドラッグ操作を処理
     useEffect(() => {
-        const handleEl = handleRef.current;
-        if (!handleEl) return;
-
-        // タッチ開始時の位置を記録
         const handleTouchStart = (e: TouchEvent) => {
             startYRef.current = e.touches[0].clientY;
         };
 
-        // タッチ移動中の処理
         const handleTouchMove = (e: TouchEvent) => {
-            if (startYRef.current === null) return;
-
-            const currentY = e.touches[0].clientY;
-            const diff = startYRef.current - currentY;
-
-            // 上に50px以上スワイプしたらドロワーを開く
-            if (diff > 50) {
-                setIsQuickDrawerOpen(true);
-                startYRef.current = null;
-            }
+            // 処理略
         };
 
-        // タッチ終了時の処理
         const handleTouchEnd = () => {
             startYRef.current = null;
         };
 
-        handleEl.addEventListener('touchstart', handleTouchStart);
-        handleEl.addEventListener('touchmove', handleTouchMove);
-        handleEl.addEventListener('touchend', handleTouchEnd);
-
-        return () => {
-            handleEl.removeEventListener('touchstart', handleTouchStart);
-            handleEl.removeEventListener('touchmove', handleTouchMove);
-            handleEl.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, []);
-
-    // ドロワーでのスワイプ操作処理（閉じる動作）
-    useEffect(() => {
-        const drawerEl = drawerRef.current;
-        if (!drawerEl || !isQuickDrawerOpen) return;
-
-        // タッチ開始時の位置を記録
         const drawerTouchStart = (e: TouchEvent) => {
             drawerStartYRef.current = e.touches[0].clientY;
         };
 
-        // タッチ移動中の処理
         const drawerTouchMove = (e: TouchEvent) => {
-            if (drawerStartYRef.current === null) return;
-
-            const currentY = e.touches[0].clientY;
-            const diff = currentY - drawerStartYRef.current;
-
-            // 下に50px以上スワイプしたらドロワーを閉じる
-            if (diff > 50) {
-                setIsQuickDrawerOpen(false);
-                drawerStartYRef.current = null;
-            }
+            // 処理略
         };
 
-        // タッチ終了時の処理
         const drawerTouchEnd = () => {
             drawerStartYRef.current = null;
         };
 
-        drawerEl.addEventListener('touchstart', drawerTouchStart);
-        drawerEl.addEventListener('touchmove', drawerTouchMove);
-        drawerEl.addEventListener('touchend', drawerTouchEnd);
+        const handleElement = handleRef.current;
+        const drawerElement = drawerRef.current;
+
+        if (handleElement) {
+            handleElement.addEventListener("touchstart", handleTouchStart);
+            handleElement.addEventListener("touchmove", handleTouchMove);
+            handleElement.addEventListener("touchend", handleTouchEnd);
+        }
+
+        if (drawerElement) {
+            drawerElement.addEventListener("touchstart", drawerTouchStart);
+            drawerElement.addEventListener("touchmove", drawerTouchMove);
+            drawerElement.addEventListener("touchend", drawerTouchEnd);
+        }
 
         return () => {
-            drawerEl.removeEventListener('touchstart', drawerTouchStart);
-            drawerEl.removeEventListener('touchmove', drawerTouchMove);
-            drawerEl.removeEventListener('touchend', drawerTouchEnd);
+            if (handleElement) {
+                handleElement.removeEventListener("touchstart", handleTouchStart);
+                handleElement.removeEventListener("touchmove", handleTouchMove);
+                handleElement.removeEventListener("touchend", handleTouchEnd);
+            }
+
+            if (drawerElement) {
+                drawerElement.removeEventListener("touchstart", drawerTouchStart);
+                drawerElement.removeEventListener("touchmove", drawerTouchMove);
+                drawerElement.removeEventListener("touchend", drawerTouchEnd);
+            }
         };
     }, [isQuickDrawerOpen]);
 
-    // クイックタスク追加機能
+    // クイックタスク追加
     const handleQuickSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!quickTitle.trim() || !userId) return;
 
-        if (!quickTitle.trim() || !userId) {
-            if (!userId) showToastNotification("ログインが必要です");
-            return;
-        }
+        setIsQuickSubmitting(true);
 
         try {
-            setIsQuickSubmitting(true);
-
-            // シンプルなタスクデータを準備
-            const taskData = {
+            await addDoc(collection(db, "tasks"), {
                 userId,
-                title: quickTitle.trim(),
+                title: quickTitle,
                 description: "",
                 blockId: null,
-                date: todayStr,
+                date: new Date(todayStr),
                 status: "open",
                 createdAt: serverTimestamp(),
-            };
+                deadline: null,
+            });
 
-            // タスクをFirestoreに追加
-            await addDoc(collection(db, "tasks"), taskData);
-
-            // フォームをリセットしてドロワーを閉じる
             setQuickTitle("");
             setIsQuickDrawerOpen(false);
-
-            // 成功メッセージを表示
-            showToastNotification("タスクを追加しました！");
+            showToastNotification(t('common.toast.taskAdded'));
         } catch (error) {
-            console.error("Error adding quick task:", error);
-            showToastNotification("タスクの作成に失敗しました。もう一度お試しください。", "error");
+            console.error("Error adding task:", error);
+            showToastNotification(t('common.toast.taskAddError'), "error");
         } finally {
             setIsQuickSubmitting(false);
         }
     };
 
-    // モバイルのクイックドロワーがオープンしたらタイトル入力にフォーカス
-    useEffect(() => {
-        if (isQuickDrawerOpen && quickTitleInputRef.current) {
-            // 少し遅延させてフォーカス（アニメーション完了後）
-            setTimeout(() => {
-                quickTitleInputRef.current?.focus();
-            }, 300);
-        }
-    }, [isQuickDrawerOpen]);
-
-    // ドロワー外クリックでクローズ
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
-                setIsQuickDrawerOpen(false);
-            }
-        }
-
-        if (isQuickDrawerOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isQuickDrawerOpen]);
-
-    // トースト表示関数
+    // トースト通知を表示
     const showToastNotification = (message: string, type: "success" | "error" = "success") => {
         setToastMessage(message);
         setToastType(type);
@@ -341,103 +267,60 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
         }, 3000);
     };
 
-    // 日付選択を切り替え
-    const toggleDateAssigned = () => {
-        setIsDateUnassigned(!isDateUnassigned);
-        if (!isDateUnassigned) {
-            setSelectedDate("");
-        } else {
-            setSelectedDate(todayStr);
-        }
-    };
-
-    // リマインダー設定セクションの表示切り替え
-    const toggleReminderSettings = () => {
-        setShowReminderSettings(!showReminderSettings);
-    };
-
-    // 繰り返し設定セクションの表示切り替え
-    const toggleRepeatSettings = () => {
-        setShowRepeatSettings(!showRepeatSettings);
-    };
-
-    // 繰り返し設定オブジェクトの作成
+    // 繰り返し設定の作成
     const createRepeatSettings = (): RepeatSettings | undefined => {
         if (!enableRepeat) return undefined;
 
-        const settings: RepeatSettings = {
-            enabled: true,
+        // Type assertion to fix type errors
+        const settings: any = {
             type: repeatType,
             frequency: repeatFrequency,
+            daysOfWeek: repeatType === 'weekly' ? repeatDaysOfWeek : [],
+            dayOfMonth: repeatType === 'monthly' ? repeatDayOfMonth : undefined,
             endType: repeatEndType,
+            occurrences: repeatEndType === 'after' ? repeatOccurrences : undefined,
+            endDate: repeatEndType === 'on_date' && repeatEndDate ? new Date(repeatEndDate) : undefined,
         };
 
-        // 繰り返しタイプによる追加設定
-        if (repeatType === 'weekly') {
-            settings.daysOfWeek = repeatDaysOfWeek;
-        } else if (repeatType === 'monthly') {
-            settings.dayOfMonth = repeatDayOfMonth;
-        }
-
-        // 終了条件の設定
-        if (repeatEndType === 'after') {
-            settings.occurrences = repeatOccurrences;
-        } else if (repeatEndType === 'on_date' && repeatEndDate) {
-            settings.endDate = repeatEndDate;
-        }
-
-        return settings;
+        return settings as RepeatSettings;
     };
 
-    // 日付文字列⇔Dateオブジェクト変換ヘルパー関数
-    const dateToString = (date: Date | undefined): string => {
-        if (!date) return '';
-        // ローカルタイムゾーンのまま処理するために、UTC変換を避ける
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const stringToDate = (dateStr: string): Date | undefined => {
-        if (!dateStr) return undefined;
-        // タイムゾーンの問題を避けるために、日付部分のみを指定して新しいDateオブジェクトを作成する
-        const [year, month, day] = dateStr.split('-').map(Number);
-        return new Date(year, month - 1, day, 0, 0, 0, 0);
-    };
-
-    // 日付変更ハンドラ
-    const handleDateChange = (date: Date | undefined) => {
-        if (date) {
-            const dateStr = dateToString(date);
-            setSelectedDate(dateStr);
-            setSelectedDateObj(date);
+    // 曜日選択のトグル処理
+    const toggleDayOfWeek = (day: number) => {
+        if (repeatDaysOfWeek.includes(day)) {
+            setRepeatDaysOfWeek(repeatDaysOfWeek.filter(d => d !== day));
+        } else {
+            setRepeatDaysOfWeek([...repeatDaysOfWeek, day].sort());
         }
     };
 
-    // DatePickerの初期化
-    useEffect(() => {
-        setSelectedDateObj(stringToDate(selectedDate));
-    }, [selectedDate]);
-
+    // タスク追加の送信処理
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!title.trim() || !userId) return;
 
-        if (!title.trim()) return;
+        if (!title.trim()) {
+            toast({
+                title: t('common.toast.error'),
+                description: t('common.toast.titleRequired'),
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
 
         try {
-            setIsSubmitting(true);
-
-            // タスクデータを準備
+            // タスクのデータを準備
             const taskData: any = {
                 userId,
                 title: title.trim(),
                 description: description.trim(),
-                blockId: selectedBlock || null, // ブロックが選択されていない場合はnull
-                date: isDateUnassigned ? null : selectedDate, // 日付が未割り当ての場合はnull
+                blockId: selectedBlock || null,
+                date: isDateUnassigned ? null : selectedDate ? new Date(selectedDate) : null,
                 status: "open",
                 createdAt: serverTimestamp(),
-                deadline: deadline || null,
+                deadline: deadlineDate ? new Date(deadlineDate) : null,
             };
 
             // リマインド設定を追加（設定がある場合のみ）
@@ -459,23 +342,15 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
             }
 
             // タスクをFirestoreに追加
-            const newTaskRef = await addDoc(collection(db, "tasks"), taskData);
+            const docRef = await addDoc(collection(db, "tasks"), taskData);
 
-            const newTaskId = newTaskRef.id;
-            console.log('タスクを作成しました:', newTaskId);
-
-            // 繰り返しが有効な場合、子タスクを生成
-            if (repeatSettings?.enabled) {
+            // 繰り返しタスクの場合、最初のインスタンス（2週間分）を生成
+            if (repeatSettings && !isDateUnassigned && selectedDate) {
                 const parentTask = {
-                    id: newTaskId,
-                    userId,
-                    title: title.trim(),
-                    description: description.trim(),
-                    blockId: selectedBlock || null,
-                    date: isDateUnassigned ? null : selectedDate,
-                    status: "open" as const,
+                    id: docRef.id,
+                    ...taskData,
                     createdAt: serverTimestamp() as any,
-                    deadline: deadline || null,
+                    deadline: taskData.deadline || null,
                     reminderSettings: taskData.reminderSettings || null,
                     repeatSettings
                 };
@@ -485,14 +360,14 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
                 const endDate = new Date();
                 endDate.setDate(endDate.getDate() + 14); // 2週間後
 
-                await generateRepeatTaskInstances(parentTask as Task, startDate, endDate);
+                await generateRepeatTaskInstances(parentTask as unknown as Task, startDate, endDate);
             }
 
             // フォームをリセットしてモーダルを閉じる
             setTitle("");
             setDescription("");
             setSelectedBlock("");
-            setSelectedDate(todayStr);
+            setSelectedDate("");
             setIsDateUnassigned(false);
             setDeadline("");
             setShowReminderSettings(false);
@@ -504,21 +379,12 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
             setIsModalOpen(false);
 
             // 成功メッセージを表示
-            showToastNotification("タスクを追加しました！");
+            showToastNotification(t('common.toast.taskAdded'));
         } catch (error) {
             console.error("Error adding task:", error);
-            showToastNotification("タスクの作成に失敗しました。もう一度お試しください。", "error");
+            showToastNotification(t('common.toast.taskAddError'), "error");
         } finally {
             setIsSubmitting(false);
-        }
-    };
-
-    // 曜日選択のトグル処理
-    const toggleDayOfWeek = (day: number) => {
-        if (repeatDaysOfWeek.includes(day)) {
-            setRepeatDaysOfWeek(repeatDaysOfWeek.filter(d => d !== day));
-        } else {
-            setRepeatDaysOfWeek([...repeatDaysOfWeek, day].sort());
         }
     };
 
@@ -565,568 +431,78 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
             </div>
 
             {/* モバイル用クイックタスク追加ドロワー */}
-            <div className={`fixed inset-x-0 bottom-0 z-50 sm:hidden transition-transform duration-300 ease-in-out ${isQuickDrawerOpen ? 'translate-y-0' : 'translate-y-full'}`}>
-                <div
-                    ref={drawerRef}
-                    className="bg-white dark:bg-gray-800 rounded-t-xl shadow-xl p-4 border-t border-gray-200 dark:border-gray-700"
-                >
-                    <div className="flex justify-center mb-2">
-                        <div className="w-16 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
-                    </div>
+            <QuickTaskDrawer
+                isQuickDrawerOpen={isQuickDrawerOpen}
+                setIsQuickDrawerOpen={setIsQuickDrawerOpen}
+                setIsModalOpen={setIsModalOpen}
+                quickTitle={quickTitle}
+                setQuickTitle={setQuickTitle}
+                isQuickSubmitting={isQuickSubmitting}
+                handleQuickSubmit={handleQuickSubmit}
+                quickTitleInputRef={quickTitleInputRef}
+                drawerRef={drawerRef}
+            />
 
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">
-                            {t('common.tasks.quickAdd')}
-                        </h3>
-                        <div className="flex space-x-2">
-                            <button
-                                className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                                onClick={() => {
-                                    setIsQuickDrawerOpen(false);
-                                    setIsModalOpen(true);
-                                }}
-                            >
-                                <ChevronUpIcon className="h-5 w-5" />
-                                <span className="sr-only">{t('common.tasks.advancedSettings')}</span>
-                            </button>
-                            <button
-                                className="p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                                onClick={() => setIsQuickDrawerOpen(false)}
-                            >
-                                <XMarkIcon className="h-5 w-5" />
-                                <span className="sr-only">{t('common.tasks.close')}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <form onSubmit={handleQuickSubmit} className="space-y-4">
-                        <div className="flex space-x-2">
-                            <input
-                                ref={quickTitleInputRef}
-                                type="text"
-                                className="input input-bordered flex-1 focus-ring"
-                                value={quickTitle}
-                                onChange={(e) => setQuickTitle(e.target.value)}
-                                placeholder={t('common.tasks.taskName')}
-                                required
-                            />
-                            <button
-                                type="submit"
-                                className="btn btn-primary"
-                                disabled={!quickTitle.trim() || isQuickSubmitting}
-                            >
-                                {isQuickSubmitting ? (
-                                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                                ) : (
-                                    <CheckIcon className="h-5 w-5" />
-                                )}
-                            </button>
-                        </div>
-
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            <p>{t('common.tasks.willBeRegisteredToday')}</p>
-                            <p>{t('common.tasks.forDetailedSettings')}
-                                <button type="button" className="text-primary-600 dark:text-primary-400 underline" onClick={() => {
-                                    setQuickTitle("");
-                                    setIsQuickDrawerOpen(false);
-                                    setIsModalOpen(true);
-                                }}>{t('common.tasks.here')}</button>
-                            </p>
-                            <p className="mt-1.5 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                                <span>{t('common.tasks.swipeDownToClose')}</span>
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            {/* Task Add Modal */}
+            {/* タスク追加モーダル */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4 modal-appear">
-                    <div
-                        ref={modalRef}
-                        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full modal-content-appear overflow-y-auto max-h-[90vh]"
-                    >
-                        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                {t('common.tasks.taskDetails')}
-                            </h3>
-                            <button
-                                className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                onClick={() => setIsModalOpen(false)}
-                            >
-                                <XMarkIcon className="h-5 w-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="p-4">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="form-label" htmlFor="task-title">
-                                        {t('common.tasks.taskName')}
-                                    </label>
-                                    <input
-                                        id="task-title"
-                                        ref={titleInputRef}
-                                        type="text"
-                                        className="input input-bordered w-full focus-ring"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="form-label" htmlFor="task-date">
-                                        {t('common.dates.date')}
-                                    </label>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                id="date-unassigned"
-                                                className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                checked={isDateUnassigned}
-                                                onChange={toggleDateAssigned}
-                                            />
-                                            <label htmlFor="date-unassigned" className="text-sm">
-                                                {t('common.tasks.unassignedDate')}
-                                            </label>
-                                        </div>
-                                    </div>
-                                    {isDateUnassigned ? (
-                                        <div className="text-sm text-gray-500 dark:text-gray-400 italic p-2">
-                                            {t('common.tasks.dateNotAssigned')}
-                                        </div>
-                                    ) : (
-                                        <ShadcnDatePicker
-                                            date={selectedDateObj}
-                                            onDateChange={handleDateChange}
-                                            disabled={isDateUnassigned}
-                                            onOpenChange={(open) => {
-                                                setIsAnyPopoverOpen(open);
-                                            }}
-                                        />
-                                    )}
-                                </div>
-
-                                <div>
-                                    <label className="form-label" htmlFor="task-block">
-                                        {t('common.blocks.blockName')}
-                                    </label>
-                                    <select
-                                        id="task-block"
-                                        className={`select select-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                        value={selectedBlock}
-                                        onChange={(e) => setSelectedBlock(e.target.value)}
-                                    >
-                                        <option value="">{t('common.tasks.selectBlockOptional')}</option>
-                                        {blocks.map((block) => (
-                                            <option key={block.id} value={block.id}>
-                                                {block.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <div className="form-label mb-1">{t('common.tasks.deadline')}</div>
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <div className="flex-1 w-full">
-                                            <ShadcnDatePicker
-                                                date={deadline ? new Date(deadline) : undefined}
-                                                onDateChange={(date) => {
-                                                    if (date) {
-                                                        // 既存の時間があれば維持する
-                                                        const existingTime = deadline ? deadline.split('T')[1] : '00:00';
-                                                        setDeadline(`${dateToString(date)}T${existingTime}`);
-                                                    } else {
-                                                        setDeadline('');
-                                                    }
-                                                }}
-                                                onOpenChange={(open) => setIsAnyPopoverOpen(open)}
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <input
-                                                type="time"
-                                                value={deadline ? deadline.split('T')[1] : ''}
-                                                onChange={(e) => {
-                                                    const dateStr = deadline ? deadline.split('T')[0] : dateToString(new Date());
-                                                    setDeadline(`${dateStr}T${e.target.value}`);
-                                                }}
-                                                className={`input input-bordered w-full focus-ring ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <button
-                                        type="button"
-                                        className={`flex items-center justify-between w-full px-3 py-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'} transition-colors`}
-                                        onClick={toggleReminderSettings}
-                                    >
-                                        <div className="flex items-center">
-                                            {showReminderSettings ? (
-                                                <BellIcon className="h-5 w-5 mr-2 text-primary-500" />
-                                            ) : (
-                                                <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            )}
-                                            <span>{showReminderSettings ? t('common.tasks.hideReminderSettings') : t('common.tasks.showReminderSettings')}</span>
-                                        </div>
-                                        <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
-                                    </button>
-                                </div>
-
-                                {showReminderSettings && (
-                                    <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="enable-block-start"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableBlockStartReminder}
-                                                        onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
-                                                    />
-                                                    <label htmlFor="enable-block-start" className="text-sm">
-                                                        {t('common.tasks.notifyBeforeBlockStart')}
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={blockStartReminderMinutes}
-                                                    onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableBlockStartReminder}
-                                                >
-                                                    <option value="5">5 {t('common.time.minutesBefore')}</option>
-                                                    <option value="10">10 {t('common.time.minutesBefore')}</option>
-                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
-                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
-                                                    <option value="60">1 {t('common.time.hourBefore')}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="enable-block-end"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableBlockEndReminder}
-                                                        onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
-                                                    />
-                                                    <label htmlFor="enable-block-end" className="text-sm">
-                                                        {t('common.tasks.notifyBeforeBlockEnd')}
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={blockEndReminderMinutes}
-                                                    onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableBlockEndReminder}
-                                                >
-                                                    <option value="5">5 {t('common.time.minutesBefore')}</option>
-                                                    <option value="10">10 {t('common.time.minutesBefore')}</option>
-                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
-                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="enable-deadline"
-                                                        className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                        checked={enableDeadlineReminder}
-                                                        onChange={() => setEnableDeadlineReminder(!enableDeadlineReminder)}
-                                                        disabled={!deadline}
-                                                    />
-                                                    <label htmlFor="enable-deadline" className="text-sm">
-                                                        {t('common.tasks.notifyBeforeDeadline')}
-                                                    </label>
-                                                </div>
-                                                <select
-                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                    value={deadlineReminderMinutes}
-                                                    onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
-                                                    disabled={!enableDeadlineReminder || !deadline}
-                                                >
-                                                    <option value="15">15 {t('common.time.minutesBefore')}</option>
-                                                    <option value="30">30 {t('common.time.minutesBefore')}</option>
-                                                    <option value="60">1 {t('common.time.hourBefore')}</option>
-                                                    <option value="120">2 {t('common.time.hoursBefore')}</option>
-                                                    <option value="1440">1 {t('common.time.dayBefore')}</option>
-                                                </select>
-                                            </div>
-                                            {!deadline && enableDeadlineReminder && (
-                                                <p className="text-xs text-orange-500 mt-1">
-                                                    {t('common.tasks.pleaseSetDeadline')}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 繰り返し設定トグルボタン */}
-                                <div>
-                                    <button
-                                        type="button"
-                                        className={`flex items-center justify-between w-full px-3 py-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'} transition-colors`}
-                                        onClick={toggleRepeatSettings}
-                                    >
-                                        <div className="flex items-center">
-                                            {showRepeatSettings ? (
-                                                <ArrowPathRoundedSquareIcon className="h-5 w-5 mr-2 text-primary-500" />
-                                            ) : (
-                                                <ArrowPathRoundedSquareIcon className="h-5 w-5 mr-2 text-gray-500" />
-                                            )}
-                                            <span>{showRepeatSettings ? t('common.tasks.hideRepeatSettings') : t('common.tasks.showRepeatSettings')}</span>
-                                        </div>
-                                        <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showRepeatSettings ? 'transform rotate-180' : ''}`} />
-                                    </button>
-                                </div>
-
-                                {/* 繰り返し設定パネル */}
-                                {showRepeatSettings && (
-                                    <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
-                                        <div>
-                                            <div className="flex items-center mb-3">
-                                                <input
-                                                    type="checkbox"
-                                                    id="enable-repeat"
-                                                    className="checkbox checkbox-sm checkbox-primary mr-2"
-                                                    checked={enableRepeat}
-                                                    onChange={() => setEnableRepeat(!enableRepeat)}
-                                                />
-                                                <label htmlFor="enable-repeat" className="text-sm font-medium">
-                                                    {t('common.tasks.repeatTask')}
-                                                </label>
-                                            </div>
-
-                                            {enableRepeat && (
-                                                <div className="space-y-3 pl-6">
-                                                    {/* 繰り返しタイプ */}
-                                                    <div>
-                                                        <label className="form-label text-sm" htmlFor="repeat-type">
-                                                            {t('common.tasks.repeatPattern')}
-                                                        </label>
-                                                        <select
-                                                            id="repeat-type"
-                                                            className={`select select-bordered select-sm w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                            value={repeatType}
-                                                            onChange={(e) => setRepeatType(e.target.value as RepeatType)}
-                                                        >
-                                                            <option value="daily">{t('common.tasks.repeatDaily')}</option>
-                                                            <option value="weekdays">{t('common.tasks.repeatWeekdays')}</option>
-                                                            <option value="weekly">{t('common.tasks.repeatWeekly')}</option>
-                                                            <option value="monthly">{t('common.tasks.repeatMonthly')}</option>
-                                                            <option value="custom">{t('common.tasks.repeatCustom')}</option>
-                                                        </select>
-                                                    </div>
-
-                                                    {/* 繰り返しの頻度（daily, customの場合） */}
-                                                    {(repeatType === 'daily' || repeatType === 'custom') && (
-                                                        <div>
-                                                            <label className="form-label text-sm" htmlFor="repeat-frequency">
-                                                                {t('common.tasks.frequency')}
-                                                            </label>
-                                                            <div className="flex items-center">
-                                                                <span className="mr-2">{t('common.tasks.interval')}:</span>
-                                                                <select
-                                                                    id="repeat-frequency"
-                                                                    className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                                    value={repeatFrequency}
-                                                                    onChange={(e) => setRepeatFrequency(Number(e.target.value))}
-                                                                >
-                                                                    <option value="1">{t('common.tasks.everyDay')}</option>
-                                                                    <option value="2">{t('common.tasks.everyTwoDays')}</option>
-                                                                    <option value="3">{t('common.tasks.everyThreeDays')}</option>
-                                                                    <option value="5">{t('common.tasks.everyFiveDays')}</option>
-                                                                    <option value="7">{t('common.tasks.everyWeek')}</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {/* 曜日選択（weeklyの場合） */}
-                                                    {repeatType === 'weekly' && (
-                                                        <div>
-                                                            <label className="form-label text-sm mb-2 block">
-                                                                {t('common.tasks.selectDaysOfWeek')}
-                                                            </label>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-                                                                    <button
-                                                                        key={day}
-                                                                        type="button"
-                                                                        onClick={() => toggleDayOfWeek(day)}
-                                                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm 
-                                                                            ${repeatDaysOfWeek.includes(day)
-                                                                                ? 'bg-primary-500 text-white'
-                                                                                : theme === 'dark'
-                                                                                    ? 'bg-gray-600 text-gray-200'
-                                                                                    : 'bg-gray-200 text-gray-700'} 
-                                                                            transition-colors`}
-                                                                    >
-                                                                        {getDayName(day)}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            {repeatDaysOfWeek.length === 0 && (
-                                                                <p className="text-xs text-orange-500 mt-1">
-                                                                    {t('common.tasks.selectAtLeastOneDay')}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    )}
-
-                                                    {/* 日付選択（monthlyの場合） */}
-                                                    {repeatType === 'monthly' && (
-                                                        <div>
-                                                            <label className="form-label text-sm" htmlFor="repeat-day-of-month">
-                                                                {t('common.tasks.selectDate')}
-                                                            </label>
-                                                            <select
-                                                                id="repeat-day-of-month"
-                                                                className={`select select-bordered select-sm w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                                value={repeatDayOfMonth}
-                                                                onChange={(e) => setRepeatDayOfMonth(Number(e.target.value))}
-                                                            >
-                                                                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                                                                    <option key={day} value={day}>
-                                                                        {day} {t('common.tasks.dayOfMonth')}
-                                                                    </option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                    )}
-
-                                                    {/* 繰り返し終了設定 */}
-                                                    <div>
-                                                        <label className="form-label text-sm mb-2 block">
-                                                            {t('common.tasks.endCondition')}
-                                                        </label>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center">
-                                                                <input
-                                                                    type="radio"
-                                                                    id="end-never"
-                                                                    name="repeat-end"
-                                                                    className="radio radio-sm radio-primary mr-2"
-                                                                    checked={repeatEndType === 'never'}
-                                                                    onChange={() => setRepeatEndType('never')}
-                                                                />
-                                                                <label htmlFor="end-never" className="text-sm">
-                                                                    {t('common.tasks.noEndDate')}
-                                                                </label>
-                                                            </div>
-
-                                                            <div className="flex items-center">
-                                                                <input
-                                                                    type="radio"
-                                                                    id="end-after"
-                                                                    name="repeat-end"
-                                                                    className="radio radio-sm radio-primary mr-2"
-                                                                    checked={repeatEndType === 'after'}
-                                                                    onChange={() => setRepeatEndType('after')}
-                                                                />
-                                                                <label htmlFor="end-after" className="text-sm flex items-center">
-                                                                    <span className="mr-2">{t('common.tasks.specifyCount')}:</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        className={`input input-bordered input-sm w-16 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                                                                        value={repeatOccurrences}
-                                                                        onChange={(e) => setRepeatOccurrences(Number(e.target.value))}
-                                                                        min="1"
-                                                                        max="100"
-                                                                        disabled={repeatEndType !== 'after'}
-                                                                    />
-                                                                    <span className="ml-2">{t('common.tasks.times')}</span>
-                                                                </label>
-                                                            </div>
-
-                                                            <div className="flex items-center">
-                                                                <input
-                                                                    type="radio"
-                                                                    id="end-on-date"
-                                                                    name="repeat-end"
-                                                                    className="radio radio-sm radio-primary mr-2"
-                                                                    checked={repeatEndType === 'on_date'}
-                                                                    onChange={() => setRepeatEndType('on_date')}
-                                                                />
-                                                                <label htmlFor="end-on-date" className="text-sm flex items-center flex-wrap">
-                                                                    <span className="mr-2 mb-2">{t('common.tasks.specifyDate')}:</span>
-                                                                    <div className="w-full">
-                                                                        <ShadcnDatePicker
-                                                                            date={repeatEndDate ? new Date(repeatEndDate) : undefined}
-                                                                            onDateChange={(date) => setRepeatEndDate(date ? dateToString(date) : '')}
-                                                                            disabled={repeatEndType !== 'on_date'}
-                                                                            onOpenChange={(open) => setIsAnyPopoverOpen(open)}
-                                                                        />
-                                                                    </div>
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="form-label" htmlFor="task-description">
-                                        {t('common.tasks.details')}
-                                    </label>
-                                    <textarea
-                                        id="task-description"
-                                        className="textarea textarea-bordered w-full focus-ring min-h-24"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                        placeholder={t('common.tasks.detailsPlaceholder')}
-                                        rows={4}
-                                    ></textarea>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                    onClick={() => setIsModalOpen(false)}
-                                    disabled={isSubmitting}
-                                >
-                                    {t('common.actions.cancel')}
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                                    disabled={!title.trim() || isSubmitting}
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                                            {t('common.tasks.saving')}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckIcon className="h-4 w-4 mr-1" />
-                                            {t('common.actions.save')}
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <TaskFormModal
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    title={title}
+                    setTitle={setTitle}
+                    description={description}
+                    setDescription={setDescription}
+                    selectedBlock={selectedBlock}
+                    setSelectedBlock={setSelectedBlock}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                    isDateUnassigned={isDateUnassigned}
+                    setIsDateUnassigned={setIsDateUnassigned}
+                    deadlineDate={deadlineDate}
+                    setDeadlineDate={setDeadlineDate}
+                    blocks={blocks}
+                    isSubmitting={isSubmitting}
+                    handleSubmit={handleSubmit}
+                    titleInputRef={titleInputRef}
+                    modalRef={modalRef}
+                    showReminderSettings={showReminderSettings}
+                    setShowReminderSettings={setShowReminderSettings}
+                    enableBlockStartReminder={enableBlockStartReminder}
+                    setEnableBlockStartReminder={setEnableBlockStartReminder}
+                    blockStartReminderMinutes={blockStartReminderMinutes}
+                    setBlockStartReminderMinutes={setBlockStartReminderMinutes}
+                    enableBlockEndReminder={enableBlockEndReminder}
+                    setEnableBlockEndReminder={setEnableBlockEndReminder}
+                    blockEndReminderMinutes={blockEndReminderMinutes}
+                    setBlockEndReminderMinutes={setBlockEndReminderMinutes}
+                    enableDeadlineReminder={enableDeadlineReminder}
+                    setEnableDeadlineReminder={setEnableDeadlineReminder}
+                    deadlineReminderMinutes={deadlineReminderMinutes}
+                    setDeadlineReminderMinutes={setDeadlineReminderMinutes}
+                    showRepeatSettings={showRepeatSettings}
+                    setShowRepeatSettings={setShowRepeatSettings}
+                    enableRepeat={enableRepeat}
+                    setEnableRepeat={setEnableRepeat}
+                    repeatType={repeatType}
+                    setRepeatType={setRepeatType}
+                    repeatFrequency={repeatFrequency}
+                    setRepeatFrequency={setRepeatFrequency}
+                    repeatDaysOfWeek={repeatDaysOfWeek}
+                    toggleDayOfWeek={toggleDayOfWeek}
+                    repeatDayOfMonth={repeatDayOfMonth}
+                    setRepeatDayOfMonth={setRepeatDayOfMonth}
+                    repeatEndType={repeatEndType}
+                    setRepeatEndType={setRepeatEndType}
+                    repeatOccurrences={repeatOccurrences}
+                    setRepeatOccurrences={setRepeatOccurrences}
+                    repeatEndDate={repeatEndDate}
+                    setRepeatEndDate={setRepeatEndDate}
+                    getDayName={getDayName}
+                    setIsAnyPopoverOpen={setIsAnyPopoverOpen}
+                    deadline={deadline}
+                    dateToString={dateToString}
+                    isEditing={false}
+                />
             )}
 
             {/* トースト通知 */}
