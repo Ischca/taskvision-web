@@ -21,7 +21,13 @@
             "delete": "削除",
             "create": "作成",
             "add": "追加",
-            "signup": "新規登録"
+            "update": "更新",
+            "saving": "保存中...",
+            "clearDate": "日付をクリア"
+        },
+        "buttons": {
+            "today": "今日",
+            "close": "閉じる"
         },
         "auth": {
             "loginWithGoogle": "Googleでログイン",
@@ -33,6 +39,7 @@
             "switchToLight": "ライトモードに切り替え"
         },
         "tasks": {
+            "date": "日付",
             "addTask": "タスクを追加",
             "taskName": "タスク名",
             "description": "説明",
@@ -104,7 +111,11 @@
             "noEndDate": "終了日なし",
             "specifyCount": "回数指定",
             "specifyDate": "日付指定",
-            "times": "回"
+            "times": "回",
+            "block": "ブロック",
+            "selectBlock": "ブロックを選択",
+            "selectDeadline": "締切日を選択",
+            "blockUnassignedNote": "※ブロックを選択しない場合は、日付別ビューの未割り当てタスクとして表示されます"
         },
         "blocks": {
             "blockName": "ブロック名",

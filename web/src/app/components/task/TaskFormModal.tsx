@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useRef } from "react";
-import { XMarkIcon, CheckIcon, ArrowPathIcon, BellIcon, BellSlashIcon, ChevronDownIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/outline";
+import React from "react";
+import { XMarkIcon, BellIcon, BellSlashIcon, ChevronDownIcon, ArrowPathRoundedSquareIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "../ThemeProvider";
 import { useMessages } from '../../hooks/useMessages';
 import ShadcnDatePicker from "../ShadcnDatePicker";
-// import { Checkbox } from "../../../components/ui/checkbox";
-// import { Label } from "../../../components/ui/label";
-// import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../../components/ui/select";
 import ReminderSettings from "./ReminderSettings";
 import RepeatSettings from "./RepeatSettings";
-import { RepeatSettings as RepeatSettingsType, RepeatType, RepeatEndType } from "@/types";
+import { RepeatType, RepeatEndType } from "@/types";
 
 // ダミーコンポーネント
 const Checkbox = ({ checked, onCheckedChange, ...props }: any) => (
@@ -23,11 +20,12 @@ const Checkbox = ({ checked, onCheckedChange, ...props }: any) => (
 );
 const Label = ({ children, htmlFor, ...props }: any) => <label htmlFor={htmlFor} {...props}>{children}</label>;
 const Select = ({ children, value, onValueChange, ...props }: any) => {
-    console.log("Select rendering, value:", value, "children:", children);
+    // valueがundefinedやnullの場合に空文字列として扱う
+    const safeValue = value !== undefined && value !== null ? value : "";
     return (
         <div className="select-wrapper relative" {...props}>
             <select
-                value={value || ""}
+                value={safeValue}
                 onChange={(e) => onValueChange(e.target.value)}
                 className="w-full p-2 border rounded bg-white dark:bg-gray-700 dark:text-white appearance-none cursor-pointer"
             >
@@ -179,21 +177,6 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
     const { theme } = useTheme();
     const { t } = useMessages();
 
-    // i18nのフォールバック関数
-    const translate = (key: string, fallback: string): string => {
-        try {
-            const translation = t(key);
-            // 翻訳が存在しない場合や、翻訳キーがそのまま返ってきた場合はフォールバックを使用
-            return translation === key ? fallback : translation;
-        } catch (error) {
-            console.warn(`Translation error for key ${key}:`, error);
-            return fallback;
-        }
-    };
-
-    // デバッグ
-    console.log("Available blocks:", blocks);
-
     // 日付未割り当てチェックボックスの処理を改善
     const handleDateUnassignedChange = (checked: boolean) => {
         console.log("日付未割り当て変更:", checked);
@@ -273,7 +256,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
             >
                 <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                        {translate('common.tasks.taskDetails', 'タスクの詳細')}
+                        {isEditing ? t('common.tasks.taskDetails') : t('common.tasks.taskDetails')}
                     </h3>
                     <button
                         className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -287,7 +270,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                     <div className="space-y-4">
                         <div>
                             <label className="form-label" htmlFor="task-title">
-                                {translate('common.tasks.taskName', 'タスク名')}
+                                {t('common.tasks.taskName')}
                             </label>
                             <input
                                 id="task-title"
@@ -302,28 +285,31 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                         <div className="space-y-4 mt-4">
                             <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="unassigned-date"
-                                    checked={isDateUnassigned}
-                                    onCheckedChange={handleDateUnassignedChange}
-                                />
-                                <label
+                                <label className="flex items-center space-x-2 cursor-pointer"
                                     htmlFor="unassigned-date"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                    {translate('common.tasks.unassignedDate', '日付未割り当て')}
+                                    <Checkbox
+                                        id="unassigned-date"
+                                        checked={isDateUnassigned}
+                                        onCheckedChange={handleDateUnassignedChange}
+                                    />
+                                    <span
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                        {t('common.tasks.unassignedDate')}
+                                    </span>
                                 </label>
                             </div>
 
                             {!isDateUnassigned && (
                                 <div className="grid w-full items-center gap-1.5">
-                                    <Label htmlFor="task-date">{translate('common.tasks.date', '日付')}</Label>
+                                    <Label htmlFor="task-date">{t('common.tasks.date')}</Label>
                                     <div className="flex items-center">
                                         <div className="flex-grow">
                                             <ShadcnDatePicker
                                                 date={selectedDate}
                                                 onDateChange={handleDateChange}
-                                                placeholder={translate('common.tasks.selectDate', '日付を選択')}
+                                                placeholder={t('common.tasks.selectDate')}
                                                 className="w-full calendar-popup"
                                                 // @ts-ignore
                                                 onOpenChange={handleCalendarOpenChange}
@@ -334,7 +320,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                                 type="button"
                                                 className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                                 onClick={() => handleDateChange(undefined)}
-                                                title={translate('common.actions.clearDate', '日付をクリア')}
+                                                title={t('common.actions.clearDate')}
                                             >
                                                 <XMarkIcon className="h-5 w-5" />
                                             </button>
@@ -344,12 +330,12 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             )}
 
                             <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="task-block">{translate('common.tasks.block', 'ブロック')}</Label>
+                                <Label htmlFor="task-block">{t('common.tasks.block')}</Label>
                                 <Select
                                     value={selectedBlock}
                                     onValueChange={setSelectedBlock}
                                 >
-                                    <option value="">{translate('common.tasks.selectBlock', 'ブロックを選択')}</option>
+                                    <option value="">{t('common.tasks.selectBlock')}</option>
                                     {blocks && blocks.length > 0 ? (
                                         blocks.map((block) => (
                                             <option key={block.id} value={block.id}>
@@ -357,19 +343,24 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                             </option>
                                         ))
                                     ) : (
-                                        <option value="no-blocks">{translate('common.tasks.noBlocks', 'ブロックがありません')}</option>
+                                        <option value="no-blocks">{t('common.blocks.noBlocks')}</option>
                                     )}
                                 </Select>
+                                {!selectedBlock && (
+                                    <div className="text-gray-500 text-xs mt-1">
+                                        {t('common.tasks.blockUnassignedNote')}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid w-full items-center gap-1.5">
-                                <Label htmlFor="task-deadline">{translate('common.tasks.deadline', '締切日')}</Label>
+                                <Label htmlFor="task-deadline">{t('common.tasks.deadline')}</Label>
                                 <div className="flex items-center">
                                     <div className="flex-grow">
                                         <ShadcnDatePicker
                                             date={deadlineDate}
                                             onDateChange={handleDeadlineDateChange}
-                                            placeholder={translate('common.tasks.selectDeadline', '締切日を選択')}
+                                            placeholder={t('common.tasks.selectDeadline')}
                                             className="w-full calendar-popup"
                                             // @ts-ignore
                                             onOpenChange={handleCalendarOpenChange}
@@ -380,7 +371,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                             type="button"
                                             className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                             onClick={() => handleDeadlineDateChange(undefined)}
-                                            title={translate('common.actions.clearDate', '日付をクリア')}
+                                            title={t('common.actions.clearDate')}
                                         >
                                             <XMarkIcon className="h-5 w-5" />
                                         </button>
@@ -401,7 +392,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                     ) : (
                                         <BellSlashIcon className="h-5 w-5 mr-2 text-gray-500" />
                                     )}
-                                    <span>{showReminderSettings ? translate('common.tasks.hideReminderSettings', 'リマインダー設定を非表示') : translate('common.tasks.showReminderSettings', 'リマインダー設定を表示')}</span>
+                                    <span>{showReminderSettings ? t('common.tasks.hideReminderSettings') : t('common.tasks.showReminderSettings')}</span>
                                 </div>
                                 <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showReminderSettings ? 'transform rotate-180' : ''}`} />
                             </button>
@@ -438,7 +429,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                     ) : (
                                         <ArrowPathRoundedSquareIcon className="h-5 w-5 mr-2 text-gray-500" />
                                     )}
-                                    <span>{showRepeatSettings ? translate('common.tasks.hideRepeatSettings', '繰り返し設定を非表示') : translate('common.tasks.showRepeatSettings', '繰り返し設定を表示')}</span>
+                                    <span>{showRepeatSettings ? t('common.tasks.hideRepeatSettings') : t('common.tasks.showRepeatSettings')}</span>
                                 </div>
                                 <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${showRepeatSettings ? 'transform rotate-180' : ''}`} />
                             </button>
@@ -471,27 +462,27 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
                         <div>
                             <label className="form-label" htmlFor="task-description">
-                                {translate('common.tasks.details', '詳細')}
+                                {t('common.tasks.details')}
                             </label>
                             <textarea
                                 id="task-description"
                                 className="textarea textarea-bordered w-full focus-ring min-h-24"
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder={translate('common.tasks.detailsPlaceholder', '詳細を入力')}
+                                placeholder={t('common.tasks.detailsPlaceholder')}
                                 rows={4}
                             ></textarea>
                         </div>
                     </div>
 
-                    <div className="flex justify-end mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-x-2">
+                    <div className="flex justify-end mt-6 space-x-2">
                         <button
                             type="button"
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                            className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                             onClick={() => setIsModalOpen(false)}
                             disabled={isSubmitting}
                         >
-                            {translate('common.actions.cancel', 'キャンセル')}
+                            {t('common.actions.cancel')}
                         </button>
                         <button
                             type="submit"
@@ -499,15 +490,17 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                             disabled={!title.trim() || isSubmitting}
                         >
                             {isSubmitting ? (
-                                <>
-                                    <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
-                                    {translate('common.tasks.saving', '保存中...')}
-                                </>
+                                <span className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    {t('common.actions.saving')}
+                                </span>
+                            ) : isEditing ? (
+                                t('common.actions.update')
                             ) : (
-                                <>
-                                    <CheckIcon className="h-4 w-4 mr-1" />
-                                    {translate('common.actions.save', '保存')}
-                                </>
+                                t('common.actions.save')
                             )}
                         </button>
                     </div>

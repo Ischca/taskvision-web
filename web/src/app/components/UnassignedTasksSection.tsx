@@ -84,10 +84,10 @@ const UnassignedTasksSection: FC<UnassignedTasksSectionProps> = ({ blocks, tasks
             // タスクIDからFirestoreドキュメントを参照
             const taskRef = doc(db, "tasks", taskId);
 
-            // 日付をnullに更新（未割り当てに変更）
+            // ドキュメントの更新（blockId と date を null に設定）
             await updateDoc(taskRef, {
-                date: null,
-                blockId: null
+                blockId: null,
+                date: null
             });
 
             // コンソールに成功メッセージを表示

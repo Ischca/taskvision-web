@@ -131,13 +131,29 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
 
         try {
             const taskData = JSON.parse(e.dataTransfer.getData("application/json")) as Task;
-            console.log(`タスク "${taskData.title}" をブロック "${blockId}" に移動します`);
+
+            // 日付をYYYY-MM-DD形式に変換（文字列形式の統一）
+            let formattedDate = date;
+            try {
+                if (date) {
+                    const dateObj = new Date(date);
+                    if (!isNaN(dateObj.getTime())) {
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        formattedDate = `${year}-${month}-${day}`;
+                    }
+                }
+            } catch (e) {
+                console.error("日付変換エラー:", e);
+            }
 
             // Firestoreでタスクを更新
-            await updateDoc(doc(db, "tasks", taskData.id), {
+            const updateData = {
                 blockId: blockId,
-                date: date
-            });
+                date: formattedDate
+            };
+            await updateDoc(doc(db, "tasks", taskData.id), updateData);
         } catch (error) {
             console.error("ドロップ処理中にエラーが発生しました:", error);
         }
@@ -151,27 +167,28 @@ const BlockList: FC<BlockListProps> = ({ blocks, tasks, date, loading }) => {
             {blocks.map((block) => {
                 const blockTasks = tasks.filter((task) => task.blockId === block.id);
                 const progress = calculateProgress(block.id);
-                const isCurrent = block.id === currentBlockId;
+                const isCurrentBlock = block.id === currentBlockId;
                 const isExpanded = expandedBlocks[block.id] || false;
+                const isDragOver = dragOverBlock === block.id;
 
                 return (
                     <div
                         key={block.id}
-                        className={`block-container bg-white rounded-xl shadow-sm overflow-hidden ${dragOverBlock === block.id ? "ring-2 ring-primary-500 drag-over" : ""
+                        className={`block-container bg-white rounded-xl shadow-sm overflow-hidden ${isDragOver ? "ring-2 ring-primary-500 drag-over" : ""
                             }`}
                         onDragOver={(e) => handleDragOver(e, block.id)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, block.id)}
                     >
                         <div
-                            className={`p-3 sm:p-4 border-b border-gray-200 cursor-pointer ${isCurrent ? "bg-primary-50 dark:bg-primary-900/20" : ""
+                            className={`p-3 sm:p-4 border-b border-gray-200 cursor-pointer ${isCurrentBlock ? "bg-primary-50 dark:bg-primary-900/20" : ""
                                 }`}
                             onClick={() => toggleBlock(block.id)}
                         >
                             <div className="flex flex-wrap sm:flex-nowrap items-center justify-between">
                                 <div className="flex items-center w-full sm:w-auto">
                                     <div className="mr-2">
-                                        {isCurrent ? (
+                                        {isCurrentBlock ? (
                                             <div className="pulse-animation">
                                                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
                                             </div>

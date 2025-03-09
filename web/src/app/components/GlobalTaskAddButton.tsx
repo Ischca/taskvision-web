@@ -2,7 +2,7 @@
 
 import { FC, useState, useRef, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy, getDoc } from "firebase/firestore";
 import {
     PlusIcon,
     XMarkIcon,
@@ -311,17 +311,55 @@ const GlobalTaskAddButton: FC<GlobalTaskAddButtonProps> = ({ todayStr }) => {
         setIsSubmitting(true);
 
         try {
+            // ブロックIDを文字列として確実に処理
+            let finalBlockId = null;
+            if (selectedBlock && selectedBlock.trim() !== "") {
+                finalBlockId = String(selectedBlock);
+            }
+
+            // 日付データの準備 - 文字列形式(YYYY-MM-DD)で保存
+            let finalDate = null;
+            if (!isDateUnassigned && selectedDate) {
+                try {
+                    // 日付形式の標準化
+                    const dateObj = new Date(selectedDate);
+                    if (!isNaN(dateObj.getTime())) {
+                        // YYYY-MM-DD形式の文字列に変換
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const day = String(dateObj.getDate()).padStart(2, '0');
+                        finalDate = `${year}-${month}-${day}`;
+
+                        console.log("日付を文字列形式で保存:", finalDate);
+                    } else {
+                        console.warn("警告: 不正な日付形式", selectedDate);
+                    }
+                } catch (e) {
+                    console.error("日付変換エラー:", e);
+                }
+            }
+
             // タスクのデータを準備
             const taskData: any = {
                 userId,
                 title: title.trim(),
                 description: description.trim(),
-                blockId: selectedBlock || null,
-                date: isDateUnassigned ? null : selectedDate ? new Date(selectedDate) : null,
+                // ブロックIDを明示的に null として設定（空文字列ではなく）
+                blockId: finalBlockId,
+                // 日付は null または YYYY-MM-DD形式の文字列
+                date: finalDate,
                 status: "open",
                 createdAt: serverTimestamp(),
-                deadline: deadlineDate ? new Date(deadlineDate) : null,
+                deadline: deadlineDate ? formatDateToString(new Date(deadlineDate)) : null,
             };
+
+            // 日付をYYYY-MM-DD形式に変換する関数
+            function formatDateToString(date: Date): string {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
 
             // リマインド設定を追加（設定がある場合のみ）
             if (showReminderSettings) {

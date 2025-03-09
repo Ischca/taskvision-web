@@ -38,111 +38,97 @@ export const ReminderSettings: React.FC<ReminderSettingsProps> = ({
     const { theme } = useTheme();
     const { t } = useMessages();
 
-    // i18nのフォールバック関数
-    const translate = (key: string, fallback: string): string => {
-        try {
-            const translation = t(key);
-            // 翻訳が存在しない場合や、翻訳キーがそのまま返ってきた場合はフォールバックを使用
-            return translation === key ? fallback : translation;
-        } catch (error) {
-            console.warn(`Translation error for key ${key}:`, error);
-            return fallback;
-        }
-    };
-
     return (
-        <div className={`p-3 rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} space-y-3 animate-fade-in`}>
-            <div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="enable-block-start"
-                            className="checkbox checkbox-sm checkbox-primary mr-2"
-                            checked={enableBlockStartReminder}
-                            onChange={() => setEnableBlockStartReminder(!enableBlockStartReminder)}
-                        />
-                        <label htmlFor="enable-block-start" className="text-sm">
-                            {translate('common.tasks.notifyBeforeBlockStart', 'ブロック開始前に通知')}
-                        </label>
-                    </div>
+        <div className="space-y-4 mt-2 mb-4">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id="block-start-reminder"
+                        checked={enableBlockStartReminder}
+                        onChange={e => setEnableBlockStartReminder(e.target.checked)}
+                        className="h-4 w-4"
+                    />
+                    <label htmlFor="block-start-reminder" className="text-sm">
+                        {t('common.tasks.notifyBeforeBlockStart')}
+                    </label>
+                </div>
+                {enableBlockStartReminder && (
                     <select
-                        className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                         value={blockStartReminderMinutes}
-                        onChange={(e) => setBlockStartReminderMinutes(Number(e.target.value))}
-                        disabled={!enableBlockStartReminder}
+                        onChange={e => setBlockStartReminderMinutes(Number(e.target.value))}
+                        className="text-sm p-1 border rounded"
                     >
-                        <option value="5">5 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="10">10 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="15">15 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="30">30 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="60">1 {translate('common.time.hourBefore', '時間前')}</option>
+                        <option value="5">5 {t('common.time.minutesBefore')}</option>
+                        <option value="10">10 {t('common.time.minutesBefore')}</option>
+                        <option value="15">15 {t('common.time.minutesBefore')}</option>
+                        <option value="30">30 {t('common.time.minutesBefore')}</option>
+                        <option value="60">1 {t('common.time.hourBefore')}</option>
                     </select>
-                </div>
-            </div>
-
-            <div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="enable-block-end"
-                            className="checkbox checkbox-sm checkbox-primary mr-2"
-                            checked={enableBlockEndReminder}
-                            onChange={() => setEnableBlockEndReminder(!enableBlockEndReminder)}
-                        />
-                        <label htmlFor="enable-block-end" className="text-sm">
-                            {translate('common.tasks.notifyBeforeBlockEnd', 'ブロック終了前に通知')}
-                        </label>
-                    </div>
-                    <select
-                        className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                        value={blockEndReminderMinutes}
-                        onChange={(e) => setBlockEndReminderMinutes(Number(e.target.value))}
-                        disabled={!enableBlockEndReminder}
-                    >
-                        <option value="5">5 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="10">10 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="15">15 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="30">30 {translate('common.time.minutesBefore', '分前')}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <input
-                            type="checkbox"
-                            id="enable-deadline"
-                            className="checkbox checkbox-sm checkbox-primary mr-2"
-                            checked={enableDeadlineReminder}
-                            onChange={() => setEnableDeadlineReminder(!enableDeadlineReminder)}
-                            disabled={!deadline}
-                        />
-                        <label htmlFor="enable-deadline" className="text-sm">
-                            {translate('common.tasks.notifyBeforeDeadline', '締切前に通知')}
-                        </label>
-                    </div>
-                    <select
-                        className={`select select-bordered select-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
-                        value={deadlineReminderMinutes}
-                        onChange={(e) => setDeadlineReminderMinutes(Number(e.target.value))}
-                        disabled={!enableDeadlineReminder || !deadline}
-                    >
-                        <option value="15">15 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="30">30 {translate('common.time.minutesBefore', '分前')}</option>
-                        <option value="60">1 {translate('common.time.hourBefore', '時間前')}</option>
-                        <option value="120">2 {translate('common.time.hoursBefore', '時間前')}</option>
-                        <option value="1440">1 {translate('common.time.dayBefore', '日間前')}</option>
-                    </select>
-                </div>
-                {!deadline && enableDeadlineReminder && (
-                    <p className="text-xs text-orange-500 mt-1">
-                        {translate('common.tasks.pleaseSetDeadline', '締切日を設定してください')}
-                    </p>
                 )}
             </div>
+
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id="block-end-reminder"
+                        checked={enableBlockEndReminder}
+                        onChange={e => setEnableBlockEndReminder(e.target.checked)}
+                        className="h-4 w-4"
+                    />
+                    <label htmlFor="block-end-reminder" className="text-sm">
+                        {t('common.tasks.notifyBeforeBlockEnd')}
+                    </label>
+                </div>
+                {enableBlockEndReminder && (
+                    <select
+                        value={blockEndReminderMinutes}
+                        onChange={e => setBlockEndReminderMinutes(Number(e.target.value))}
+                        className="text-sm p-1 border rounded"
+                    >
+                        <option value="5">5 {t('common.time.minutesBefore')}</option>
+                        <option value="10">10 {t('common.time.minutesBefore')}</option>
+                        <option value="15">15 {t('common.time.minutesBefore')}</option>
+                        <option value="30">30 {t('common.time.minutesBefore')}</option>
+                    </select>
+                )}
+            </div>
+
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        id="deadline-reminder"
+                        checked={enableDeadlineReminder}
+                        onChange={e => setEnableDeadlineReminder(e.target.checked)}
+                        disabled={!deadline}
+                        className="h-4 w-4"
+                    />
+                    <label htmlFor="deadline-reminder" className="text-sm">
+                        {t('common.tasks.notifyBeforeDeadline')}
+                    </label>
+                </div>
+                {enableDeadlineReminder && (
+                    <select
+                        value={deadlineReminderMinutes}
+                        onChange={e => setDeadlineReminderMinutes(Number(e.target.value))}
+                        className="text-sm p-1 border rounded"
+                    >
+                        <option value="15">15 {t('common.time.minutesBefore')}</option>
+                        <option value="30">30 {t('common.time.minutesBefore')}</option>
+                        <option value="60">1 {t('common.time.hourBefore')}</option>
+                        <option value="120">2 {t('common.time.hoursBefore')}</option>
+                        <option value="1440">1 {t('common.time.dayBefore')}</option>
+                    </select>
+                )}
+            </div>
+
+            {!deadline && (
+                <div className="text-sm text-amber-600 dark:text-amber-400">
+                    {t('common.tasks.pleaseSetDeadline')}
+                </div>
+            )}
         </div>
     );
 };

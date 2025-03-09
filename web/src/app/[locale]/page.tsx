@@ -129,13 +129,47 @@ export default function Home() {
                     ...doc.data(),
                 })) as Task[];
 
+                // デバッグ: タスクの日付形式を確認
+                console.log("タスクデータ例:", allTasks.slice(0, 2).map(task => ({
+                    title: task.title,
+                    date: task.date,
+                    dateType: task.date ? typeof task.date : null,
+                    blockId: task.blockId
+                })));
+                console.log("選択中の日付:", selectedDate, typeof selectedDate);
+
                 // クライアント側で日付でフィルタリング
                 const filteredTasks = allTasks.filter(task => {
                     // 日付が設定されていないタスクも含める
                     if (!task.date) return true;
+
+                    // タスクの日付をString型に正規化
+                    let taskDateStr = typeof task.date === 'string' ? task.date : '';
+
+                    try {
+                        // オブジェクトの場合、Date型かチェック
+                        if (typeof task.date === 'object' && task.date !== null) {
+                            if (Object.prototype.toString.call(task.date) === '[object Date]') {
+                                // Dateオブジェクトとして処理
+                                const d = task.date as Date;
+                                taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                            }
+                            // Timestampオブジェクトの場合
+                            else if ('toDate' in task.date) {
+                                const d = (task.date as any).toDate();
+                                taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                            }
+                        }
+                    } catch (e) {
+                        console.error("日付の変換エラー:", e, task.date);
+                    }
+
                     // 選択された日付のタスクのみフィルタリング
-                    return task.date === selectedDate;
+                    return taskDateStr === selectedDate;
                 });
+
+                // デバッグ: フィルタリング結果を確認
+                console.log(`フィルタリング結果: 全${allTasks.length}件中${filteredTasks.length}件が表示対象`);
 
                 setTasks(filteredTasks);
                 setLoading(false);
@@ -263,7 +297,14 @@ export default function Home() {
                             </h2>
                             <BlockList
                                 blocks={blocks}
-                                tasks={tasks.filter(task => !task.date || task.date === selectedDate)}
+                                tasks={tasks.filter(task => {
+                                    // 日付が未設定またはselectedDateと一致するタスクを表示
+                                    const dateMatch = !task.date || task.date === selectedDate;
+
+                                    // BlockListに渡すタスクはblockIdの有無に関わらず全て渡す
+                                    // (BlockList内部でブロックごとにフィルタリングされる)
+                                    return dateMatch;
+                                })}
                                 date={selectedDate}
                                 loading={loading}
                             />
@@ -271,7 +312,70 @@ export default function Home() {
 
                         {/* 割り当てられていないタスク */}
                         <UnassignedTasksSection
-                            tasks={tasks.filter(task => !task.blockId)}
+                            tasks={(() => {
+                                // フィルタリング前のタスク数を表示
+                                console.log(`[ページ] フィルタ前の全タスク: ${tasks.length}件`);
+
+                                // フィルタリング条件: 
+                                // 1. blockIdがnullまたは空文字列
+                                // 2. 日付が選択日付と一致するか、日付がnull
+                                const unassignedTasks = tasks.filter(task => {
+                                    // ブロックIDが未設定かチェック
+                                    const hasNoBlock = !task.blockId || task.blockId === '';
+
+                                    // 日付のチェック
+                                    let dateMatches = false;
+
+                                    // 日付がnullならOK
+                                    if (!task.date) {
+                                        dateMatches = true;
+                                    }
+                                    // 日付が選択日付と一致するかチェック
+                                    else {
+                                        // 日付文字列に変換
+                                        let taskDateStr = '';
+                                        try {
+                                            if (typeof task.date === 'string') {
+                                                taskDateStr = task.date;
+                                            } else if (typeof task.date === 'object' && task.date !== null) {
+                                                // Date型
+                                                if (Object.prototype.toString.call(task.date) === '[object Date]') {
+                                                    const d = task.date as Date;
+                                                    taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                                }
+                                                // Timestamp型
+                                                else if ('toDate' in task.date) {
+                                                    const d = (task.date as any).toDate();
+                                                    taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                                }
+                                            }
+                                        } catch (e) {
+                                            console.error("日付変換エラー:", e);
+                                        }
+
+                                        dateMatches = taskDateStr === selectedDate;
+                                    }
+
+                                    // デバッグ情報（最初の3件のみ）
+                                    if (tasks.indexOf(task) < 3) {
+                                        console.log(`[タスクフィルタ] ${task.title}:`, {
+                                            blockId: task.blockId,
+                                            blockIdType: typeof task.blockId,
+                                            hasNoBlock,
+                                            date: task.date,
+                                            dateMatches,
+                                            表示: hasNoBlock && dateMatches
+                                        });
+                                    }
+
+                                    // 両方の条件を満たすタスクを表示
+                                    return hasNoBlock && dateMatches;
+                                });
+
+                                // フィルタリング後のタスク数を表示
+                                console.log(`[ページ] 未割り当てタスク: ${unassignedTasks.length}件`);
+                                return unassignedTasks;
+                            })()}
                             blocks={blocks}
                             loading={loading}
                             date={selectedDate}

@@ -154,14 +154,64 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = ({ task, blocks, onTaskUpd
     }
 
     // タスク更新処理
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!title.trim()) return;
-
+    const handleUpdateTask = async () => {
+        if (isSubmitting) return;
         setIsSubmitting(true);
 
         try {
+            // 日付をYYYY-MM-DD形式に変換する関数
+            function formatDateToString(date: Date): string {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // 日付の準備 - 文字列形式で保存
+            let finalDate = null;
+            if (!isDateUnassigned && selectedDate) {
+                try {
+                    // 日付形式の標準化
+                    const dateObj = new Date(selectedDate);
+                    if (!isNaN(dateObj.getTime())) {
+                        finalDate = formatDateToString(dateObj);
+                    }
+                } catch (e) {
+                    console.error("日付変換エラー:", e);
+                }
+            }
+
             const taskRef = doc(db, "tasks", task.id);
+            const updateData: any = {
+                title,
+                description,
+                updatedAt: new Date().toISOString(),
+                // ブロックIDを明示的に null として設定（空文字列ではなく）
+                blockId: selectedBlock && selectedBlock.trim() !== "" ? selectedBlock : null,
+                // 日付は null または YYYY-MM-DD形式の文字列
+                date: finalDate,
+            };
+
+            // 更新データのデバッグ情報
+            console.log("[デバッグ] タスク更新:", {
+                taskId: task.id,
+                blockId: updateData.blockId,
+                blockIdType: typeof updateData.blockId,
+                date: updateData.date
+            });
+
+            if (deadlineDate) {
+                try {
+                    const deadlineDateObj = new Date(deadlineDate);
+                    if (!isNaN(deadlineDateObj.getTime())) {
+                        updateData.deadline = formatDateToString(deadlineDateObj);
+                    }
+                } catch (e) {
+                    console.error("締切日変換エラー:", e);
+                }
+            } else {
+                updateData.deadline = null;
+            }
 
             // リマインド設定
             const reminders = {
@@ -195,11 +245,7 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = ({ task, blocks, onTaskUpd
 
             // データ更新
             await updateDoc(taskRef, {
-                title,
-                description,
-                blockId: selectedBlock || null,
-                date: isDateUnassigned ? null : (selectedDate ? new Date(selectedDate) : null),
-                deadline: deadlineDate ? new Date(deadlineDate) : null,
+                ...updateData,
                 reminders,
                 repeatSettings
             });
@@ -248,7 +294,7 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = ({ task, blocks, onTaskUpd
                     setDeadlineDate={setDeadlineDate}
                     blocks={blocks}
                     isSubmitting={isSubmitting}
-                    handleSubmit={handleSubmit}
+                    handleSubmit={handleUpdateTask}
                     titleInputRef={titleInputRef}
                     modalRef={modalRef}
                     showReminderSettings={showReminderSettings}

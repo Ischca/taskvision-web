@@ -21,7 +21,14 @@
             "delete": "Delete",
             "create": "Create",
             "add": "Add",
-            "signup": "Sign Up"
+            "signup": "Sign Up",
+            "update": "Update",
+            "saving": "Saving...",
+            "clearDate": "Clear date"
+        },
+        "buttons": {
+            "today": "Today",
+            "close": "Close"
         },
         "auth": {
             "loginWithGoogle": "Login with Google",
@@ -33,6 +40,7 @@
             "switchToLight": "Switch to Light Mode"
         },
         "tasks": {
+            "date": "Date",
             "addTask": "Add Task",
             "taskName": "Task Name",
             "description": "Description",
@@ -104,7 +112,11 @@
             "noEndDate": "No end date",
             "specifyCount": "Specify count",
             "specifyDate": "Specify date",
-            "times": "times"
+            "times": "times",
+            "block": "Block",
+            "selectBlock": "Select block",
+            "selectDeadline": "Select deadline",
+            "blockUnassignedNote": "Note: If no block is selected, the task will appear as an unassigned task in the date view."
         },
         "blocks": {
             "blockName": "Block Name",
