@@ -8,7 +8,7 @@
         "build": "webpack --mode=production",
         "test": "echo \"Error: no test specified\" && exit 1",
         "copy-icons": "node scripts/copy-pwa-icons.js",
-        "prebuild": "npm run copy-icons",
+        "prebuild": "cd ../shared && npm run build && cd ../chrome-extension && npm run copy-icons",
         "package": "npm run build && node scripts/create-crx.js"
     },
     "author": "TaskVision Team",

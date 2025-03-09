@@ -5,7 +5,7 @@ import {
   where,
   getDocs,
   doc,
-  updateDoc,
+  // updateDoc, // 未使用なのでコメントアウト
   addDoc,
   deleteDoc,
   getDoc,
@@ -295,9 +295,13 @@ export const setupLocalReminders = (task: Task): void => {
   if (!task.reminderSettings) return;
 
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enableBlockStartReminder,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blockStartReminderMinutes,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     enableBlockEndReminder,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blockEndReminderMinutes,
     enableDeadlineReminder,
     deadlineReminderMinutes,

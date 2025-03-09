@@ -22,7 +22,7 @@ import { useMessages } from "@/app/hooks/useMessages";
 export default function BlockManagePage() {
     const { messages } = useMessages();
     // 認証から実際のユーザーIDを取得
-    const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
+    const { userId, loading: authLoading } = useRequireAuth();
 
     // ブロック一覧
     const [blocks, setBlocks] = useState<Block[]>([]);
@@ -49,6 +49,7 @@ export default function BlockManagePage() {
 
             for (const part of parts) {
                 if (current && typeof current === 'object' && part in current) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     current = (current as any)[part];
                 } else {
                     return key;

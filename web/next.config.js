@@ -27,30 +27,21 @@ const nextConfig = {
   },
   // CSRモードを優先するための設定
   experimental: {
-    // SSRからCSRへの優先度を高める
-    appDir: true,
-    // サーバーコンポーネントの使用を最小限に
-    serverComponentsExternalPackages: [],
     // 静的に最適化を無効化してCSRを確実にする
-    isrMemoryCacheSize: 0,
-    // ハイドレーション問題を軽減
     optimizeCss: false,
-    // ページ再生成をスキップ
-    skipTrailingSlashRedirect: true,
-    // サーバーコンポーネントを完全に無効化
-    serverActions: false,
   },
+  // サーバーコンポーネントの使用を最小限に
+  serverExternalPackages: [],
+  // ページ再生成をスキップ
+  skipTrailingSlashRedirect: true,
+  // サーバーアクション設定
+  serverActions: false,
   // HTMLレンダリングの差異を減らすための設定
-  swcMinify: true,
   compiler: {
     // 開発環境でもミニファイ
     reactRemoveProperties: process.env.NODE_ENV === 'production',
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // 初期レンダリングを空にして完全にCSRに切り替える
-  // これは極端な設定だがハイドレーションの問題を解決するために必要かもしれない
-  unstable_runtimeJS: true,
-  unstable_JSLoader: true,
 };
 
 // 複数のプラグインを組み合わせる場合はこのように順番に適用する

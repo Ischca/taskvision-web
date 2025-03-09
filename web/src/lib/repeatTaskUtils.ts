@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Task, RepeatSettings, RepeatType, RepeatException } from '@/types';
 import { db } from './firebase';
 import {
@@ -8,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Timestamp,
 } from 'firebase/firestore';
 
@@ -54,6 +56,7 @@ export async function generateRepeatTaskInstances(
       blockId: exceptionInfo?.newBlockId || parentTask.blockId,
       date: dateStr,
       status: 'open',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       createdAt: serverTimestamp() as any,
       deadline: parentTask.deadline,
       reminderSettings: parentTask.reminderSettings,

@@ -51,6 +51,7 @@ export interface TaskSource {
   capturedAt?: string; // ISO日付文字列
 
   // 他のメタデータ
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -165,6 +166,7 @@ export interface SlackEvent {
   api_app_id: string;
   event: {
     type: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
   type: string;
@@ -202,6 +204,7 @@ export interface SlackReactionEvent {
 export interface SlackApiResponse {
   ok: boolean;
   error?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 

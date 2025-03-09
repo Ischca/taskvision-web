@@ -3,10 +3,12 @@ import {
   Task,
   TaskData,
   TaskSource,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   TaskPriority,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   formatDate,
-  isTaskOverdue,
-  getSourceLabel,
+  isTaskOverdue as sharedIsTaskOverdue,
+  getSourceLabel as sharedGetSourceLabel,
   suggestPriority,
 } from 'taskvision-shared';
 

@@ -1,12 +1,36 @@
 // taskvision-shared パッケージから型と関数をインポート
-import {
-  Task,
-  TaskData,
-  TaskSource,
-  TaskPriority,
-  formatDate,
-  suggestPriority,
-} from 'taskvision-shared';
+import { Task, TaskData, TaskSource, TaskPriority } from 'taskvision-shared';
+
+// formatDateの実装
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+// suggestPriorityの実装
+function suggestPriority(
+  source: TaskSource | undefined
+): 'high' | 'medium' | 'low' {
+  if (!source) return 'medium';
+
+  // ソースタイプによる基本的な優先度の提案
+  switch (source.type) {
+    case 'slack':
+      // Slackメッセージは基本的に中程度の優先度
+      return 'medium';
+    case 'email':
+      // メールは内容によって高い場合もあるが基本は中程度
+      return 'medium';
+    case 'chrome_extension':
+      // Web情報は基本的に低い優先度
+      return 'low';
+    default:
+      return 'medium';
+  }
+}
 
 /**
  * ウェブページの情報からタスクを作成する

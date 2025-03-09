@@ -2,7 +2,13 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight, CalendarIcon } from "lucide-react"
-import { DayPicker, DayPickerSingleProps, DayPickerRangeProps, DayPickerMultipleProps } from "react-day-picker"
+import {
+    DayPicker,
+    DayPickerSingleProps,
+    DayPickerRangeProps,
+    DayPickerMultipleProps,
+    DateRange
+} from "react-day-picker"
 import { format } from "date-fns"
 import { ja, enUS } from 'date-fns/locale'
 import { cn } from "@/lib/utils"
@@ -80,95 +86,132 @@ function UnifiedCalendar({
 
     // カレンダー本体のレンダリング
     const renderCalendar = () => {
-        const dayPickerBaseProps = {
-            showOutsideDays,
-            locale: localeObj,
-            className: cn("responsive-calendar", className),
-            classNames: {
-                months: "flex flex-col sm:flex-row space-y-0 sm:space-x-1 sm:space-y-0",
-                month: "space-y-0",
-                caption: "flex justify-center pt-1 relative items-center",
-                caption_label: "text-sm font-medium",
-                nav: "space-x-1 flex items-center",
-                nav_button: cn(
-                    buttonVariants({ variant: "outline" }),
-                    "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
-                ),
-                nav_button_previous: "absolute left-1",
-                nav_button_next: "absolute right-1",
-                table: "w-full border-collapse space-y-0",
-                head_row: "flex",
-                head_cell:
-                    "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
-                row: "flex w-full mt-0",
-                cell: cn(
-                    "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
-                    calendarMode === "range"
-                        ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
-                        : "[&:has([aria-selected])]:rounded-md"
-                ),
-                day: cn(
-                    buttonVariants({ variant: "ghost" }),
-                    "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
-                ),
-                day_range_start: "day-range-start",
-                day_range_end: "day-range-end",
-                day_selected:
-                    "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                day_today: "bg-accent text-accent-foreground",
-                day_outside:
-                    "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-                day_disabled: "text-muted-foreground opacity-50",
-                day_range_middle:
-                    "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                day_hidden: "invisible",
-                ...classNames,
-            },
-            month,
-            defaultMonth,
-            fromMonth,
-            toMonth,
-            fixedWeeks,
-            components: {
-                IconLeft: ({ className, ...props }: React.ComponentProps<"svg">) => (
-                    <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-                ),
-                IconRight: ({ className, ...props }: React.ComponentProps<"svg">) => (
-                    <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-                ),
-                ...(components || {})
-            },
-            modifiers: modifiers || {},
-            modifiersClassNames: modifiersClassNames || {},
-            ...props,
+        // 共通のスタイルを設定
+        const commonClassNames = {
+            months: "flex flex-col sm:flex-row space-y-0 sm:space-x-1 sm:space-y-0",
+            month: "space-y-0",
+            caption: "flex justify-center pt-1 relative items-center",
+            caption_label: "text-sm font-medium",
+            nav: "space-x-1 flex items-center",
+            nav_button: cn(
+                buttonVariants({ variant: "outline" }),
+                "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+            ),
+            nav_button_previous: "absolute left-1",
+            nav_button_next: "absolute right-1",
+            table: "w-full border-collapse space-y-0",
+            head_row: "flex",
+            head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+            row: "flex w-full mt-2",
+            cell: cn(
+                "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent",
+                "h-9 w-9"
+            ),
+            day: cn(
+                buttonVariants({ variant: "ghost" }),
+                "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground"
+            ),
+            day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            day_today: "bg-accent text-accent-foreground",
+            day_outside: "text-muted-foreground opacity-50",
+            day_disabled: "text-muted-foreground opacity-50",
+            day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+            day_hidden: "invisible",
+            ...classNames,
+        };
+
+        const commonComponents = {
+            // DayContent ComponentをカスタムComponentで上書き
+            ...components && components.DayContent ? { DayContent: components.DayContent } : {},
+            // IconLeft/RightはDayPickerの型定義で認識されている
+            IconLeft: (props: React.ComponentProps<typeof ChevronLeft>) => (
+                <ChevronLeft className="h-4 w-4" {...props} />
+            ),
+            IconRight: (props: React.ComponentProps<typeof ChevronRight>) => (
+                <ChevronRight className="h-4 w-4" {...props} />
+            ),
         };
 
         // カレンダーモードに応じたpropsを生成
         if (calendarMode === "single") {
+            // singleモード用のハンドラ
+            const handleSingleSelect: DayPickerSingleProps['onSelect'] = (newDate) => {
+                if (onDateChange) {
+                    onDateChange(newDate);
+                }
+            };
+
             return (
                 <DayPicker
                     mode="single"
                     selected={date}
-                    onSelect={handleDateSelect as DayPickerSingleProps["onSelect"]}
-                    {...dayPickerBaseProps}
+                    onSelect={handleSingleSelect}
+                    showOutsideDays={showOutsideDays}
+                    locale={localeObj}
+                    className={cn("responsive-calendar", className)}
+                    classNames={commonClassNames}
+                    footer={renderActionButtons()}
+                    month={month}
+                    defaultMonth={defaultMonth}
+                    fromMonth={fromMonth}
+                    toMonth={toMonth}
+                    modifiers={modifiers || {}}
+                    modifiersClassNames={modifiersClassNames || {}}
+                    required={false}
                 />
             );
         } else if (calendarMode === "range") {
+            // rangeモード用のハンドラ
+            const handleRangeSelect: DayPickerRangeProps['onSelect'] = (range) => {
+                if (range?.from && onDateChange) {
+                    onDateChange(range.from);
+                }
+            };
+
             return (
                 <DayPicker
                     mode="range"
-                    selected={undefined} // range modeの場合は別のselectedタイプが必要
-                    onSelect={undefined} // range modeの場合は別のonSelectタイプが必要
-                    {...dayPickerBaseProps}
+                    selected={undefined}
+                    onSelect={handleRangeSelect}
+                    showOutsideDays={showOutsideDays}
+                    locale={localeObj}
+                    className={cn("responsive-calendar", className)}
+                    classNames={commonClassNames}
+                    footer={renderActionButtons()}
+                    month={month}
+                    defaultMonth={defaultMonth}
+                    fromMonth={fromMonth}
+                    toMonth={toMonth}
+                    modifiers={modifiers || {}}
+                    modifiersClassNames={modifiersClassNames || {}}
+                    required={false}
                 />
             );
         } else {
+            // multipleモード用のハンドラ
+            const handleMultipleSelect: DayPickerMultipleProps['onSelect'] = (dates) => {
+                if (dates && dates.length > 0 && onDateChange) {
+                    onDateChange(dates[0]);
+                }
+            };
+
             return (
                 <DayPicker
                     mode="multiple"
-                    selected={undefined} // multiple modeの場合は別のselectedタイプが必要
-                    onSelect={undefined} // multiple modeの場合は別のonSelectタイプが必要
-                    {...dayPickerBaseProps}
+                    selected={undefined}
+                    onSelect={handleMultipleSelect}
+                    showOutsideDays={showOutsideDays}
+                    locale={localeObj}
+                    className={cn("responsive-calendar", className)}
+                    classNames={commonClassNames}
+                    footer={renderActionButtons()}
+                    month={month}
+                    defaultMonth={defaultMonth}
+                    fromMonth={fromMonth}
+                    toMonth={toMonth}
+                    modifiers={modifiers || {}}
+                    modifiersClassNames={modifiersClassNames || {}}
+                    required={false}
                 />
             );
         }
