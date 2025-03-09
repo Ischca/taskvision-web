@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
-import { Task } from "@/types";
+import { Task, Block } from "@/types";
 import Calendar from "@/app/components/Calendar";
 import TaskItem from "@/app/components/TaskItem";
 import UnassignedTasksSection from "@/app/components/UnassignedTasksSection";
 import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
 import { useMessages } from "@/app/hooks/useMessages";
+import { formatDate, parseDate, getMonthRange } from "@/lib/dateUtils";
 
 export default function CalendarPage() {
     const { messages } = useMessages();
@@ -44,23 +45,6 @@ export default function CalendarPage() {
         }
     };
 
-    // 月の最初と最後の日を取得
-    const getMonthRange = (date: Date) => {
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        return { firstDay, lastDay };
-    };
-
-    // 日付文字列を生成する関数（タイムゾーンの問題を解決）
-    const formatDateString = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
     // 選択された月のタスクを取得
     useEffect(() => {
         const fetchTasksForMonth = async () => {
@@ -84,14 +68,22 @@ export default function CalendarPage() {
                     ...doc.data(),
                 })) as Task[];
 
+                console.log("allTasks", allTasks);
+
                 // クライアント側で日付範囲でフィルタリング
-                const startDateStr = formatDateString(firstDay);
-                const endDateStr = formatDateString(lastDay);
+                const startDateStr = formatDate(firstDay);
+                const endDateStr = formatDate(lastDay);
 
                 const filteredTasks = allTasks.filter(task => {
-                    if (!task.date) return false;
-                    return task.date >= startDateStr && task.date <= endDateStr;
+                    // 日付がないタスクも含める
+                    if (!task.date) return true;
+
+                    // 文字列の日付をDate型に変換して比較
+                    const taskDate = parseDate(task.date);
+                    return taskDate >= firstDay && taskDate <= lastDay;
                 });
+
+                console.log("filteredTasks", filteredTasks);
 
                 setTasks(filteredTasks);
             } catch (error) {
@@ -111,7 +103,7 @@ export default function CalendarPage() {
             return;
         }
 
-        const dateStr = formatDateString(selectedDate);
+        const dateStr = formatDate(selectedDate);
         const filteredTasks = tasks.filter(task => task.date === dateStr);
         setSelectedDateTasks(filteredTasks);
     }, [selectedDate, tasks]);
@@ -181,7 +173,7 @@ export default function CalendarPage() {
                 <div className="lg:col-span-1">
                     <UnassignedTasksSection
                         blocks={[]}
-                        tasks={tasks.filter(task => !task.date)}
+                        tasks={tasks.filter(task => !task.date || (task.date && !task.blockId))}
                         loading={loading}
                         date=""
                     />

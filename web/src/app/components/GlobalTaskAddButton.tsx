@@ -2,17 +2,10 @@
 
 import { FC, useState, useRef, useEffect } from "react";
 import { db } from "../../lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy, getDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy } from "firebase/firestore";
 import {
     PlusIcon,
-    XMarkIcon,
     CheckIcon,
-    ArrowPathIcon,
-    CalendarDaysIcon,
-    BellIcon,
-    BellSlashIcon,
-    ChevronDownIcon,
-    ArrowPathRoundedSquareIcon,
     ChevronUpIcon
 } from "@heroicons/react/24/outline";
 import { useTheme } from "./ThemeProvider";
@@ -20,7 +13,6 @@ import { useAuth } from "./AuthProvider";
 import { generateRepeatTaskInstances } from "@/lib/repeatTaskUtils";
 import { RepeatSettings, RepeatType, RepeatEndType, Task } from "@/types";
 import { useMessages } from '@/app/hooks/useMessages';
-import ShadcnDatePicker from "./ShadcnDatePicker";
 // import { useToast } from '@/components/ui/use-toast';
 // import { dateToString, stringToDate } from '@/utils/dateUtils';
 import TaskFormModal from "./task/TaskFormModal";

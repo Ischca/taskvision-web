@@ -15,7 +15,6 @@ import { Task, Block, Reminder, ReminderType } from '@/types';
 // ブラウザ通知のパーミッション要求
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    console.log('このブラウザは通知をサポートしていません');
     return false;
   }
 
@@ -110,7 +109,6 @@ export const createReminder = async (
     }
 
     const docRef = await addDoc(collection(db, 'reminders'), reminderData);
-    console.log('リマインダーを作成しました:', docRef.id);
     return docRef.id;
   } catch (error) {
     console.error('リマインダーの作成に失敗しました:', error);
@@ -235,7 +233,6 @@ export const updateTaskReminders = async (task: Task): Promise<void> => {
 
     // すべてのリマインダー作成を待つ
     await Promise.all(promises);
-    console.log('タスクのリマインダーを更新しました:', task.id);
   } catch (error) {
     console.error('リマインダーの更新に失敗しました:', error);
   }
@@ -258,7 +255,6 @@ export const checkReminders = async (userId: string): Promise<void> => {
     });
 
     await Promise.all(updatePromises);
-    console.log('リマインダーチェックが完了しました');
   } catch (error) {
     console.error('リマインダーチェック中にエラーが発生しました:', error);
   }
@@ -271,7 +267,7 @@ export const startReminderTimer = (userId: string): NodeJS.Timeout => {
     if (granted) {
       checkReminders(userId);
     } else {
-      console.log('通知の許可が得られませんでした');
+      console.error('通知の許可が得られませんでした');
     }
   });
 

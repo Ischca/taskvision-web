@@ -8,6 +8,10 @@ import {
     where,
     onSnapshot,
     orderBy,
+    doc,
+    deleteDoc,
+    setDoc,
+    updateDoc,
 } from "firebase/firestore";
 import { Task, Block } from "@/types";
 import { useAuth } from "../components/AuthProvider";
@@ -17,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { formatDate, parseDate } from "@/lib/dateUtils";
 
 import Sidebar from "../components/Sidebar";
 import GlobalTaskAddButton from "../components/GlobalTaskAddButton";
@@ -74,24 +79,24 @@ export default function Home() {
     const goToNextDay = () => {
         const nextDay = new Date(selectedDate);
         nextDay.setDate(nextDay.getDate() + 1);
-        setSelectedDate(nextDay.toISOString().split('T')[0]);
+        setSelectedDate(formatDate(nextDay));
     };
 
     // 日付を1日戻す
     const goToPreviousDay = () => {
         const prevDay = new Date(selectedDate);
         prevDay.setDate(prevDay.getDate() - 1);
-        setSelectedDate(prevDay.toISOString().split('T')[0]);
+        setSelectedDate(formatDate(prevDay));
     };
 
     // 今日の日付に戻る
     const goToToday = () => {
-        setSelectedDate(new Date().toISOString().split('T')[0]);
+        setSelectedDate(formatDate(new Date()));
     };
 
     // 日付を読みやすい形式にフォーマット
     const formatDisplayDate = (dateString: string) => {
-        const date = new Date(dateString);
+        const date = parseDate(dateString);
         // 曜日の配列 (locale に合わせる)
         const weekdaysEN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const weekdaysJA = ['日', '月', '火', '水', '木', '金', '土'];
@@ -129,35 +134,27 @@ export default function Home() {
                     ...doc.data(),
                 })) as Task[];
 
-                // デバッグ: タスクの日付形式を確認
-                console.log("タスクデータ例:", allTasks.slice(0, 2).map(task => ({
-                    title: task.title,
-                    date: task.date,
-                    dateType: task.date ? typeof task.date : null,
-                    blockId: task.blockId
-                })));
-                console.log("選択中の日付:", selectedDate, typeof selectedDate);
-
                 // クライアント側で日付でフィルタリング
                 const filteredTasks = allTasks.filter(task => {
                     // 日付が設定されていないタスクも含める
                     if (!task.date) return true;
 
                     // タスクの日付をString型に正規化
-                    let taskDateStr = typeof task.date === 'string' ? task.date : '';
+                    let taskDateStr = '';
 
                     try {
-                        // オブジェクトの場合、Date型かチェック
-                        if (typeof task.date === 'object' && task.date !== null) {
+                        if (typeof task.date === 'string') {
+                            taskDateStr = task.date;
+                        } else if (typeof task.date === 'object' && task.date !== null) {
+                            // Date型
                             if (Object.prototype.toString.call(task.date) === '[object Date]') {
-                                // Dateオブジェクトとして処理
                                 const d = task.date as Date;
-                                taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                taskDateStr = formatDate(d);
                             }
                             // Timestampオブジェクトの場合
                             else if ('toDate' in task.date) {
                                 const d = (task.date as any).toDate();
-                                taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                taskDateStr = formatDate(d);
                             }
                         }
                     } catch (e) {
@@ -167,9 +164,6 @@ export default function Home() {
                     // 選択された日付のタスクのみフィルタリング
                     return taskDateStr === selectedDate;
                 });
-
-                // デバッグ: フィルタリング結果を確認
-                console.log(`フィルタリング結果: 全${allTasks.length}件中${filteredTasks.length}件が表示対象`);
 
                 setTasks(filteredTasks);
                 setLoading(false);
@@ -313,8 +307,6 @@ export default function Home() {
                         {/* 割り当てられていないタスク */}
                         <UnassignedTasksSection
                             tasks={(() => {
-                                // フィルタリング前のタスク数を表示
-                                console.log(`[ページ] フィルタ前の全タスク: ${tasks.length}件`);
 
                                 // フィルタリング条件: 
                                 // 1. blockIdがnullまたは空文字列
@@ -341,12 +333,12 @@ export default function Home() {
                                                 // Date型
                                                 if (Object.prototype.toString.call(task.date) === '[object Date]') {
                                                     const d = task.date as Date;
-                                                    taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                                    taskDateStr = formatDate(d);
                                                 }
                                                 // Timestamp型
                                                 else if ('toDate' in task.date) {
                                                     const d = (task.date as any).toDate();
-                                                    taskDateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                                                    taskDateStr = formatDate(d);
                                                 }
                                             }
                                         } catch (e) {
@@ -356,24 +348,9 @@ export default function Home() {
                                         dateMatches = taskDateStr === selectedDate;
                                     }
 
-                                    // デバッグ情報（最初の3件のみ）
-                                    if (tasks.indexOf(task) < 3) {
-                                        console.log(`[タスクフィルタ] ${task.title}:`, {
-                                            blockId: task.blockId,
-                                            blockIdType: typeof task.blockId,
-                                            hasNoBlock,
-                                            date: task.date,
-                                            dateMatches,
-                                            表示: hasNoBlock && dateMatches
-                                        });
-                                    }
-
                                     // 両方の条件を満たすタスクを表示
                                     return hasNoBlock && dateMatches;
                                 });
-
-                                // フィルタリング後のタスク数を表示
-                                console.log(`[ページ] 未割り当てタスク: ${unassignedTasks.length}件`);
                                 return unassignedTasks;
                             })()}
                             blocks={blocks}

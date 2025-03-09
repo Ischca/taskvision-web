@@ -31,10 +31,6 @@ chrome.runtime.onInstalled.addListener(() => {
 function startAuthStateObserver() {
   onAuthStateChanged(auth, (user) => {
     userAuthenticated = !!user;
-    console.log(
-      '認証状態変更:',
-      userAuthenticated ? 'ログイン済み' : '未ログイン'
-    );
   });
 }
 

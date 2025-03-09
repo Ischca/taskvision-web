@@ -37,23 +37,6 @@ const Select = ({ children, value, onValueChange, ...props }: any) => {
         </div>
     );
 };
-const SelectTrigger = ({ children, className, ...props }: any) => (
-    <div className={`select-trigger ${className || ''}`} {...props}>{children}</div>
-);
-const SelectValue = ({ children, placeholder, ...props }: any) => (
-    <span className="select-value" {...props}>{children || placeholder}</span>
-);
-const SelectContent = ({ children, ...props }: any) => {
-    // Selectコンポーネント内のselectタグに直接子要素を渡すため、
-    // このコンポーネントの子要素をそのまま返す
-    return children;
-};
-const SelectItem = ({ children, value, ...props }: any) => {
-    console.log("SelectItem:", value, children);
-    return (
-        <option value={value} {...props}>{children}</option>
-    );
-};
 
 interface TaskFormModalProps {
     isModalOpen: boolean;
@@ -179,7 +162,6 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
 
     // 日付未割り当てチェックボックスの処理を改善
     const handleDateUnassignedChange = (checked: boolean) => {
-        console.log("日付未割り当て変更:", checked);
         setIsDateUnassigned(checked);
 
         // 未割り当てにチェックが入った場合は日付をクリア

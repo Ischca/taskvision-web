@@ -24,8 +24,6 @@ export const ensureDefaultBlocks = async (userId: string): Promise<void> => {
 
     // If no blocks exist, create default ones
     if (snapshot.empty) {
-      console.log('Creating default blocks for user', userId);
-
       // Create all blocks in parallel using Promise.all
       await Promise.all(
         DEFAULT_BLOCKS.map((block) =>
@@ -38,8 +36,6 @@ export const ensureDefaultBlocks = async (userId: string): Promise<void> => {
           })
         )
       );
-
-      console.log('Default blocks created successfully');
     }
   } catch (error) {
     console.error('Error ensuring default blocks:', error);

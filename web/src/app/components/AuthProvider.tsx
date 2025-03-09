@@ -147,7 +147,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     // トークンを取得し、必要に応じて更新
                     const token = await getIdToken(user);
-                    console.log("トークンが更新されました");
 
                     // トークンの期限切れが近い場合は更新をトリガー
                     const tokenExpiration = JSON.parse(atob(token.split('.')[1])).exp * 1000;
@@ -175,13 +174,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         if (!loading) {
             // 通知のパーミッションを要求
             requestNotificationPermission().then(granted => {
-                console.log("通知パーミッション:", granted ? "許可" : "拒否");
 
                 if (granted && reminderTimerId === null && userId !== null) {
                     // リマインダータイマーを開始
                     const timerId = startReminderTimer(userId);
                     setReminderTimerId(timerId);
-                    console.log("リマインダータイマーを開始しました");
                 }
             }).catch(err => {
                 console.error("通知パーミッションエラー:", err);
@@ -192,7 +189,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                 try {
                     if (userId !== null) {
                         await checkAndGenerateNextRepeatTasks(userId);
-                        console.log("繰り返しタスクの確認と生成を完了しました");
                     }
                 } catch (error) {
                     console.error("繰り返しタスクの確認と生成中にエラーが発生しました:", error);
@@ -216,7 +212,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
                 // 最初は明日の1AMに設定し、その後は24時間ごとに実行
                 const scheduleNextCheck = () => {
-                    console.log("次回の繰り返しタスクチェックをスケジュール: ", new Date(Date.now() + timeUntil1AM));
                     setTimeout(() => {
                         checkRepeatTasks();
                         // 以降は24時間ごとにチェック
@@ -232,7 +227,6 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             if (reminderTimerId !== null) {
                 stopReminderTimer(reminderTimerId);
-                console.log("リマインダータイマーを停止しました");
             }
         };
     }, [loading, userId, reminderTimerId]);

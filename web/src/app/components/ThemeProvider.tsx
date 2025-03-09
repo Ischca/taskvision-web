@@ -27,7 +27,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
     // テーマの切り替え関数
     const toggleTheme = () => {
         const newTheme = theme === "light" ? "dark" : "light";
-        console.log(`テーマを切り替えます: ${theme} → ${newTheme}`);
         setTheme(newTheme);
         localStorage.setItem("theme", newTheme);
         updateTheme(newTheme);
@@ -35,8 +34,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
 
     // テーマの更新を適用する関数
     const updateTheme = (newTheme: string) => {
-        // デバッグのために前の状態を記録
-        console.log("更新前のHTML classes:", document.documentElement.className);
 
         // 現在のクラスをリセット
         document.documentElement.classList.remove("dark", "light");
@@ -78,9 +75,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
         document.head.appendChild(tempStyle);
         document.head.removeChild(tempStyle);
 
-        // デバッグ情報
-        console.log(`テーマ適用完了: ${newTheme}`);
-        console.log("更新後のHTML classes:", document.documentElement.className);
     };
 
     // システムのカラースキーム設定を取得する関数
@@ -106,7 +100,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
             // ユーザーが明示的に設定したテーマがあればそれを使用、なければシステム設定を使用
             const initialTheme = storedTheme || getSystemTheme();
 
-            console.log("初期テーマを設定します:", initialTheme);
             setTheme(initialTheme);
             updateTheme(initialTheme);
         } catch (e) {
@@ -129,7 +122,6 @@ export default function ThemeProvider({ children }: { children: ReactNode }) {
             // ユーザーが明示的にテーマを設定していない場合のみシステムテーマを適用
             if (!userTheme) {
                 const newTheme = e.matches ? 'dark' : 'light';
-                console.log("システムテーマが変更されました:", newTheme);
                 setTheme(newTheme);
                 updateTheme(newTheme);
             }

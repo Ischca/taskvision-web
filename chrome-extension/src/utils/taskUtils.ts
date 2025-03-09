@@ -79,7 +79,6 @@ export function createTaskFromWebPage(
 export async function sendTaskToAPI(task: TaskData): Promise<boolean> {
   try {
     // ここではAPIエンドポイントを呼び出す実装をする
-    console.log('タスクをAPIに送信:', task);
     return true;
   } catch (error) {
     console.error('タスク送信エラー:', error);

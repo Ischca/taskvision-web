@@ -192,14 +192,6 @@ const EditTaskButton: React.FC<EditTaskButtonProps> = ({ task, blocks, onTaskUpd
                 date: finalDate,
             };
 
-            // 更新データのデバッグ情報
-            console.log("[デバッグ] タスク更新:", {
-                taskId: task.id,
-                blockId: updateData.blockId,
-                blockIdType: typeof updateData.blockId,
-                date: updateData.date
-            });
-
             if (deadlineDate) {
                 try {
                     const deadlineDateObj = new Date(deadlineDate);

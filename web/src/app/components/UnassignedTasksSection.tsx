@@ -89,9 +89,6 @@ const UnassignedTasksSection: FC<UnassignedTasksSectionProps> = ({ blocks, tasks
                 blockId: null,
                 date: null
             });
-
-            // コンソールに成功メッセージを表示
-            console.log(`Task ${taskId} moved to unassigned tasks`);
         } catch (error) {
             console.error("Error updating task:", error);
         }

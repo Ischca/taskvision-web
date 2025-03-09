@@ -23,6 +23,7 @@ import GlobalTaskAddButton from "./components/GlobalTaskAddButton";
 import BlockList from "./components/BlockList";
 import UnassignedTasksSection from "./components/UnassignedTasksSection";
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import { formatDate, parseDate, isToday } from "@/lib/dateUtils";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -37,24 +38,24 @@ export default function Home() {
   const goToNextDay = () => {
     const nextDay = new Date(selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
-    setSelectedDate(nextDay.toISOString().split('T')[0]);
+    setSelectedDate(formatDate(nextDay));
   };
 
   // 日付を1日戻す
   const goToPreviousDay = () => {
     const prevDay = new Date(selectedDate);
     prevDay.setDate(prevDay.getDate() - 1);
-    setSelectedDate(prevDay.toISOString().split('T')[0]);
+    setSelectedDate(formatDate(prevDay));
   };
 
   // 今日の日付に戻る
   const goToToday = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setSelectedDate(formatDate(new Date()));
   };
 
   // 日付を読みやすい形式にフォーマット
   const formatDisplayDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseDate(dateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -306,8 +307,6 @@ export default function Home() {
 
   // 認証状態のチェックをより厳格に
   const isAuthenticated = userId !== null && userId !== undefined && userId !== '';
-
-  console.log('認証状態:', { isAuthenticated, userId, authLoading });
 
   return (
     <div className="container mx-auto max-w-7xl">

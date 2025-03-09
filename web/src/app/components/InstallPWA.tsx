@@ -65,11 +65,6 @@ export default function InstallPWA() {
 
         // プロンプトが表示された後に結果を取得
         deferredPrompt.userChoice.then((choiceResult: { outcome: string }) => {
-            if (choiceResult.outcome === "accepted") {
-                console.log("ユーザーがPWAのインストールを承認しました");
-            } else {
-                console.log("ユーザーがPWAのインストールを拒否しました");
-            }
             // プロンプトは一度しか使用できないため、使用後はnullに設定
             setDeferredPrompt(null);
             setShowInstallPrompt(false);
