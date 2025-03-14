@@ -14,12 +14,15 @@ const nextConfig = {
   reactStrictMode: false, // ハイドレーションエラーを減らすために無効化
   images: {
     domains: ['lh3.googleusercontent.com', 'firebasestorage.googleapis.com'],
+    unoptimized: true, // 静的エクスポートのために画像最適化を無効化
   },
   transpilePackages: ['lucide-react'],
   eslint: {
     // ESLintエラーで本番ビルドが失敗しないようにする
     ignoreDuringBuilds: true,
   },
+  output: 'export', // 静的HTMLとして出力
+  distDir: 'out', // 出力先を明示的にoutディレクトリに設定
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,
