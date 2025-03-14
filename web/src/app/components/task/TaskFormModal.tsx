@@ -293,7 +293,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                                 onDateChange={handleDateChange}
                                                 placeholder={t('common.tasks.selectDate')}
                                                 className="w-full calendar-popup"
-                                                // @ts-ignore
+                                                // @ts-expect-error
                                                 onOpenChange={handleCalendarOpenChange}
                                             />
                                         </div>
@@ -344,7 +344,7 @@ const TaskFormModal: React.FC<TaskFormModalProps> = ({
                                             onDateChange={handleDeadlineDateChange}
                                             placeholder={t('common.tasks.selectDeadline')}
                                             className="w-full calendar-popup"
-                                            // @ts-ignore
+                                            // @ts-expect-error
                                             onOpenChange={handleCalendarOpenChange}
                                         />
                                     </div>

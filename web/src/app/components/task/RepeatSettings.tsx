@@ -40,7 +40,7 @@ const datePickerWithOpenChange = ({ date, onDateChange, disabled, onOpenChange }
             date={date}
             onDateChange={onDateChange}
             disabled={disabled}
-            // @ts-ignore 
+            // @ts-expect-error 
             onOpenChange={onOpenChange}
         />
     );
@@ -234,7 +234,7 @@ const RepeatSettings: React.FC<RepeatSettingsProps> = ({
                                         onDateChange={(date) => setRepeatEndDate(date || '')}
                                         disabled={repeatEndType !== 'on_date'}
                                         className="w-full"
-                                        // @ts-ignore
+                                        // @ts-expect-error
                                         onOpenChange={(open: boolean) => setIsAnyPopoverOpen(open)}
                                     />
                                 </div>
