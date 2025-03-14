@@ -1,6 +1,9 @@
 // 型定義のエクスポート
 export * from './dist/types';
 
+// 型の直接エクスポート
+export type { Task, TaskData, TaskSource, TaskPriority } from './dist/types';
+
 // 日付ユーティリティ関数
 export declare function formatDate(date: Date): string;
 export declare function parseDate(dateStr: string): Date;
@@ -9,7 +12,6 @@ export declare function isToday(dateStr: string | null): boolean;
 export declare function getDaysDiff(dateStr1: string, dateStr2: string): number;
 
 // タスク関連のユーティリティ関数
-import { Task, TaskSource } from './dist/types';
 export declare function getSourceLabel(source?: TaskSource): string;
 export declare function isTaskOverdue(task: Task): boolean;
 export declare function suggestPriority(
