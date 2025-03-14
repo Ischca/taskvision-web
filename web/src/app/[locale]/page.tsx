@@ -22,6 +22,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { formatDate, parseDate } from "@/lib/dateUtils";
+import { locales } from "@/i18n";
 
 import Sidebar from "../components/Sidebar";
 import GlobalTaskAddButton from "../components/GlobalTaskAddButton";
@@ -29,6 +30,11 @@ import BlockList from "../components/BlockList";
 import UnassignedTasksSection from "../components/UnassignedTasksSection";
 import { useParams } from "next/navigation";
 import { loadMessages } from "../components/i18n";
+
+// 静的生成のためのパラメータを提供
+export function generateStaticParams() {
+    return locales.map((locale) => ({ locale }));
+}
 
 export default function Home() {
     const params = useParams();

@@ -18,6 +18,12 @@ import { PencilIcon, TrashIcon, ArrowUpIcon, ArrowDownIcon, PlusIcon } from "@he
 import Link from "next/link";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
 import { useMessages } from "@/app/hooks/useMessages";
+import { locales } from "@/i18n";
+
+// 静的生成のためのパラメータを提供
+export function generateStaticParams() {
+    return locales.map((locale) => ({ locale }));
+}
 
 export default function BlockManagePage() {
     const { messages } = useMessages();

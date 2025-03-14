@@ -11,6 +11,12 @@ import { useAuth } from "@/app/components/AuthProvider";
 import { Link } from "@/app/components/Link";
 import { useParams } from "next/navigation";
 import { loadMessages } from "@/app/components/i18n";
+import { locales } from "@/i18n";
+
+// 静的生成のためのパラメータを提供
+export function generateStaticParams() {
+    return locales.map((locale) => ({ locale }));
+}
 
 export default function SignupPage() {
     const router = useRouter();

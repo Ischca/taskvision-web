@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { ReactNode, Suspense, useEffect, useState } from 'react';
+import AuthProvider from '../components/AuthProvider';
+import ThemeProvider from '../components/ThemeProvider';
 import Header from "../components/Header";
-import ThemeProvider from "../components/ThemeProvider";
-import AuthProvider from "../components/AuthProvider";
-import PWAComponents from "../components/PWAComponents";
+import I18nProvider, { loadMessages } from '../components/i18n';
 import { useParams } from 'next/navigation';
-import I18nProvider, { loadMessages, locales } from '../components/i18n';
+import ClientOnly from '../components/ClientOnly';
+import PWAComponents from '../components/PWAComponents';
+import OfflineDetector from '../components/OfflineDetector';
+import { locales } from "@/i18n";
 
 // 一定の固定フッターを定義（年は固定値を使用）
 const FooterContent = () => (
@@ -32,6 +35,10 @@ const LoadingContent = () => (
         <FooterContent />
     </div>
 );
+
+export function generateStaticParams() {
+    return locales.map((locale) => ({ locale }));
+}
 
 export default function LocaleLayout({
     children,
