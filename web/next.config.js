@@ -1,28 +1,32 @@
 /** @ts-check */
-const withPWA = require('next-pwa')({
-  dest: 'public',
+const withPWA = require("next-pwa")({
+  dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development'
+  disable: process.env.NODE_ENV === "development",
 });
 
 /** @type {import('next').NextConfig} */
 // next-intlの設定をCSRに最適化
-const withNextIntl = require('next-intl/plugin')('./src/i18n.ts');
+const withNextIntl = require("next-intl/plugin")("./src/i18n.ts");
 
 const nextConfig = {
   reactStrictMode: false, // ハイドレーションエラーを減らすために無効化
   images: {
-    domains: ['lh3.googleusercontent.com', 'firebasestorage.googleapis.com'],
+    domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
     unoptimized: true, // 静的エクスポートのために画像最適化を無効化
   },
-  transpilePackages: ['lucide-react'],
+  transpilePackages: ["lucide-react"],
   eslint: {
     // ESLintエラーで本番ビルドが失敗しないようにする
     ignoreDuringBuilds: true,
+    // 特定のディレクトリやファイルを無視
+    dirs: ["src", "app"],
+    // キャッシュの有効化
+    cache: true,
   },
-  output: 'export', // 静的HTMLとして出力
-  distDir: 'out', // 出力先を明示的にoutディレクトリに設定
+  output: "export", // 静的HTMLとして出力
+  distDir: "out", // 出力先を明示的にoutディレクトリに設定
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,
@@ -41,15 +45,14 @@ const nextConfig = {
   serverExternalPackages: [],
   // ページ再生成をスキップ
   skipTrailingSlashRedirect: true,
-  // サーバーアクション設定
-  serverActions: false,
   // HTMLレンダリングの差異を減らすための設定
   compiler: {
     // 開発環境でもミニファイ
-    reactRemoveProperties: process.env.NODE_ENV === 'production',
-    removeConsole: process.env.NODE_ENV === 'production',
+    reactRemoveProperties: process.env.NODE_ENV === "production",
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 
-// 複数のプラグインを組み合わせる場合はこのように順番に適用する
-module.exports = withNextIntl(withPWA(nextConfig)); 
+// 最終的な設定を作成
+const finalConfig = withNextIntl(withPWA(nextConfig));
+module.exports = finalConfig;

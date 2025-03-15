@@ -5,9 +5,20 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "check-static-build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@radix-ui/react-popover": "^1.1.6",
@@ -28,7 +39,8 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^9.22.0",
     "@heroicons/react": "^2.2.0",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -38,7 +50,10 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "firebase": "^11.3.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
     "postcss": "^8.5.3",
+    "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
     "taskvision-shared": "../shared",
     "typescript": "^5"

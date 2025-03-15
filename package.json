@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "test": "echo \"No tests configured\" && exit 0",
     "dev": "npm run dev:web",
     "dev:web": "cd web && npm run dev",
     "dev:extension": "cd chrome-extension && npm run start",
@@ -10,9 +11,11 @@
     "build:web": "cd web && npm run build",
     "build:extension": "cd chrome-extension && npm run build",
     "package:extension": "cd chrome-extension && npm run package",
+    "check-static-build": "cd web && npm run check-static-build",
     "lint": "npm run lint:web && npm run lint:extension",
     "lint:web": "cd web && npm run lint",
-    "lint:extension": "cd chrome-extension && npm run lint"
+    "lint:extension": "cd chrome-extension && npm run lint",
+    "prepare": "cd web && npm run prepare"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

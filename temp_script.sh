@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# webディレクトリに移動して静的ビルドチェックを実行
+cd web
+
+# lint-stagedを実行（ステージングされたファイルのリントとフォーマット）
+npx lint-staged
+
+# SSRの使用やgenerateStaticParamsのエラーをチェック
+echo "🔍 静的ビルド互換性チェックを実行中..."
+npm run check-static-build || (
+  echo "❌ 静的ビルドチェックに失敗しました。";
+  echo "💡 SSRを使用しないように修正するか、generateStaticParamsを正しく設定してください。";
+  exit 1;
+)
+
+echo "✅ 全てのチェックが通過しました！" 

@@ -38,6 +38,24 @@ npm run dev
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてアプリケーションを確認できます。
 
+#### 静的ビルドの互換性
+
+このプロジェクトは静的ビルド（`output: export`）を使用し、サーバーサイドレンダリング（SSR）を使用しません。変更を加える前に以下のガイドラインを確認してください：
+
+- 動的ルート（`[param]`）には`generateStaticParams`が必要です
+- `"use client"`と`generateStaticParams`は同じファイルで使用できません
+- SSR機能（`getServerSideProps`、サーバーアクション）は使用できません
+- すべてのデータフェッチングはクライアントサイドで行います
+
+詳細なガイドラインは `web/docs/static-build-rules.md` を参照してください。
+
+コミット前に静的ビルドチェックが自動的に実行されます。手動で確認するには：
+
+```bash
+cd web
+npm run check-static-build
+```
+
 ### Chrome拡張機能開発
 
 Chrome拡張機能の依存関係をインストールし、開発サーバーを起動します：
