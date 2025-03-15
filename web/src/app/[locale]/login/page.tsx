@@ -13,9 +13,10 @@ import { useParams } from "next/navigation";
 import { loadMessages } from "@/app/components/i18n";
 import { locales } from "@/i18n";
 
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+// 静的生成のためのパラメータを提供
+// export function generateStaticParams() {
+//     return locales.map((locale) => ({ locale }));
+// }
 
 export default function LoginPage() {
     const router = useRouter();

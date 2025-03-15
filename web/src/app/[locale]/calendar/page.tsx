@@ -11,12 +11,12 @@ import { ArrowPathIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/rea
 import useRequireAuth from "@/app/hooks/useRequireAuth";
 import { useMessages } from "@/app/hooks/useMessages";
 import { formatDate, parseDate, getMonthRange } from "@/lib/dateUtils";
-import { locales } from "@/i18n";
+// import { locales } from "@/i18n";
 
 // 静的生成のためのパラメータを提供
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+// export function generateStaticParams() {
+//     return locales.map((locale) => ({ locale }));
+// }
 
 export default function CalendarPage() {
     const { messages } = useMessages();

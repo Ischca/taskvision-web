@@ -36,9 +36,8 @@ const LoadingContent = () => (
     </div>
 );
 
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+// 静的生成のためのパラメータを提供は別ファイルで定義
+export { generateStaticParams } from '@/lib/staticParams';
 
 export default function LocaleLayout({
     children,

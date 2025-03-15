@@ -32,9 +32,9 @@ import { useParams } from "next/navigation";
 import { loadMessages } from "../components/i18n";
 
 // 静的生成のためのパラメータを提供
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+// export function generateStaticParams() {
+//     return locales.map((locale) => ({ locale }));
+// }
 
 export default function Home() {
     const params = useParams();

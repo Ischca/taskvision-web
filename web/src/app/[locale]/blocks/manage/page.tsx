@@ -21,9 +21,9 @@ import { useMessages } from "@/app/hooks/useMessages";
 import { locales } from "@/i18n";
 
 // 静的生成のためのパラメータを提供
-export function generateStaticParams() {
-    return locales.map((locale) => ({ locale }));
-}
+// export function generateStaticParams() {
+//     return locales.map((locale) => ({ locale }));
+// }
 
 export default function BlockManagePage() {
     const { messages } = useMessages();
