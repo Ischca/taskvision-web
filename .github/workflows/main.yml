@@ -1,3 +1,5 @@
+# DISABLED WORKFLOW - Vercelに移行のため無効化
+# このワークフローはVercelに移行するため、無効化されています
 name: TaskVision CI/CD
 
 on:
@@ -8,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       deploy:
-        description: 'Deploy to production'
+        description: 'Firebaseにデプロイおよび拡張機能のリリース'
         required: true
         default: false
         type: boolean
@@ -121,6 +123,7 @@ jobs:
             cat $GITHUB_OUTPUT || echo "Failed to read $GITHUB_OUTPUT"
           fi
 
+  # Web部分のビルドとデプロイ
   build-web:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.web-changed == 'true' || github.event_name == 'workflow_dispatch' }}
@@ -142,9 +145,9 @@ jobs:
         run: |
           cd web
           npm run build
-          # ビルド後にoutディレクトリの内容を確認
+          # ビルド後のディレクトリの内容を確認
           echo "Checking output directory content:"
-          ls -la out || echo "out directory not found"
+          ls -la .next || echo ".next directory not found"
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -167,9 +170,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-build
-          path: web/out
+          path: web/.next
           retention-days: 7
 
+  # 拡張機能のビルドは変更なし
   build-extension:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.extension-version-changed == 'true' || github.event_name == 'workflow_dispatch' }}

@@ -14,7 +14,7 @@ const nextConfig = {
   reactStrictMode: false, // ハイドレーションエラーを減らすために無効化
   images: {
     domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
-    unoptimized: true, // 静的エクスポートのために画像最適化を無効化
+    // unoptimized: true, // 静的エクスポートのために画像最適化を無効化
   },
   transpilePackages: ["lucide-react"],
   eslint: {
@@ -22,11 +22,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
     // 特定のディレクトリやファイルを無視
     dirs: ["src", "app"],
-    // キャッシュの有効化
-    cache: true,
   },
-  output: "export", // 静的HTMLとして出力
-  distDir: "out", // 出力先を明示的にoutディレクトリに設定
+  // output: "export", // 静的HTMLとして出力を無効化
+  // distDir: "out", // 出力先設定を削除
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,
