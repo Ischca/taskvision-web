@@ -65,3 +65,11 @@ Thumbs.db
 # Firebase
 .firebase/
 firebase-debug.log
+
+# PWA files
+web/public/sw.js
+web/public/workbox-*.js
+web/public/worker-*.js
+web/public/sw.js.map
+web/public/workbox-*.js.map
+web/public/worker-*.js.map
