@@ -1,18 +1,18 @@
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+import { createSharedPathnamesNavigation } from "next-intl/navigation";
 
 // 利用可能な言語
-export const locales = ['en', 'ja'] as const;
+export const locales = ["en", "ja"] as const;
 
 // デフォルト言語
-export const defaultLocale = 'ja' as const;
+export const defaultLocale = "ja" as const;
 
-// クライアントサイドレンダリング（CSR）に最適化するための設定
-export const skipInitialDataFetch = true;
+// SSRモードで最適化するための設定
+export const skipInitialDataFetch = false;
 
-// CSR専用の設定
-export const timeZone = 'Asia/Tokyo';
+// タイムゾーン設定
+export const timeZone = "Asia/Tokyo";
 
-// パス生成ヘルパー - CSRとの互換性を向上
+// パス生成ヘルパー - SSRモードを活用
 export const { Link, redirect, usePathname, useRouter } =
   createSharedPathnamesNavigation({
     locales,
@@ -34,24 +34,26 @@ async function importMessages(locale: string) {
   }
 }
 
-// クライアントコンポーネント用のメッセージ取得関数
+// SSR/CSR両方で使えるメッセージ取得関数
 export async function getMessages(locale: string) {
   return importMessages(locale);
 }
 
-// CSRモードに最適化された設定
-export default async function getI18nConfig() {
+// SSRモードに最適化された設定
+export default async function getI18nConfig(locale: string) {
+  const messages = await importMessages(locale);
+
   return {
-    // 固定された日付を使用してサーバー/クライアント間の差異を防ぐ
-    now: new Date('2023-01-01'),
-    // メッセージは動的に読み込む（CSRでの運用を優先）
-    messages: {},
+    // 現在の日時を使用してSSRで正確な値を提供
+    now: new Date(),
+    // サーバーサイドでメッセージを読み込む
+    messages,
     // タイムゾーン設定
     timeZone,
-    // クライアントのみの処理を優先
+    // エラーハンドリング
     onError: (error: any) => {
-      console.warn('i18n error:', error);
-      return '';
+      console.error("i18n error:", error);
+      return null;
     },
   };
 }

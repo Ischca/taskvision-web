@@ -13,7 +13,8 @@
     "serve": "firebase emulators:start",
     "deploy": "firebase deploy",
     "deploy:functions": "firebase deploy --only functions",
-    "deploy:hosting": "firebase deploy --only hosting"
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:app": "firebase deploy --only appHosting"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -53,6 +54,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
+    "critters": "^0.0.23",
     "daisyui": "^4.12.23",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",

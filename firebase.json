@@ -3,32 +3,14 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "hosting": {
-    "public": "web/out",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "function": "nextServer"
-      }
-    ]
-  },
-  "functions": {
-    "source": "web",
-    "codebase": "default",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log"
-    ],
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run build"
-    ]
+  "appHosting": {
+    "site": {
+      "source": {
+        "type": "nextjs",
+        "directory": "web"
+      },
+      "region": "asia-east1"
+    }
   },
   "emulators": {
     "auth": {

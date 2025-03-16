@@ -144,10 +144,8 @@ jobs:
       - name: Build web app
         run: |
           cd web
+          npm ci
           npm run build
-          # ビルド後のディレクトリの内容を確認
-          echo "Checking output directory content:"
-          ls -la .next || echo ".next directory not found"
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -156,19 +154,10 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - name: Create build directory
+      - name: Deploy to Firebase App Hosting
         run: |
-          mkdir -p web/out
-          touch web/out/.gitkeep
-          ls -la web/out
-
-      - name: Deploy Firebase Functions
-        run: |
-          cd web
-          npm ci
-          npm run build
           npm install -g firebase-tools
-          firebase deploy --only functions --token "${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}" --debug
+          firebase deploy --only appHosting --token "${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}" --project taskvision-3f130
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -177,15 +166,6 @@ jobs:
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}
-          channelId: live
-          projectId: taskvision-3f130
-          entryPoint: web
 
       - name: Upload web build artifacts
         uses: actions/upload-artifact@v4

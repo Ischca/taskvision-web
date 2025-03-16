@@ -7,14 +7,16 @@ const withPWA = require("next-pwa")({
 });
 
 /** @type {import('next').NextConfig} */
-// next-intlの設定をCSRに最適化
+// next-intlの設定をSSRに最適化
 const withNextIntl = require("next-intl/plugin")("./src/i18n.ts");
 
 const nextConfig = {
-  reactStrictMode: false, // ハイドレーションエラーを減らすために無効化
+  reactStrictMode: true,
+  swcMinify: true,
   images: {
     domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
-    // unoptimized: true, // 静的エクスポートのために画像最適化を無効化
+    // SSRモードでは画像最適化が必要
+    unoptimized: false,
   },
   transpilePackages: ["lucide-react"],
   eslint: {
@@ -23,8 +25,9 @@ const nextConfig = {
     // 特定のディレクトリやファイルを無視
     dirs: ["src", "app"],
   },
+  // SSRモードでは出力設定は不要
   // output: "export", // 静的HTMLとして出力を無効化
-  distDir: "out", // GitHub Actionsとの互換性のため、outディレクトリを使用
+  // distDir: "out", // GitHub Actionsとの互換性のため、outディレクトリを使用
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,
@@ -34,16 +37,20 @@ const nextConfig = {
     };
     return config;
   },
-  // CSRモードを優先するための設定
+  // Firebase App Hostingに最適化された設定
   experimental: {
-    // 静的に最適化を無効化してCSRを確実にする
-    optimizeCss: false,
+    // App Hostingはデフォルトでサーバーコンポーネントをサポート
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
   },
-  // サーバーコンポーネントの使用を最小限に
-  serverExternalPackages: [],
+  // Firebase App Hostingではoutput: 'standalone'が推奨
+  output: "standalone",
+  // SSRで必要なサーバーコンポーネントのパッケージ設定
+  serverExternalPackages: ["next-intl"],
   // ページ再生成をスキップ
   skipTrailingSlashRedirect: true,
-  // HTMLレンダリングの差異を減らすための設定
+  // HTMLレンダリングの設定
   compiler: {
     // 開発環境でもミニファイ
     reactRemoveProperties: process.env.NODE_ENV === "production",
