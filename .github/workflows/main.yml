@@ -156,8 +156,22 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - name: Deploy to Firebase
-        if: github.event_name == 'push' || github.event.inputs.deploy == 'true'
+      - name: Create build directory
+        run: |
+          mkdir -p web/out
+          touch web/out/.gitkeep
+          ls -la web/out
+
+      - name: Deploy Firebase Functions
+        run: |
+          cd web
+          npm ci
+          npm run build
+          firebase deploy --only functions --token "${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TASKVISION_3F130 }}
+
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

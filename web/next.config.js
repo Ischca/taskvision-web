@@ -24,7 +24,7 @@ const nextConfig = {
     dirs: ["src", "app"],
   },
   // output: "export", // 静的HTMLとして出力を無効化
-  // distDir: "out", // 出力先設定を削除
+  distDir: "out", // GitHub Actionsとの互換性のため、outディレクトリを使用
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,

@@ -8,7 +8,7 @@ console.log(`Running in ${isDev ? "development" : "production"} mode`);
 const nextjsApp = next({
   dev: isDev,
   conf: {
-    distDir: ".next",
+    distDir: "out",
   },
 });
 
