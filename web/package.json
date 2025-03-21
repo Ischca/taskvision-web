@@ -5,16 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "check-static-build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
-    "serve": "firebase emulators:start",
-    "deploy": "firebase deploy",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:app": "firebase deploy --only appHosting"
+    "serve": "cd .. && firebase emulators:start",
+    "deploy": "cd .. && firebase deploy",
+    "deploy:functions": "cd .. && firebase deploy --only functions",
+    "deploy:hosting": "cd .. && firebase deploy --only hosting",
+    "deploy:app": "cd .. && firebase deploy --only hosting"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -63,7 +62,7 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
-    "taskvision-shared": "../shared",
+    "taskvision-shared": "*",
     "typescript": "^5"
   }
 }

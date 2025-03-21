@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "taskvision-3f130"
-  }
+  },
+  "targets": {
+    "taskvision-3f130": {
+      "hosting": {
+        "nextjs-app": [
+          "taskvision-3f130"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

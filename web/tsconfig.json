@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "taskvision-shared": ["../shared"],
+      "taskvision-shared/*": ["../shared/*"]
     }
   },
   "include": [

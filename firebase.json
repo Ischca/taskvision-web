@@ -3,15 +3,6 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "appHosting": {
-    "site": {
-      "source": {
-        "type": "nextjs",
-        "directory": "web"
-      },
-      "region": "asia-east1"
-    }
-  },
   "emulators": {
     "auth": {
       "port": 9099

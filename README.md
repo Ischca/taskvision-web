@@ -49,13 +49,6 @@ npm run dev
 
 詳細なガイドラインは `web/docs/static-build-rules.md` を参照してください。
 
-コミット前に静的ビルドチェックが自動的に実行されます。手動で確認するには：
-
-```bash
-cd web
-npm run check-static-build
-```
-
 ### Chrome拡張機能開発
 
 Chrome拡張機能の依存関係をインストールし、開発サーバーを起動します：

@@ -12,7 +12,6 @@ const withNextIntl = require("next-intl/plugin")("./src/i18n.ts");
 
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   images: {
     domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
     // SSRモードでは画像最適化が必要
@@ -25,9 +24,6 @@ const nextConfig = {
     // 特定のディレクトリやファイルを無視
     dirs: ["src", "app"],
   },
-  // SSRモードでは出力設定は不要
-  // output: "export", // 静的HTMLとして出力を無効化
-  // distDir: "out", // GitHub Actionsとの互換性のため、outディレクトリを使用
   webpack: (config) => {
     config.resolve.fallback = {
       fs: false,
