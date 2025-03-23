@@ -1,0 +1,74 @@
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+# Environment variables and secrets.
+env:
+  # Firebase設定
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: 'AIzaSyAtnOBs11grIYFFiuHkJwJpXIiJAdorDGE'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: 'taskvision-3f130.firebaseapp.com'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: 'taskvision-3f130'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: 'taskvision-3f130.appspot.com'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: '1079258756848'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: '1:1079258756848:web:a2dc15c5a7c38534443435'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: 'G-YMDYKY5YS9'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_APP_URL
+    value: 'http://localhost:3000'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Firebase CLI実験的機能
+  - variable: FIREBASE_CLI_EXPERIMENTS
+    value: 'webframeworks'
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # 以下は機密情報のためCloud Secret Managerを使用することをお勧めします
+  # - variable: ENCRYPTION_KEY
+  #   secret: encryptionKeySecret
+# Grant access to secrets in Cloud Secret Manager.
+# See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
+# - variable: MY_SECRET
+#   secret: mySecretRef
