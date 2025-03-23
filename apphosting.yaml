@@ -9,13 +9,14 @@ runConfig:
 
 # Environment variables and secrets.
 env:
-  # Firebase設定
+  # Firebase設定 - APIキーはシークレットとして管理します
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: 'AIzaSyAtnOBs11grIYFFiuHkJwJpXIiJAdorDGE'
+    secret: firebase-api-key
     availability:
       - BUILD
       - RUNTIME
 
+  # 以下の公開情報は問題ありません
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
     value: 'taskvision-3f130.firebaseapp.com'
     availability:
@@ -65,9 +66,9 @@ env:
       - BUILD
       - RUNTIME
 
-  # 以下は機密情報のためCloud Secret Managerを使用することをお勧めします
+  # 追加の機密情報もシークレットとして管理します
   # - variable: ENCRYPTION_KEY
-  #   secret: encryptionKeySecret
+  #   secret: encryption-key-secret
 # Grant access to secrets in Cloud Secret Manager.
 # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
 # - variable: MY_SECRET
