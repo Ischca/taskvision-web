@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import {
@@ -15,7 +17,7 @@ import {
 } from "firebase/firestore";
 import { Task, Block } from "@/types";
 import { useAuth } from "../components/AuthProvider";
-import { Link } from "../components/Link";
+import Link from "next/link";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -28,7 +30,6 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { formatDate, parseDate } from "@/lib/dateUtils";
 import { locales } from "@/i18n";
 
@@ -37,54 +38,20 @@ import GlobalTaskAddButton from "../components/GlobalTaskAddButton";
 import BlockList from "../components/BlockList";
 import UnassignedTasksSection from "../components/UnassignedTasksSection";
 import { useParams } from "next/navigation";
-import { loadMessages } from "../components/i18n";
+import { useTranslations } from "next-intl";
 
 export default function Home() {
   const params = useParams();
   const locale = (params?.locale as string) || "ja";
-  const [messages, setMessages] = useState<Record<string, any>>({});
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [loading, setLoading] = useState(true);
-  const [messagesLoading, setMessagesLoading] = useState(true);
   const { userId, loading: authLoading } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
 
-  // messagesから直接テキストを取得するヘルパー関数
-  const t = (key: string) => {
-    try {
-      // common.key形式のキーを処理
-      const parts = key.split(".");
-      let current = messages;
-
-      for (const part of parts) {
-        if (current && typeof current === "object" && part in current) {
-          current = (current as any)[part];
-        } else {
-          return key; // キーが見つからない場合はキー自体を返す
-        }
-      }
-
-      return current && typeof current === "string" ? current : key;
-    } catch (error) {
-      console.error("Translation error:", error);
-      return key; // エラーが発生した場合はキー自体を返す
-    }
-  };
-
-  // メッセージを読み込む
-  useEffect(() => {
-    const fetchMessages = async () => {
-      setMessagesLoading(true);
-      const loadedMessages = await loadMessages(locale);
-      setMessages(loadedMessages);
-      setMessagesLoading(false);
-    };
-
-    fetchMessages();
-  }, [locale]);
+  const t = useTranslations();
 
   // 日付を1日進める
   const goToNextDay = () => {
@@ -278,129 +245,66 @@ export default function Home() {
                   onSelect={(date: Date | undefined) =>
                     date && setSelectedDate(format(date, "yyyy-MM-dd"))
                   }
-                  locale={ja}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
           </div>
 
-          <div className="flex items-center">
-            <button
-              onClick={goToNextDay}
-              className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors mr-2"
-              aria-label={t("common.dates.nextDay")}
-            >
-              <ChevronRightIcon className="w-5 h-5 text-gray-600" />
-            </button>
-
-            <GlobalTaskAddButton todayStr={selectedDate} />
-          </div>
+          <button
+            onClick={goToNextDay}
+            className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
+            aria-label={t("common.dates.nextDay")}
+          >
+            <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* サイドバー*/}
-          <div className="lg:col-span-1">
+        {/* タスクブロックとタスク表示エリア */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* サイドバー（デスクトップのみ） */}
+          <div className="hidden md:block">
             <Sidebar blocks={blocks} tasks={tasks} />
           </div>
 
-          {/* メインコンテンツ */}
-          <div className="lg:col-span-3">
-            {/* ブロック一覧 */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                {t("common.blocks.timeBlocks")}
-              </h2>
-              <BlockList
-                blocks={blocks}
-                tasks={tasks.filter((task) => {
-                  // 日付が未設定またはselectedDateと一致するタスクを表示
-                  const dateMatch = !task.date || task.date === selectedDate;
-
-                  // BlockListに渡すタスクはblockIdの有無に関わらず全て渡す
-                  // (BlockList内部でブロックごとにフィルタリングされる)
-                  return dateMatch;
-                })}
-                date={selectedDate}
-                loading={loading}
-              />
-            </div>
-
-            {/* 割り当てられていないタスク */}
-            <UnassignedTasksSection
-              tasks={(() => {
-                // フィルタリング条件:
-                // 1. blockIdがnullまたは空文字列
-                // 2. 日付が選択日付と一致するか、日付がnull
-                const unassignedTasks = tasks.filter((task) => {
-                  // ブロックIDが未設定かチェック
-                  const hasNoBlock = !task.blockId || task.blockId === "";
-
-                  // 日付のチェック
-                  let dateMatches = false;
-
-                  // 日付がnullならOK
-                  if (!task.date) {
-                    dateMatches = true;
-                  }
-                  // 日付が選択日付と一致するかチェック
-                  else {
-                    // 日付文字列に変換
-                    let taskDateStr = "";
-                    try {
-                      if (typeof task.date === "string") {
-                        taskDateStr = task.date;
-                      } else if (
-                        typeof task.date === "object" &&
-                        task.date !== null
-                      ) {
-                        // Date型
-                        if (
-                          Object.prototype.toString.call(task.date) ===
-                          "[object Date]"
-                        ) {
-                          const d = task.date as Date;
-                          taskDateStr = formatDate(d);
-                        }
-                        // Timestamp型
-                        else if ("toDate" in task.date) {
-                          const d = (task.date as any).toDate();
-                          taskDateStr = formatDate(d);
-                        }
-                      }
-                    } catch (e) {
-                      console.error("日付変換エラー:", e);
-                    }
-
-                    dateMatches = taskDateStr === selectedDate;
-                  }
-
-                  // 両方の条件を満たすタスクを表示
-                  return hasNoBlock && dateMatches;
-                });
-                return unassignedTasks;
-              })()}
+          {/* タスク表示エリア */}
+          <div className="md:col-span-3">
+            {/* ブロックごとのタスク表示 */}
+            <BlockList
               blocks={blocks}
-              loading={loading}
+              tasks={tasks}
               date={selectedDate}
+              loading={loading}
+            />
+
+            {/* 未割り当てタスク */}
+            <UnassignedTasksSection
+              blocks={blocks}
+              tasks={tasks.filter((task) => !task.blockId)}
+              date={selectedDate}
+              loading={loading}
             />
           </div>
         </div>
+
+        <GlobalTaskAddButton todayStr={selectedDate} />
       </div>
     );
   };
 
-  if (authLoading || messagesLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
+  // ログイン状態に応じたUIの出し分け
   return (
-    <div className="container mx-auto">
-      {!userId ? renderLoginPromotion() : renderTaskManagement()}
+    <div className="container mx-auto py-6 px-4">
+      {authLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+          <span className="ml-3 text-lg">{t("common.states.loading")}</span>
+        </div>
+      ) : userId ? (
+        renderTaskManagement()
+      ) : (
+        renderLoginPromotion()
+      )}
     </div>
   );
 }

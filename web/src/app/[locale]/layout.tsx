@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 import { locales } from "@/i18n";
+import { getMessages } from "@/i18n";
+import { getTranslations } from "next-intl/server";
 
 // 静的生成のためのパラメータを提供
 export function generateStaticParams() {
@@ -9,10 +11,21 @@ export function generateStaticParams() {
 // クライアントコンポーネントをインポート
 import LocaleLayoutClient from "./LocaleLayoutClient";
 
-export default function LocaleLayout({
+export default async function LocaleLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
-  return <LocaleLayoutClient>{children}</LocaleLayoutClient>;
+  // Next.js 15に対応するため、paramsをawaitする
+  const { locale } = await params;
+
+  // サーバーサイドでメッセージを取得
+  const messages = await getMessages(locale);
+
+  // クライアントコンポーネントにメッセージを渡す
+  return (
+    <LocaleLayoutClient messages={messages}>{children}</LocaleLayoutClient>
+  );
 }

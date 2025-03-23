@@ -20,41 +20,17 @@ import {
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
-import { useMessages } from "@/app/hooks/useMessages";
+import { useTranslations } from "next-intl";
 import { formatDate, parseDate, getMonthRange } from "@/lib/dateUtils";
 
 export default function CalendarPage() {
-  const { messages } = useMessages();
+  const t = useTranslations();
   const { userId, loading: authLoading, isAuthenticated } = useRequireAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDateTasks, setSelectedDateTasks] = useState<Task[]>([]);
-
-  // messagesからテキストを取得するヘルパー関数
-  const t = (key: string) => {
-    try {
-      if (!messages) {
-        return key;
-      }
-
-      const parts = key.split(".");
-      let current = messages;
-
-      for (const part of parts) {
-        if (current && typeof current === "object" && part in current) {
-          current = (current as any)[part];
-        } else {
-          return key;
-        }
-      }
-
-      return current && typeof current === "string" ? current : key;
-    } catch (error) {
-      return key;
-    }
-  };
 
   // 選択された月のタスクを取得
   useEffect(() => {

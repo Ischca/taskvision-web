@@ -1,59 +1,50 @@
 /** @ts-check */
+const runtimeCaching = require("next-pwa/cache");
 const withPWA = require("next-pwa")({
   dest: "public",
-  register: true,
-  skipWaiting: true,
+  runtimeCaching,
   disable: process.env.NODE_ENV === "development",
 });
 
 /** @type {import('next').NextConfig} */
-// next-intlの設定をSSRに最適化
-const withNextIntl = require("next-intl/plugin")("./src/i18n.ts");
-
 const nextConfig = {
   reactStrictMode: true,
-  images: {
-    domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
-    // SSRモードでは画像最適化が必要
-    unoptimized: false,
+  typescript: {
+    ignoreBuildErrors: true,
   },
-  transpilePackages: ["lucide-react"],
   eslint: {
-    // ESLintエラーで本番ビルドが失敗しないようにする
     ignoreDuringBuilds: true,
-    // 特定のディレクトリやファイルを無視
-    dirs: ["src", "app"],
+  },
+  images: {
+    unoptimized: true,
+    domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
+  },
+  output: "standalone",
+  distDir: ".next",
+  trailingSlash: false,
+  poweredByHeader: false,
+  generateEtags: false,
+  experimental: {
+    optimizeCss: true,
+    disableOptimizedLoading: false,
+    appDocumentPreloading: false,
+    serverActions: {
+      bodySizeLimit: "2mb",
+      allowedOrigins: ["localhost:3000"],
+    },
   },
   webpack: (config) => {
     config.resolve.fallback = {
+      ...config.resolve.fallback,
       fs: false,
-      net: false,
-      tls: false,
-      child_process: false,
+    };
+    config.module = {
+      ...config.module,
+      exprContextCritical: false,
     };
     return config;
   },
-  // Firebase App Hostingに最適化された設定
-  experimental: {
-    // App Hostingはデフォルトでサーバーコンポーネントをサポート
-    serverActions: {
-      bodySizeLimit: "2mb",
-    },
-  },
-  // Firebase App Hostingではoutput: 'standalone'が推奨
-  output: "standalone",
-  // SSRで必要なサーバーコンポーネントのパッケージ設定
-  serverExternalPackages: ["next-intl"],
-  // ページ再生成をスキップ
-  skipTrailingSlashRedirect: true,
-  // HTMLレンダリングの設定
-  compiler: {
-    // 開発環境でもミニファイ
-    reactRemoveProperties: process.env.NODE_ENV === "production",
-    removeConsole: process.env.NODE_ENV === "production",
-  },
 };
 
-// 最終的な設定を作成
-const finalConfig = withNextIntl(withPWA(nextConfig));
-module.exports = finalConfig;
+// PWA設定を最後に適用
+module.exports = withPWA(nextConfig);

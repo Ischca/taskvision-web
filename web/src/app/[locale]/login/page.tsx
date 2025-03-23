@@ -5,57 +5,39 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useAuth } from "@/app/components/AuthProvider";
-import { Link } from "@/app/components/Link";
+import NextLink from "next/link";
 import { useParams } from "next/navigation";
-import { loadMessages } from "@/app/components/i18n";
+import { useTranslations } from "next-intl";
 
 export default function LoginPage() {
   const router = useRouter();
   const { userId, loading: authLoading } = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locale, setLocale] = useState<string>("ja");
 
   // i18n
   const params = useParams();
-  const locale = (params?.locale as string) || "ja";
-  const [messages, setMessages] = useState<Record<string, any>>({});
-  const [messagesLoading, setMessagesLoading] = useState(true);
+  const t = useTranslations();
 
-  // メッセージのロード
+  // 非同期パラメータの処理
   useEffect(() => {
-    const loadMessageData = async () => {
-      const loadedMessages = await loadMessages(locale);
-      setMessages(loadedMessages);
-      setMessagesLoading(false);
-    };
-    loadMessageData();
-  }, [locale]);
-
-  // 翻訳関数
-  const t = (key: string) => {
-    try {
-      // common.key形式またはauth.key形式のキーを処理
-      const parts = key.split(".");
-      let current = messages;
-
-      for (const part of parts) {
-        if (current && typeof current === "object" && part in current) {
-          current = current[part];
-        } else {
-          return key; // キーが見つからない場合はキー自体を返す
-        }
+    const fetchParams = async () => {
+      try {
+        const resolvedParams = await Promise.resolve(params);
+        const localeValue = (resolvedParams?.locale as string) || "ja";
+        setLocale(localeValue);
+      } catch (error) {
+        console.error("パラメータ取得エラー:", error);
       }
+    };
 
-      return current && typeof current === "string" ? current : key;
-    } catch (error) {
-      console.error("Translation error:", error);
-      return key; // エラーが発生した場合はキー自体を返す
-    }
-  };
+    fetchParams();
+  }, [params]);
 
   // ログイン済みの場合はホームにリダイレクト
   useEffect(() => {
-    if (!authLoading && userId) {
+    if (!authLoading && userId && locale) {
       router.push(`/${locale}`);
     }
   }, [authLoading, userId, router, locale]);
@@ -77,7 +59,7 @@ export default function LoginPage() {
     }
   };
 
-  if (authLoading || messagesLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -151,12 +133,12 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               {t("auth.login.noAccount")}{" "}
-              <Link
-                href="/signup"
+              <NextLink
+                href={`/${locale}/signup`}
                 className="text-blue-600 hover:text-blue-500"
               >
                 {t("auth.login.signup")}
-              </Link>
+              </NextLink>
             </p>
           </div>
         </div>

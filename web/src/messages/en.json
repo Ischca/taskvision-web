@@ -1,243 +1,256 @@
 {
-    "common": {
-        "app": {
-            "name": "TaskVision",
-            "description": "Simple and easy-to-use task management app"
-        },
-        "navigation": {
-            "home": "Home",
-            "calendar": "Calendar",
-            "blockManage": "Manage Blocks",
-            "profile": "Profile",
-            "help": "Help",
-            "installApp": "Install App"
-        },
-        "actions": {
-            "login": "Login",
-            "logout": "Logout",
-            "save": "Save",
-            "cancel": "Cancel",
-            "edit": "Edit",
-            "delete": "Delete",
-            "create": "Create",
-            "add": "Add",
-            "signup": "Sign Up",
-            "update": "Update",
-            "saving": "Saving...",
-            "clearDate": "Clear date"
-        },
-        "buttons": {
-            "today": "Today",
-            "close": "Close"
-        },
-        "auth": {
-            "loginWithGoogle": "Login with Google",
-            "loginRequired": "Login Required",
-            "pleaseLogin": "Please login to continue"
-        },
-        "theme": {
-            "switchToDark": "Switch to Dark Mode",
-            "switchToLight": "Switch to Light Mode"
-        },
-        "tasks": {
-            "date": "Date",
-            "addTask": "Add Task",
-            "taskName": "Task Name",
-            "description": "Description",
-            "priority": "Priority",
-            "due": "Due Date",
-            "status": "Status",
-            "completed": "Completed",
-            "incomplete": "Incomplete",
-            "noTasks": "No tasks available",
-            "quickAdd": "Quick Task Add",
-            "swipeUpToAdd": "Swipe up to add a task",
-            "swipeDownToClose": "↓ Swipe down to close",
-            "willBeRegisteredToday": "* This will be registered as today's task",
-            "forDetailedSettings": "* For detailed settings, click",
-            "here": "here",
-            "advancedSettings": "Advanced Settings",
-            "close": "Close",
-            "unassignedTasks": "Unassigned Tasks",
-            "items": " items",
-            "progress": "Progress",
-            "noUnassignedTasks": "No unassigned tasks",
-            "loading": "Loading...",
-            "taskDetails": "Task Details",
-            "deadline": "Deadline (optional)",
-            "hideReminderSettings": "Hide reminder settings",
-            "showReminderSettings": "Show reminder settings",
-            "notifyBeforeBlockStart": "Notify before block start",
-            "notifyBeforeBlockEnd": "Notify before block end",
-            "notifyBeforeDeadline": "Notify before deadline",
-            "pleaseSetDeadline": "Please set a deadline",
-            "details": "Details (optional)",
-            "detailsPlaceholder": "Enter detailed description (optional)",
-            "blockAssignment": "Block Assignment",
-            "unassigned": "Unassigned",
-            "taskCompleted": "Task Completed",
-            "deleting": "Deleting...",
-            "saving": "Saving...",
-            "reminderSettingsAvailable": "Reminder settings available",
-            "repeatSettingsAvailable": "Repeat settings available",
-            "taskUpdated": "Task updated",
-            "taskUpdateFailed": "Failed to update task",
-            "taskDeleted": "Task deleted",
-            "taskDeleteFailed": "Failed to delete task",
-            "error": "An error occurred",
-            "deleteConfirmation": "Do you want to delete this task? This action cannot be undone.",
-            "unassignedDate": "Unassigned Date",
-            "selectBlockOptional": "Select a block (optional)",
-            "hideRepeatSettings": "Hide repeat settings",
-            "showRepeatSettings": "Show repeat settings",
-            "repeatTask": "Repeat task",
-            "repeatPattern": "Repeat pattern",
-            "repeatDaily": "Daily",
-            "repeatWeekdays": "Weekdays only (Mon-Fri)",
-            "repeatWeekly": "Weekly on specific days",
-            "repeatMonthly": "Monthly on specific date",
-            "repeatCustom": "Custom",
-            "frequency": "Frequency",
-            "interval": "Interval",
-            "everyDay": "Every day",
-            "everyTwoDays": "Every 2 days",
-            "everyThreeDays": "Every 3 days",
-            "everyFiveDays": "Every 5 days",
-            "everyWeek": "Every week",
-            "selectDaysOfWeek": "Select days of week",
-            "selectAtLeastOneDay": "Please select at least one day",
-            "selectDate": "Select date",
-            "dayOfMonth": "day of month",
-            "endCondition": "End condition",
-            "noEndDate": "No end date",
-            "specifyCount": "Specify count",
-            "specifyDate": "Specify date",
-            "times": "times",
-            "block": "Block",
-            "selectBlock": "Select block",
-            "selectDeadline": "Select deadline",
-            "blockUnassignedNote": "Note: If no block is selected, the task will appear as an unassigned task in the date view."
-        },
-        "blocks": {
-            "blockName": "Block Name",
-            "color": "Color",
-            "startTime": "Start Time",
-            "endTime": "End Time",
-            "addBlock": "Add Block",
-            "deleteBlock": "Delete Block",
-            "editBlock": "Edit Block",
-            "noBlocks": "No blocks available",
-            "timeBlocks": "Time Blocks",
-            "collapse": "Collapse",
-            "expand": "Expand",
-            "noTasksInBlock": "No tasks in this block. Drag tasks here.",
-            "createBlocksPrompt": "Please create blocks from the block management screen"
-        },
-        "sidebar": {
-            "overview": "Overview",
-            "totalTasks": "Total Tasks",
-            "completionRate": "Completion Rate",
-            "allTasksCompleted": "Congratulations! All tasks completed 🎉",
-            "taskStatus": "Task Status",
-            "goToBlockManagement": "Go to Block Management"
-        },
-        "user": {
-            "anonymous": "User",
-            "settings": "Settings"
-        },
-        "time": {
-            "hours": "hours",
-            "minutes": "minutes",
-            "minutesBefore": "minutes before",
-            "hourBefore": "hour before",
-            "hoursBefore": "hours before",
-            "dayBefore": "day before"
-        },
-        "language": {
-            "en": "English",
-            "ja": "日本語",
-            "selectLanguage": "Select Language"
-        },
-        "errors": {
-            "somethingWentWrong": "Something went wrong",
-            "translationError": "Translation Error",
-            "pleaseReload": "Please reload the page"
-        },
-        "dates": {
-            "today": "Today",
-            "yesterday": "Yesterday",
-            "tomorrow": "Tomorrow",
-            "thisWeek": "This Week",
-            "nextWeek": "Next Week",
-            "previousDay": "Previous Day",
-            "nextDay": "Next Day",
-            "date": "Date"
-        },
-        "messages": {
-            "welcome": "Welcome to TaskVision",
-            "loginPrompt": "Please login to start managing your tasks",
-            "loadingData": "Loading data..."
-        },
-        "states": {
-            "loading": "Loading..."
-        },
-        "locale": "en-US",
-        "backToHome": "Back to Home",
-        "goToLogin": "Go to Login",
-        "save": "Save",
-        "cancel": "Cancel",
-        "add": "Add"
+  "common": {
+    "app": {
+      "name": "TaskVision",
+      "description": "Simple and easy-to-use task management app"
+    },
+    "locale": "en-US",
+    "navigation": {
+      "home": "Home",
+      "calendar": "Calendar",
+      "blockManage": "Manage Blocks",
+      "profile": "Profile",
+      "help": "Help",
+      "installApp": "Install App"
+    },
+    "actions": {
+      "login": "Login",
+      "logout": "Logout",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "create": "Create",
+      "add": "Add",
+      "signup": "Sign Up",
+      "update": "Update",
+      "saving": "Saving...",
+      "clearDate": "Clear date",
+      "editTask": "Edit task"
+    },
+    "buttons": {
+      "today": "Today",
+      "close": "Close"
     },
     "auth": {
-        "login": {
-            "title": "Login to your account",
-            "googleButton": "Login with Google",
-            "noAccount": "Don't have an account?",
-            "signup": "Sign up"
-        },
-        "signup": {
-            "title": "Create a new account",
-            "googleButton": "Sign up with Google",
-            "haveAccount": "Already have an account?",
-            "login": "Login"
-        },
-        "errors": {
-            "googleLoginFailed": "Failed to login with Google.",
-            "googleSignupFailed": "Failed to sign up with Google."
-        }
+      "loginWithGoogle": "Login with Google",
+      "loginRequired": "Login Required",
+      "pleaseLogin": "Please login to continue"
     },
-    "calendar": {
-        "title": "Calendar",
-        "today": "Today",
-        "tasksForDay": "'s Tasks",
-        "selectDate": "Please select a date",
-        "loadingTasks": "Loading tasks...",
-        "noTasksForDay": "No tasks for this day",
-        "selectDateToViewTasks": "Select a date to view tasks",
-        "prevMonth": "Previous Month",
-        "nextMonth": "Next Month",
-        "selectDateMessage": "Select Date",
-        "selectDateDescription": "Please select a date to view tasks",
-        "moreTasks": "{count} more tasks"
+    "theme": {
+      "switchToDark": "Switch to Dark Mode",
+      "switchToLight": "Switch to Light Mode"
     },
-    "blocks": {
-        "title": "Block Management",
-        "list": "Block List",
-        "loginMessage": "Please login to use block management features.",
-        "table": {
-            "order": "Order",
-            "name": "Block Name",
-            "timeRange": "Time Range",
-            "actions": "Actions"
-        },
-        "placeholders": {
-            "blockName": "Block Name"
-        },
-        "addNewBlock": "Add New Block",
-        "confirmDelete": "Do you want to delete this block? Associated tasks will be unassigned.",
-        "errorDelete": "Failed to delete block",
-        "errorUpdate": "Failed to update block",
-        "errorAdd": "Failed to add block",
-        "emptyNameError": "Please enter a block name"
+    "sidebar": {
+      "overview": "Overview",
+      "totalTasks": "Total Tasks",
+      "completionRate": "Completion Rate",
+      "allTasksCompleted": "Congratulations! All tasks completed 🎉",
+      "taskStatus": "Task Status",
+      "goToBlockManagement": "Go to Block Management"
+    },
+    "user": {
+      "anonymous": "User",
+      "settings": "Settings"
+    },
+    "time": {
+      "hours": "hours",
+      "minutes": "minutes",
+      "minutesBefore": "minutes before",
+      "hourBefore": "hour before",
+      "hoursBefore": "hours before",
+      "dayBefore": "day before"
+    },
+    "language": {
+      "en": "English",
+      "ja": "日本語",
+      "selectLanguage": "Select Language"
+    },
+    "errors": {
+      "somethingWentWrong": "Something went wrong",
+      "translationError": "Translation Error",
+      "pleaseReload": "Please reload the page",
+      "generalError": "An error occurred",
+      "pageNotFound": "Page not found"
+    },
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "tomorrow": "Tomorrow",
+      "thisWeek": "This Week",
+      "nextWeek": "Next Week",
+      "previousDay": "Previous Day",
+      "nextDay": "Next Day",
+      "date": "Date"
+    },
+    "messages": {
+      "welcome": "Welcome to TaskVision",
+      "loginPrompt": "Please login to start managing your tasks",
+      "loadingData": "Loading data..."
+    },
+    "states": {
+      "loading": "Loading..."
+    },
+    "backToHome": "Back to Home",
+    "goToLogin": "Go to Login",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add"
+  },
+  "auth": {
+    "login": {
+      "title": "Login to your account",
+      "googleButton": "Login with Google",
+      "noAccount": "Don't have an account?",
+      "signup": "Sign up"
+    },
+    "signup": {
+      "title": "Create a new account",
+      "googleButton": "Sign up with Google",
+      "haveAccount": "Already have an account?",
+      "login": "Login"
+    },
+    "errors": {
+      "googleLoginFailed": "Failed to login with Google.",
+      "googleSignupFailed": "Failed to sign up with Google."
     }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "today": "Today",
+    "tasksForDay": "'s Tasks",
+    "selectDate": "Please select a date",
+    "loadingTasks": "Loading tasks...",
+    "noTasksForDay": "No tasks for this day",
+    "selectDateToViewTasks": "Select a date to view tasks",
+    "prevMonth": "Previous Month",
+    "nextMonth": "Next Month",
+    "selectDateMessage": "Select Date",
+    "selectDateDescription": "Please select a date to view tasks",
+    "moreTasks": "{count} more tasks"
+  },
+  "blocks": {
+    "blockName": "Block Name",
+    "color": "Color",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "addBlock": "Add Block",
+    "deleteBlock": "Delete Block",
+    "editBlock": "Edit Block",
+    "noBlocks": "No blocks available",
+    "timeBlocks": "Time Blocks",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "noTasksInBlock": "No tasks in this block. Drag tasks here.",
+    "createBlocksPrompt": "Please create blocks from the block management screen",
+    "title": "Block Management",
+    "list": "Block List",
+    "loginMessage": "Please login to use block management features.",
+    "table": {
+      "order": "Order",
+      "name": "Block Name",
+      "timeRange": "Time Range",
+      "actions": "Actions"
+    },
+    "placeholders": {
+      "blockName": "Block Name"
+    },
+    "addNewBlock": "Add New Block",
+    "confirmDelete": "Do you want to delete this block? Associated tasks will be unassigned.",
+    "errorDelete": "Failed to delete block",
+    "errorUpdate": "Failed to update block",
+    "errorAdd": "Failed to add block",
+    "emptyNameError": "Please enter a block name"
+  },
+  "tasks": {
+    "date": "Date",
+    "addTask": "Add Task",
+    "taskName": "Task Name",
+    "description": "Description",
+    "priority": "Priority",
+    "due": "Due Date",
+    "status": "Status",
+    "completed": "Completed",
+    "incomplete": "Incomplete",
+    "noTasks": "No tasks available",
+    "quickAdd": "Quick Task Add",
+    "swipeUpToAdd": "Swipe up to add a task",
+    "swipeDownToClose": "↓ Swipe down to close",
+    "willBeRegisteredToday": "* This will be registered as today's task",
+    "forDetailedSettings": "* For detailed settings, click",
+    "here": "here",
+    "advancedSettings": "Advanced Settings",
+    "close": "Close",
+    "unassignedTasks": "Unassigned Tasks",
+    "items": " items",
+    "progress": "Progress",
+    "noUnassignedTasks": "No unassigned tasks",
+    "loading": "Loading...",
+    "taskDetails": "Task Details",
+    "deadline": "Deadline (optional)",
+    "hideReminderSettings": "Hide reminder settings",
+    "showReminderSettings": "Show reminder settings",
+    "notifyBeforeBlockStart": "Notify before block start",
+    "notifyBeforeBlockEnd": "Notify before block end",
+    "notifyBeforeDeadline": "Notify before deadline",
+    "pleaseSetDeadline": "Please set a deadline",
+    "details": "Details (optional)",
+    "detailsPlaceholder": "Enter detailed description (optional)",
+    "blockAssignment": "Block Assignment",
+    "unassigned": "Unassigned",
+    "taskCompleted": "Task Completed",
+    "deleting": "Deleting...",
+    "saving": "Saving...",
+    "reminderSettingsAvailable": "Reminder settings available",
+    "repeatSettingsAvailable": "Repeat settings available",
+    "taskUpdated": "Task updated",
+    "taskUpdateFailed": "Failed to update task",
+    "taskDeleted": "Task deleted",
+    "taskDeleteFailed": "Failed to delete task",
+    "error": "An error occurred",
+    "deleteConfirmation": "Do you want to delete this task? This action cannot be undone.",
+    "unassignedDate": "Unassigned Date",
+    "selectBlockOptional": "Select a block (optional)",
+    "hideRepeatSettings": "Hide repeat settings",
+    "showRepeatSettings": "Show repeat settings",
+    "repeatTask": "Repeat task",
+    "repeatPattern": "Repeat pattern",
+    "repeatDaily": "Daily",
+    "repeatWeekdays": "Weekdays only (Mon-Fri)",
+    "repeatWeekly": "Weekly on specific days",
+    "repeatMonthly": "Monthly on specific date",
+    "repeatCustom": "Custom",
+    "frequency": "Frequency",
+    "interval": "Interval",
+    "everyDay": "Every day",
+    "everyTwoDays": "Every 2 days",
+    "everyThreeDays": "Every 3 days",
+    "everyFiveDays": "Every 5 days",
+    "everyWeek": "Every week",
+    "selectDaysOfWeek": "Select days of week",
+    "selectAtLeastOneDay": "Please select at least one day",
+    "selectDate": "Select date",
+    "dayOfMonth": "day of month",
+    "endCondition": "End condition",
+    "noEndDate": "No end date",
+    "specifyCount": "Specify count",
+    "specifyDate": "Specify date",
+    "times": "times",
+    "block": "Block",
+    "selectBlock": "Select block",
+    "selectDeadline": "Select deadline",
+    "blockUnassignedNote": "Note: If no block is selected, the task will appear as an unassigned task in the date view."
+  },
+  "messages": {
+    "welcome": "Welcome to TaskVision",
+    "loginPrompt": "Please login to use the features",
+    "taskAdded": "Task has been added",
+    "taskUpdated": "Task has been updated",
+    "taskDeleted": "Task has been deleted",
+    "error": "An error occurred",
+    "taskAddError": "Failed to add task",
+    "taskUpdateError": "Failed to update task",
+    "taskDeleteError": "Failed to delete task",
+    "titleRequired": "Title is required"
+  }
 }

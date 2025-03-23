@@ -1,242 +1,257 @@
 {
-    "common": {
-        "app": {
-            "name": "TaskVision",
-            "description": "シンプルかつ使いやすいタスク管理アプリ"
-        },
-        "navigation": {
-            "home": "ホーム",
-            "calendar": "カレンダー",
-            "blockManage": "ブロック管理",
-            "profile": "プロフィール",
-            "help": "ヘルプ",
-            "installApp": "アプリインストール"
-        },
-        "actions": {
-            "login": "ログイン",
-            "logout": "ログアウト",
-            "save": "保存",
-            "cancel": "キャンセル",
-            "edit": "編集",
-            "delete": "削除",
-            "create": "作成",
-            "add": "追加",
-            "update": "更新",
-            "saving": "保存中...",
-            "clearDate": "日付をクリア"
-        },
-        "buttons": {
-            "today": "今日",
-            "close": "閉じる"
-        },
-        "auth": {
-            "loginWithGoogle": "Googleでログイン",
-            "loginRequired": "ログインが必要です",
-            "pleaseLogin": "続行するにはログインしてください"
-        },
-        "theme": {
-            "switchToDark": "ダークモードに切り替え",
-            "switchToLight": "ライトモードに切り替え"
-        },
-        "tasks": {
-            "date": "日付",
-            "addTask": "タスクを追加",
-            "taskName": "タスク名",
-            "description": "説明",
-            "priority": "優先度",
-            "due": "期限",
-            "status": "ステータス",
-            "completed": "完了",
-            "incomplete": "未完了",
-            "noTasks": "タスクはありません",
-            "quickAdd": "クイックタスク追加",
-            "swipeUpToAdd": "上にスワイプしてタスクを追加",
-            "swipeDownToClose": "↓ 下にスワイプで閉じる",
-            "willBeRegisteredToday": "※ 今日のタスクとして登録されます",
-            "forDetailedSettings": "※ 詳細設定するには",
-            "here": "こちら",
-            "advancedSettings": "詳細設定",
-            "close": "閉じる",
-            "unassignedTasks": "未割り当てタスク",
-            "items": "件",
-            "progress": "進捗",
-            "noUnassignedTasks": "未割り当てのタスクはありません",
-            "loading": "読み込み中...",
-            "taskDetails": "タスク詳細",
-            "deadline": "締切日時（任意）",
-            "hideReminderSettings": "リマインド設定を隠す",
-            "showReminderSettings": "リマインド設定を表示",
-            "notifyBeforeBlockStart": "ブロック開始前に通知",
-            "notifyBeforeBlockEnd": "ブロック終了前に通知",
-            "notifyBeforeDeadline": "締切時刻前に通知",
-            "pleaseSetDeadline": "締切日時を設定してください",
-            "details": "詳細 (任意)",
-            "detailsPlaceholder": "詳細な説明を入力（任意）",
-            "blockAssignment": "ブロック割り当て",
-            "unassigned": "未割り当て",
-            "taskCompleted": "タスク完了",
-            "deleting": "削除中...",
-            "saving": "保存中...",
-            "reminderSettingsAvailable": "リマインド設定あり",
-            "repeatSettingsAvailable": "繰り返し設定あり",
-            "taskUpdated": "タスクを更新しました",
-            "taskUpdateFailed": "タスクの更新に失敗しました",
-            "taskDeleted": "タスクを削除しました",
-            "taskDeleteFailed": "タスクの削除に失敗しました",
-            "error": "エラーが発生しました",
-            "deleteConfirmation": "このタスクを削除しますか？この操作は元に戻せません。",
-            "unassignedDate": "日付未割り当て",
-            "selectBlockOptional": "ブロックを選択（任意）",
-            "hideRepeatSettings": "繰り返し設定を隠す",
-            "showRepeatSettings": "繰り返し設定を表示",
-            "repeatTask": "タスクを繰り返す",
-            "repeatPattern": "繰り返しパターン",
-            "repeatDaily": "毎日",
-            "repeatWeekdays": "平日のみ（月〜金）",
-            "repeatWeekly": "毎週特定の曜日",
-            "repeatMonthly": "毎月特定の日",
-            "repeatCustom": "カスタム",
-            "frequency": "頻度",
-            "interval": "間隔",
-            "everyDay": "毎日",
-            "everyTwoDays": "2日ごと",
-            "everyThreeDays": "3日ごと",
-            "everyFiveDays": "5日ごと",
-            "everyWeek": "7日ごと",
-            "selectDaysOfWeek": "曜日を選択",
-            "selectAtLeastOneDay": "少なくとも1つの曜日を選択してください",
-            "selectDate": "日付を選択",
-            "dayOfMonth": "日",
-            "endCondition": "終了条件",
-            "noEndDate": "終了日なし",
-            "specifyCount": "回数指定",
-            "specifyDate": "日付指定",
-            "times": "回",
-            "block": "ブロック",
-            "selectBlock": "ブロックを選択",
-            "selectDeadline": "締切日を選択",
-            "blockUnassignedNote": "※ブロックを選択しない場合は、日付別ビューの未割り当てタスクとして表示されます"
-        },
-        "blocks": {
-            "blockName": "ブロック名",
-            "color": "色",
-            "startTime": "開始時間",
-            "endTime": "終了時間",
-            "addBlock": "ブロックを追加",
-            "deleteBlock": "ブロックを削除",
-            "editBlock": "ブロックを編集",
-            "noBlocks": "ブロックはありません",
-            "timeBlocks": "時間ブロック",
-            "collapse": "折りたたむ",
-            "expand": "展開する",
-            "noTasksInBlock": "このブロックにタスクはありません。タスクをここにドラッグしてください。",
-            "createBlocksPrompt": "ブロック管理画面からブロックを作成してください"
-        },
-        "sidebar": {
-            "overview": "概要",
-            "totalTasks": "合計タスク",
-            "completionRate": "完了率",
-            "allTasksCompleted": "おめでとうございます！すべてのタスクが完了しました 🎉",
-            "taskStatus": "タスク状態",
-            "goToBlockManagement": "ブロック管理画面へ"
-        },
-        "user": {
-            "anonymous": "ユーザー",
-            "settings": "設定"
-        },
-        "time": {
-            "hours": "時間",
-            "minutes": "分",
-            "minutesBefore": "分前",
-            "hourBefore": "時間前",
-            "hoursBefore": "時間前",
-            "dayBefore": "日前"
-        },
-        "language": {
-            "en": "English",
-            "ja": "日本語",
-            "selectLanguage": "言語を選択"
-        },
-        "errors": {
-            "somethingWentWrong": "エラーが発生しました",
-            "translationError": "翻訳エラー",
-            "pleaseReload": "ページを再読み込みしてください"
-        },
-        "dates": {
-            "today": "今日",
-            "yesterday": "昨日",
-            "tomorrow": "明日",
-            "thisWeek": "今週",
-            "nextWeek": "来週",
-            "previousDay": "前日",
-            "nextDay": "翌日",
-            "date": "日付"
-        },
-        "messages": {
-            "welcome": "TaskVisionへようこそ",
-            "loginPrompt": "タスク管理を開始するにはログインしてください",
-            "loadingData": "データを読み込み中..."
-        },
-        "states": {
-            "loading": "読み込み中..."
-        },
-        "locale": "ja-JP",
-        "backToHome": "ホームに戻る",
-        "goToLogin": "ログイン画面へ",
-        "save": "保存",
-        "cancel": "キャンセル",
-        "add": "追加"
+  "common": {
+    "app": {
+      "name": "TaskVision",
+      "description": "シンプルかつ使いやすいタスク管理アプリ"
+    },
+    "locale": "ja-JP",
+    "navigation": {
+      "home": "ホーム",
+      "calendar": "カレンダー",
+      "blockManage": "ブロック管理",
+      "profile": "プロフィール",
+      "help": "ヘルプ",
+      "installApp": "アプリインストール"
+    },
+    "actions": {
+      "login": "ログイン",
+      "logout": "ログアウト",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "edit": "編集",
+      "delete": "削除",
+      "create": "作成",
+      "add": "追加",
+      "signup": "新規登録",
+      "update": "更新",
+      "saving": "保存中...",
+      "clearDate": "日付をクリア",
+      "editTask": "タスクを編集"
+    },
+    "buttons": {
+      "today": "今日",
+      "close": "閉じる"
     },
     "auth": {
-        "login": {
-            "title": "アカウントにログイン",
-            "googleButton": "Googleでログイン",
-            "noAccount": "アカウントをお持ちでないですか？",
-            "signup": "新規登録"
-        },
-        "signup": {
-            "title": "新規アカウント登録",
-            "googleButton": "Googleで登録",
-            "haveAccount": "すでにアカウントをお持ちですか？",
-            "login": "ログイン"
-        },
-        "errors": {
-            "googleLoginFailed": "Googleログインに失敗しました。",
-            "googleSignupFailed": "Googleでの登録に失敗しました。"
-        }
+      "loginWithGoogle": "Googleでログイン",
+      "loginRequired": "ログインが必要です",
+      "pleaseLogin": "続行するにはログインしてください"
     },
-    "calendar": {
-        "title": "カレンダー",
-        "today": "今日",
-        "tasksForDay": "のタスク",
-        "selectDate": "日付を選択してください",
-        "loadingTasks": "タスクを読み込み中...",
-        "noTasksForDay": "この日のタスクはありません",
-        "selectDateToViewTasks": "日付を選択してタスクを表示",
-        "prevMonth": "前月",
-        "nextMonth": "翌月",
-        "selectDateMessage": "日付を選択",
-        "selectDateDescription": "タスクを表示する日付を選択してください",
-        "moreTasks": "他 {count} 件のタスク"
+    "theme": {
+      "switchToDark": "ダークモードに切り替え",
+      "switchToLight": "ライトモードに切り替え"
     },
-    "blocks": {
-        "title": "ブロック管理",
-        "list": "ブロック一覧",
-        "loginMessage": "ブロック管理機能を使用するにはログインしてください。",
-        "table": {
-            "order": "順序",
-            "name": "ブロック名",
-            "timeRange": "時間帯",
-            "actions": "操作"
-        },
-        "placeholders": {
-            "blockName": "ブロック名"
-        },
-        "addNewBlock": "新規ブロックを追加",
-        "confirmDelete": "このブロックを削除しますか？関連するタスクも未割り当てになります。",
-        "errorDelete": "ブロックの削除に失敗しました",
-        "errorUpdate": "ブロックの更新に失敗しました",
-        "errorAdd": "ブロックの追加に失敗しました",
-        "emptyNameError": "ブロック名を入力してください"
+    "sidebar": {
+      "overview": "概要",
+      "totalTasks": "合計タスク",
+      "completionRate": "完了率",
+      "allTasksCompleted": "おめでとうございます！すべてのタスクが完了しました 🎉",
+      "taskStatus": "タスク状態",
+      "goToBlockManagement": "ブロック管理画面へ"
+    },
+    "user": {
+      "anonymous": "ユーザー",
+      "settings": "設定"
+    },
+    "time": {
+      "hours": "時間",
+      "minutes": "分",
+      "minutesBefore": "分前",
+      "hourBefore": "時間前",
+      "hoursBefore": "時間前",
+      "dayBefore": "日前"
+    },
+    "language": {
+      "en": "English",
+      "ja": "日本語",
+      "selectLanguage": "言語を選択"
+    },
+    "errors": {
+      "somethingWentWrong": "エラーが発生しました",
+      "translationError": "翻訳エラー",
+      "pleaseReload": "ページを再読み込みしてください",
+      "generalError": "エラーが発生しました",
+      "pageNotFound": "ページが見つかりません"
+    },
+    "dates": {
+      "today": "今日",
+      "yesterday": "昨日",
+      "tomorrow": "明日",
+      "thisWeek": "今週",
+      "nextWeek": "来週",
+      "previousDay": "前日",
+      "nextDay": "翌日",
+      "date": "日付"
+    },
+    "messages": {
+      "welcome": "TaskVisionへようこそ",
+      "loginPrompt": "タスク管理を開始するにはログインしてください",
+      "loadingData": "データを読み込み中..."
+    },
+    "states": {
+      "loading": "読み込み中..."
+    },
+    "backToHome": "ホームに戻る",
+    "goToLogin": "ログイン画面へ",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "add": "追加"
+  },
+  "auth": {
+    "login": {
+      "title": "アカウントにログイン",
+      "googleButton": "Googleでログイン",
+      "noAccount": "アカウントをお持ちでないですか？",
+      "signup": "新規登録"
+    },
+    "signup": {
+      "title": "新規アカウント登録",
+      "googleButton": "Googleで登録",
+      "haveAccount": "すでにアカウントをお持ちですか？",
+      "login": "ログイン"
+    },
+    "errors": {
+      "googleLoginFailed": "Googleログインに失敗しました。",
+      "googleSignupFailed": "Googleでの登録に失敗しました。"
     }
+  },
+  "calendar": {
+    "title": "カレンダー",
+    "today": "今日",
+    "tasksForDay": "のタスク",
+    "selectDate": "日付を選択してください",
+    "loadingTasks": "タスクを読み込み中...",
+    "noTasksForDay": "この日のタスクはありません",
+    "selectDateToViewTasks": "日付を選択してタスクを表示",
+    "prevMonth": "前月",
+    "nextMonth": "翌月",
+    "selectDateMessage": "日付を選択",
+    "selectDateDescription": "タスクを表示する日付を選択してください",
+    "moreTasks": "他 {count} 件のタスク"
+  },
+  "blocks": {
+    "blockName": "ブロック名",
+    "color": "色",
+    "startTime": "開始時間",
+    "endTime": "終了時間",
+    "addBlock": "ブロックを追加",
+    "deleteBlock": "ブロックを削除",
+    "editBlock": "ブロックを編集",
+    "noBlocks": "ブロックはありません",
+    "timeBlocks": "時間ブロック",
+    "collapse": "折りたたむ",
+    "expand": "展開する",
+    "noTasksInBlock": "このブロックにタスクはありません。タスクをここにドラッグしてください。",
+    "createBlocksPrompt": "ブロック管理画面からブロックを作成してください",
+    "title": "ブロック管理",
+    "list": "ブロック一覧",
+    "loginMessage": "ブロック管理機能を使用するにはログインしてください。",
+    "table": {
+      "order": "順序",
+      "name": "ブロック名",
+      "timeRange": "時間帯",
+      "actions": "操作"
+    },
+    "placeholders": {
+      "blockName": "ブロック名"
+    },
+    "addNewBlock": "新規ブロックを追加",
+    "confirmDelete": "このブロックを削除しますか？関連するタスクも未割り当てになります。",
+    "errorDelete": "ブロックの削除に失敗しました",
+    "errorUpdate": "ブロックの更新に失敗しました",
+    "errorAdd": "ブロックの追加に失敗しました",
+    "emptyNameError": "ブロック名を入力してください"
+  },
+  "tasks": {
+    "title": "タスク",
+    "date": "日付",
+    "addTask": "タスクを追加",
+    "taskName": "タスク名",
+    "description": "説明",
+    "priority": "優先度",
+    "due": "期限",
+    "status": "ステータス",
+    "completed": "完了",
+    "incomplete": "未完了",
+    "noTasks": "タスクはありません",
+    "quickAdd": "クイックタスク追加",
+    "swipeUpToAdd": "上にスワイプしてタスクを追加",
+    "swipeDownToClose": "↓ 下にスワイプで閉じる",
+    "willBeRegisteredToday": "※ 今日のタスクとして登録されます",
+    "forDetailedSettings": "※ 詳細設定するには",
+    "here": "こちら",
+    "advancedSettings": "詳細設定",
+    "close": "閉じる",
+    "unassignedTasks": "未割り当てタスク",
+    "items": "件",
+    "progress": "進捗",
+    "noUnassignedTasks": "未割り当てのタスクはありません",
+    "loading": "読み込み中...",
+    "taskDetails": "タスク詳細",
+    "deadline": "締切日時（任意）",
+    "hideReminderSettings": "リマインド設定を隠す",
+    "showReminderSettings": "リマインド設定を表示",
+    "notifyBeforeBlockStart": "ブロック開始前に通知",
+    "notifyBeforeBlockEnd": "ブロック終了前に通知",
+    "notifyBeforeDeadline": "締切時刻前に通知",
+    "pleaseSetDeadline": "締切日時を設定してください",
+    "details": "詳細 (任意)",
+    "detailsPlaceholder": "詳細な説明を入力（任意）",
+    "blockAssignment": "ブロック割り当て",
+    "unassigned": "未割り当て",
+    "taskCompleted": "タスク完了",
+    "deleting": "削除中...",
+    "saving": "保存中...",
+    "reminderSettingsAvailable": "リマインド設定あり",
+    "repeatSettingsAvailable": "繰り返し設定あり",
+    "taskUpdated": "タスクを更新しました",
+    "taskUpdateFailed": "タスクの更新に失敗しました",
+    "taskDeleted": "タスクを削除しました",
+    "taskDeleteFailed": "タスクの削除に失敗しました",
+    "error": "エラーが発生しました",
+    "deleteConfirmation": "このタスクを削除しますか？この操作は元に戻せません。",
+    "unassignedDate": "日付未割り当て",
+    "selectBlockOptional": "ブロックを選択（任意）",
+    "hideRepeatSettings": "繰り返し設定を隠す",
+    "showRepeatSettings": "繰り返し設定を表示",
+    "repeatTask": "タスクを繰り返す",
+    "repeatPattern": "繰り返しパターン",
+    "repeatDaily": "毎日",
+    "repeatWeekdays": "平日のみ（月〜金）",
+    "repeatWeekly": "毎週特定の曜日",
+    "repeatMonthly": "毎月特定の日",
+    "repeatCustom": "カスタム",
+    "frequency": "頻度",
+    "interval": "間隔",
+    "everyDay": "毎日",
+    "everyTwoDays": "2日ごと",
+    "everyThreeDays": "3日ごと",
+    "everyFiveDays": "5日ごと",
+    "everyWeek": "7日ごと",
+    "selectDaysOfWeek": "曜日を選択",
+    "selectAtLeastOneDay": "少なくとも1つの曜日を選択してください",
+    "selectDate": "日付を選択",
+    "dayOfMonth": "日",
+    "endCondition": "終了条件",
+    "noEndDate": "終了日なし",
+    "specifyCount": "回数指定",
+    "specifyDate": "日付指定",
+    "times": "回",
+    "block": "ブロック",
+    "selectBlock": "ブロックを選択",
+    "selectDeadline": "締切日を選択",
+    "blockUnassignedNote": "※ブロックを選択しない場合は、日付別ビューの未割り当てタスクとして表示されます"
+  },
+  "messages": {
+    "welcome": "TaskVisionへようこそ",
+    "loginPrompt": "機能を利用するにはログインしてください",
+    "taskAdded": "タスクが追加されました",
+    "taskUpdated": "タスクが更新されました",
+    "taskDeleted": "タスクが削除されました",
+    "error": "エラーが発生しました",
+    "taskAddError": "タスクの追加に失敗しました",
+    "taskUpdateError": "タスクの更新に失敗しました",
+    "taskDeleteError": "タスクの削除に失敗しました",
+    "titleRequired": "タスク名を入力してください"
+  }
 }

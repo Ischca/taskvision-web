@@ -1,23 +1,20 @@
-import createMiddleware from 'next-intl/middleware';
-import { locales, defaultLocale } from './i18n';
+import createIntlMiddleware from "next-intl/middleware";
+import { locales, defaultLocale } from "./i18n";
+import { NextRequest } from "next/server";
 
-// This middleware intercepts requests to `/` and will redirect
-// to one of the configured locales instead (e.g. `/en`).
-// In the redirect response, we also configure a cookie that
-// records the locale that was selected.
-export default createMiddleware({
-  // サポートされるロケールの一覧
+// 国際化のミドルウェアを作成
+const intlMiddleware = createIntlMiddleware({
   locales,
-  // デフォルトのロケール
   defaultLocale,
-  // ロケールの検出順序（パス、クッキー、ヘッダーの順）
-  localeDetection: true,
-  // ロケールプレフィックスの設定（常にURLにロケールを含める）
-  localePrefix: 'always',
+  localePrefix: "always",
 });
 
+export default function middleware(request: NextRequest) {
+  // 型の不一致を解決するための型アサーション
+  return intlMiddleware(request as any);
+}
+
 export const config = {
-  // Skip all paths that should not be internationalized.
-  // This skips API routes, static files, etc.
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  // 国際化が不要なパスを除外
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };

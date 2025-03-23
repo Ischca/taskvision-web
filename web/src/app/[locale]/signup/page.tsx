@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useAuth } from "@/app/components/AuthProvider";
-import { Link } from "@/app/components/Link";
+import NextLink from "next/link";
 import { useParams } from "next/navigation";
-import { loadMessages } from "@/app/components/i18n";
+import { useTranslations } from "next-intl";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -18,40 +18,7 @@ export default function SignupPage() {
   // i18n
   const params = useParams();
   const locale = (params?.locale as string) || "ja";
-  const [messages, setMessages] = useState<Record<string, any>>({});
-  const [messagesLoading, setMessagesLoading] = useState(true);
-
-  // メッセージのロード
-  useEffect(() => {
-    const loadMessageData = async () => {
-      const loadedMessages = await loadMessages(locale);
-      setMessages(loadedMessages);
-      setMessagesLoading(false);
-    };
-    loadMessageData();
-  }, [locale]);
-
-  // 翻訳関数
-  const t = (key: string) => {
-    try {
-      // common.key形式またはauth.key形式のキーを処理
-      const parts = key.split(".");
-      let current = messages;
-
-      for (const part of parts) {
-        if (current && typeof current === "object" && part in current) {
-          current = current[part];
-        } else {
-          return key; // キーが見つからない場合はキー自体を返す
-        }
-      }
-
-      return current && typeof current === "string" ? current : key;
-    } catch (error) {
-      console.error("Translation error:", error);
-      return key; // エラーが発生した場合はキー自体を返す
-    }
-  };
+  const t = useTranslations();
 
   // ログイン済みの場合はホームにリダイレクト
   useEffect(() => {
@@ -77,7 +44,7 @@ export default function SignupPage() {
     }
   };
 
-  if (authLoading || messagesLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -151,9 +118,12 @@ export default function SignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               {t("auth.signup.haveAccount")}{" "}
-              <Link href="/login" className="text-blue-600 hover:text-blue-500">
+              <NextLink
+                href={`/${locale}/login`}
+                className="text-blue-600 hover:text-blue-500"
+              >
                 {t("auth.signup.login")}
-              </Link>
+              </NextLink>
             </p>
           </div>
         </div>

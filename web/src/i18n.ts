@@ -1,4 +1,15 @@
-import { createSharedPathnamesNavigation } from "next-intl/navigation";
+/**
+ * このファイルはNext.js 15およびReact 19に準拠した国際化設定を提供します。
+ * next-intl v4と統合されたSSR対応のi18n機能です。
+ *
+ * このファイルで提供される機能：
+ * - 利用可能な言語の定義
+ * - デフォルト言語の設定
+ * - サーバーサイドでのメッセージ取得関数
+ * - タイムゾーン設定
+ */
+
+import { getRequestConfig } from "next-intl/server";
 
 // 利用可能な言語
 export const locales = ["en", "ja"] as const;
@@ -6,18 +17,8 @@ export const locales = ["en", "ja"] as const;
 // デフォルト言語
 export const defaultLocale = "ja" as const;
 
-// SSRモードで最適化するための設定
-export const skipInitialDataFetch = false;
-
 // タイムゾーン設定
 export const timeZone = "Asia/Tokyo";
-
-// パス生成ヘルパー - SSRモードを活用
-export const { Link, redirect, usePathname, useRouter } =
-  createSharedPathnamesNavigation({
-    locales,
-    defaultLocale,
-  });
 
 // メッセージをインポートする関数（エラーハンドリング付き）
 async function importMessages(locale: string) {
@@ -36,24 +37,16 @@ async function importMessages(locale: string) {
 
 // SSR/CSR両方で使えるメッセージ取得関数
 export async function getMessages(locale: string) {
-  return importMessages(locale);
+  return importMessages(locale || defaultLocale);
 }
 
-// SSRモードに最適化された設定
-export default async function getI18nConfig(locale: string) {
-  const messages = await importMessages(locale);
-
+// next-intl用のリクエスト設定
+export default getRequestConfig(async ({ locale }) => {
+  const actualLocale = locale || defaultLocale;
+  const messages = await importMessages(actualLocale);
   return {
-    // 現在の日時を使用してSSRで正確な値を提供
-    now: new Date(),
-    // サーバーサイドでメッセージを読み込む
     messages,
-    // タイムゾーン設定
+    locale: actualLocale,
     timeZone,
-    // エラーハンドリング
-    onError: (error: any) => {
-      console.error("i18n error:", error);
-      return null;
-    },
   };
-}
+});

@@ -23,10 +23,10 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import useRequireAuth from "@/app/hooks/useRequireAuth";
-import { useMessages } from "@/app/hooks/useMessages";
+import { useTranslations } from "next-intl";
 
 export default function BlockManagePage() {
-  const { messages } = useMessages();
+  const t = useTranslations();
   // 認証から実際のユーザーIDを取得
   const { userId, loading: authLoading } = useRequireAuth();
 
@@ -42,31 +42,6 @@ export default function BlockManagePage() {
   const [newBlockName, setNewBlockName] = useState("");
   const [newBlockStartTime, setNewBlockStartTime] = useState("09:00");
   const [newBlockEndTime, setNewBlockEndTime] = useState("10:00");
-
-  // messagesからテキストを取得するヘルパー関数
-  const t = (key: string) => {
-    try {
-      if (!messages) {
-        return key;
-      }
-
-      const parts = key.split(".");
-      let current = messages;
-
-      for (const part of parts) {
-        if (current && typeof current === "object" && part in current) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          current = (current as any)[part];
-        } else {
-          return key;
-        }
-      }
-
-      return current && typeof current === "string" ? current : key;
-    } catch (error) {
-      return key;
-    }
-  };
 
   // ブロック一覧を取得
   useEffect(() => {
@@ -215,7 +190,7 @@ export default function BlockManagePage() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <h2 className="card-title text-gray-800 dark:text-gray-200">
-              {t("common.loginRequired")}
+              {t("common.auth.loginRequired")}
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
               {t("blocks.loginMessage")}
