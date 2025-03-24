@@ -4,10 +4,11 @@ TaskVisionは、シンプルで効率的なタスク管理ツールです。こ�
 
 ## プロジェクト構造
 
-このリポジトリは以下のディレクトリで構成されています：
+このリポジトリは以下のディレクトリで構成されるモノレポです：
 
-- `web` - TaskVisionのWebアプリケーション（Next.js）
+- `web` - TaskVisionのWebアプリケーション（Next.js）- **モノレポのルート**
 - `chrome-extension` - TaskVisionのChrome拡張機能
+- `shared` - 共有コンポーネントとユーティリティ
 - `.github` - GitHub Actions ワークフロー設定
 
 ## 開発を始める
@@ -26,13 +27,21 @@ git clone https://github.com/your-username/taskvision.git
 cd taskvision
 ```
 
-### Webアプリケーション開発
-
-Webアプリケーションの依存関係をインストールし、開発サーバーを起動します：
+Webディレクトリに移動して依存関係をインストールします：
 
 ```bash
 cd web
 npm install
+```
+
+これにより、webアプリケーション、Chrome拡張機能、および共有パッケージの依存関係が一度にインストールされます。
+
+### Webアプリケーション開発
+
+Webアプリケーションの開発サーバーを起動します：
+
+```bash
+cd web
 npm run dev
 ```
 
@@ -51,11 +60,10 @@ npm run dev
 
 ### Chrome拡張機能開発
 
-Chrome拡張機能の依存関係をインストールし、開発サーバーを起動します：
+Chrome拡張機能の開発サーバーを起動します：
 
 ```bash
 cd chrome-extension
-npm install
 npm run start
 ```
 
@@ -67,22 +75,29 @@ npm run start
 
 ### ビルド
 
-ルートディレクトリから全てのプロジェクトをビルドするには：
+webディレクトリからビルドします：
 
 ```bash
+cd web
 npm run build
 ```
 
-または個別に各ディレクトリでビルドすることもできます：
+Chrome拡張機能のみをビルドするには：
 
 ```bash
-# Webアプリケーションのみをビルド
-cd web
-npm run build
-
-# Chrome拡張機能のみをビルド
 cd chrome-extension
 npm run build
+```
+
+### Firebase App Hosting
+
+このプロジェクトはFirebase App Hostingを使用しています。App Hostingの設定は `web/apphosting.yaml` にあります。
+
+デプロイするには：
+
+```bash
+cd web
+npm run deploy
 ```
 
 ### Chrome拡張機能をパッケージ化

@@ -1,7 +1,12 @@
 {
-  "name": "task-vision",
+  "name": "taskvision",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    ".",
+    "../chrome-extension",
+    "../shared"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,11 +14,13 @@
     "lint": "next lint",
     "lint:fix": "eslint . --fix",
     "prepare": "husky",
-    "serve": "cd .. && firebase emulators:start",
-    "deploy": "cd .. && firebase deploy",
-    "deploy:functions": "cd .. && firebase deploy --only functions",
-    "deploy:hosting": "cd .. && firebase deploy --only hosting",
-    "deploy:app": "cd .. && firebase deploy --only hosting"
+    "serve": "firebase emulators:start",
+    "deploy": "firebase deploy",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:app": "firebase deploy --only hosting",
+    "create-apphosting": "firebase apphosting:backends:create --project taskvision-3f130 --location us-central1",
+    "get-apphosting": "firebase apphosting:backends:get --project taskvision-3f130"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -44,7 +51,8 @@
     "react-hot-toast": "^2.5.2",
     "recharts": "^2.15.1",
     "tailwind-merge": "^3.0.2",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "taskvision-shared": "file:../shared"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.0",
@@ -54,6 +62,7 @@
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^8.2.2",
     "critters": "^0.0.23",
     "daisyui": "^4.12.23",
     "eslint": "^9",
@@ -63,7 +72,9 @@
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "tailwindcss": "^3.4.17",
-    "taskvision-shared": "*",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
