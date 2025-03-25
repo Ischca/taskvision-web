@@ -54,7 +54,7 @@ env:
       - RUNTIME
 
   - variable: NEXT_PUBLIC_APP_URL
-    value: 'http://localhost:3000'
+    value: 'https://task-vision.com'
     availability:
       - BUILD
       - RUNTIME
