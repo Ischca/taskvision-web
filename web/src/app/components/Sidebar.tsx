@@ -35,7 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ blocks, tasks, children }) => {
 
   return (
     <div
-      className={`w-full lg:w-64 p-4 ${isDark ? "bg-gray-800 text-white" : "bg-white"}`}
+      className={`w-full lg:w-64 p-4 rounded ${isDark ? "bg-gray-800 text-white" : "bg-white"}`}
     >
       <div className="mb-6">
         <div className="text-sm text-gray-500 dark:text-gray-400">

@@ -55,7 +55,7 @@ export default function LocaleLayoutClient({
           <PWAComponents />
           <div className="flex flex-col min-h-screen">
             <Header />
-            <main className="flex-grow py-6 px-4 md:px-6 lg:px-8 bg-gray-50">
+            <main className="flex-grow justify-items-center py-6 px-4 md:px-6 lg:px-8 bg-gray-50">
               {children}
             </main>
             <FooterContent />

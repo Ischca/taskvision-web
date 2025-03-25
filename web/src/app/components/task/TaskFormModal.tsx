@@ -245,7 +245,7 @@ const TaskFormModal = ({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4 modal-appear">
       <div
         ref={modalRef}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full modal-content-appear overflow-y-auto max-h-[90vh]"
+        className="bg-white dark:bg-gray-800 rounded shadow-xl max-w-lg w-full modal-content-appear overflow-y-auto max-h-[90vh]"
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-bold text-gray-900 dark:text-white">

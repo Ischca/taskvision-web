@@ -231,7 +231,7 @@ const Header = () => {
                       fill="#FFFFFF"
                     />
                   </svg>
-                  {t("auth.loginWithGoogle")}
+                  {t("common.auth.loginWithGoogle")}
                 </CustomLink>
               ))}
 
@@ -327,7 +327,7 @@ const Header = () => {
                               fill="#EA4335"
                             />
                           </svg>
-                          {t("auth.loginWithGoogle")}
+                          {t("common.auth.loginWithGoogle")}
                         </CustomLink>
                       </li>
                     ))}

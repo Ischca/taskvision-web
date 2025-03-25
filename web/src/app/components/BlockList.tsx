@@ -150,7 +150,7 @@ const BlockList = ({ blocks, tasks, date, loading }: BlockListProps) => {
         return (
           <div
             key={block.id}
-            className={`block-container bg-white rounded-xl shadow-sm overflow-hidden ${
+            className={`block-container bg-white rounded shadow-sm overflow-hidden ${
               isDragOver ? "ring-2 ring-primary-500 drag-over" : ""
             }`}
             onDragOver={(e) => handleDragOver(e, block.id)}
@@ -248,7 +248,7 @@ const BlockList = ({ blocks, tasks, date, loading }: BlockListProps) => {
       })}
 
       {blocks.length === 0 && (
-        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+        <div className="text-center py-8 bg-white dark:bg-gray-800 rounded shadow-sm">
           <ExclamationCircleIcon className="h-10 w-10 text-gray-400 mx-auto mb-2" />
           <p className="text-gray-500 dark:text-gray-400 mb-2">
             {t("blocks.noBlocks")}
