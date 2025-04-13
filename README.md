@@ -1,5 +1,8 @@
 # TaskVision
 
+<!-- Dummy change for verification PR -->
+
+
 TaskVisionは、シンプルで効率的なタスク管理ツールです。このリポジトリはWeb版とChrome拡張機能を含んでいます。
 
 ## プロジェクト構造
