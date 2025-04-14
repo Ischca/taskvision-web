@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'firebase/firebase_options.dart';
+import 'blocs/app_bloc.dart';
+import 'blocs/auth_bloc.dart';
+import 'routes/app_router.dart';
+import 'services/firebase_service.dart';
+import 'screens/home_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,80 +23,40 @@ class TaskVisionApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TaskVision',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.indigo,
-        useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
-      ),
-      themeMode: ThemeMode.system,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('ja', ''),
-        Locale('en', ''),
-      ],
-      locale: const Locale('ja', ''),
-      home: const HomeScreen(),
-    );
-  }
-}
+    final firebaseService = FirebaseService();
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('TaskVision'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.check_circle_outline,
-              size: 100,
-              color: Colors.indigo,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'TaskVision',
-              style: TextStyle(
-                fontSize: 28, 
-                fontWeight: FontWeight.bold
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'タスク管理とタイムブロッキングを効率化するアプリ',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: () {},
-              child: const Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 24, 
-                  vertical: 12
-                ),
-                child: Text('はじめる'),
-              ),
-            ),
-          ],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AppBloc>(
+          create: (context) => AppBloc()..add(AppStarted()),
         ),
+        BlocProvider<AuthBloc>(
+          create: (context) => AuthBloc(firebaseService: firebaseService)
+            ..add(AuthCheckRequested()),
+        ),
+      ],
+      child: BlocBuilder<AppBloc, AppState>(
+        builder: (context, state) {
+          return MaterialApp(
+            title: 'TaskVision',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: state.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('ja', ''),
+              Locale('en', ''),
+            ],
+            locale: Locale(state.locale, ''),
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            initialRoute: AppRouter.home,
+          );
+        },
       ),
     );
   }
