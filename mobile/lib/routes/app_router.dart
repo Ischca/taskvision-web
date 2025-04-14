@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/auth_bloc.dart';
 import '../screens/home_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -17,27 +19,44 @@ class AppRouter {
   static const String login = '/login';
   static const String register = '/register';
   static const String passwordReset = '/password-reset';
-  static const String taskList = '/tasks';
+  static const String tasks = '/tasks';
   static const String taskDetail = '/tasks/detail';
   static const String taskForm = '/tasks/form';
-  static const String blockCalendar = '/blocks';
+  static const String blocks = '/blocks';
   static const String blockDetail = '/blocks/detail';
   static const String blockForm = '/blocks/form';
   static const String settings = '/settings';
 
   // Route generator
-  static Route<dynamic> generateRoute(RouteSettings settings) {
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(
+          builder: (_) => BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
+                return const TaskListScreen();
+              }
+              return const HomeScreen();
+            },
+          ),
+        );
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        );
       case register:
-        return MaterialPageRoute(builder: (_) => const RegisterScreen());
+        return MaterialPageRoute(
+          builder: (_) => const RegisterScreen(),
+        );
       case passwordReset:
-        return MaterialPageRoute(builder: (_) => const PasswordResetScreen());
-      case taskList:
-        return MaterialPageRoute(builder: (_) => const TaskListScreen());
+        return MaterialPageRoute(
+          builder: (_) => const PasswordResetScreen(),
+        );
+      case tasks:
+        return MaterialPageRoute(
+          builder: (_) => const TaskListScreen(),
+        );
       case taskDetail:
         final args = settings.arguments as Map<String, dynamic>?;
         final taskId = args?['taskId'] as String?;
@@ -57,8 +76,10 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => TaskFormScreen(userId: userId, task: task),
         );
-      case blockCalendar:
-        return MaterialPageRoute(builder: (_) => const BlockCalendarScreen());
+      case blocks:
+        return MaterialPageRoute(
+          builder: (_) => const BlockCalendarScreen(),
+        );
       case blockDetail:
         final args = settings.arguments as Map<String, dynamic>?;
         final blockId = args?['blockId'] as String?;
@@ -84,7 +105,9 @@ class AppRouter {
           ),
         );
       case settings:
-        return MaterialPageRoute(builder: (_) => const SettingsScreen());
+        return MaterialPageRoute(
+          builder: (_) => const SettingsScreen(),
+        );
       default:
         return _errorRoute('指定されたルートが見つかりません: ${settings.name}');
     }

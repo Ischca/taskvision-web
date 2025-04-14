@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 
 class Block {
   final String id;
-  final String title;
+  final String title; // Same as 'name' in the other version
   final String? description;
-  final DateTime startTime;
-  final DateTime endTime;
-  final Color color;
+  final DateTime? startTime;
+  final DateTime? endTime;
+  final int order;
   final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final Color? color;
   final String? taskId;
   final bool isRecurring;
   final RecurrenceRule? recurrenceRule;
@@ -19,16 +22,21 @@ class Block {
     String? id,
     required this.title,
     this.description,
-    required this.startTime,
-    required this.endTime,
-    Color? color,
+    this.startTime,
+    this.endTime,
+    this.order = 0,
     required this.userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Color? color,
     this.taskId,
     this.isRecurring = false,
     this.recurrenceRule,
     this.isDeleted = false,
   })  : id = id ?? const Uuid().v4(),
-        color = color ?? Colors.blue;
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now(),
+        color = color;
 
   Block copyWith({
     String? id,
@@ -36,8 +44,11 @@ class Block {
     String? description,
     DateTime? startTime,
     DateTime? endTime,
-    Color? color,
+    int? order,
     String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Color? color,
     String? taskId,
     bool? isRecurring,
     RecurrenceRule? recurrenceRule,
@@ -49,8 +60,11 @@ class Block {
       description: description ?? this.description,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      color: color ?? this.color,
+      order: order ?? this.order,
       userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      color: color ?? this.color,
       taskId: taskId ?? this.taskId,
       isRecurring: isRecurring ?? this.isRecurring,
       recurrenceRule: recurrenceRule ?? this.recurrenceRule,
@@ -63,10 +77,13 @@ class Block {
       'id': id,
       'title': title,
       'description': description,
-      'startTime': Timestamp.fromDate(startTime),
-      'endTime': Timestamp.fromDate(endTime),
-      'color': color.value,
+      'startTime': startTime != null ? Timestamp.fromDate(startTime!) : null,
+      'endTime': endTime != null ? Timestamp.fromDate(endTime!) : null,
+      'order': order,
       'userId': userId,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
+      'color': color?.value,
       'taskId': taskId,
       'isRecurring': isRecurring,
       'recurrenceRule': recurrenceRule?.toMap(),
@@ -77,12 +94,31 @@ class Block {
   factory Block.fromMap(Map<String, dynamic> map) {
     return Block(
       id: map['id'],
-      title: map['title'],
+      title: map['title'] ?? map['name'],
       description: map['description'],
-      startTime: (map['startTime'] as Timestamp).toDate(),
-      endTime: (map['endTime'] as Timestamp).toDate(),
-      color: Color(map['color']),
+      startTime: map['startTime'] != null
+          ? (map['startTime'] is Timestamp)
+              ? (map['startTime'] as Timestamp).toDate()
+              : DateTime.parse(map['startTime'])
+          : null,
+      endTime: map['endTime'] != null
+          ? (map['endTime'] is Timestamp)
+              ? (map['endTime'] as Timestamp).toDate()
+              : DateTime.parse(map['endTime'])
+          : null,
+      order: map['order'] ?? 0,
       userId: map['userId'],
+      createdAt: map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(map['createdAt']),
+      updatedAt: map['updatedAt'] is Timestamp
+          ? (map['updatedAt'] as Timestamp).toDate()
+          : DateTime.parse(map['updatedAt']),
+      color: map['color'] != null
+          ? (map['color'] is int)
+              ? Color(map['color'])
+              : Color(int.parse(map['color']))
+          : null,
       taskId: map['taskId'],
       isRecurring: map['isRecurring'] ?? false,
       recurrenceRule: map['recurrenceRule'] != null
@@ -94,21 +130,46 @@ class Block {
 
   factory Block.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return Block.fromMap(data);
+    return Block(
+      id: doc.id,
+      title: data['title'] ?? data['name'] ?? '',
+      description: data['description'],
+      startTime: data['startTime'] != null
+          ? (data['startTime'] as Timestamp).toDate()
+          : null,
+      endTime: data['endTime'] != null
+          ? (data['endTime'] as Timestamp).toDate()
+          : null,
+      order: data['order'] ?? 0,
+      userId: data['userId'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      color: data['color'] != null ? Color(data['color']) : null,
+      taskId: data['taskId'],
+      isRecurring: data['isRecurring'] ?? false,
+      recurrenceRule: data['recurrenceRule'] != null
+          ? RecurrenceRule.fromMap(data['recurrenceRule'])
+          : null,
+      isDeleted: data['isDeleted'] ?? false,
+    );
   }
 
-  Duration get duration {
-    return endTime.difference(startTime);
+  Duration? get duration {
+    if (startTime == null || endTime == null) return null;
+    return endTime!.difference(startTime!);
   }
 
   bool isOverlapping(Block other) {
-    return (startTime.isBefore(other.endTime) && endTime.isAfter(other.startTime));
+    if (startTime == null || endTime == null || 
+        other.startTime == null || other.endTime == null) return false;
+    return (startTime!.isBefore(other.endTime!) && endTime!.isAfter(other.startTime!));
   }
 
   bool isInDay(DateTime day) {
+    if (startTime == null || endTime == null) return false;
     final startOfDay = DateTime(day.year, day.month, day.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    return (startTime.isBefore(endOfDay) && endTime.isAfter(startOfDay));
+    return (startTime!.isBefore(endOfDay) && endTime!.isAfter(startOfDay));
   }
 }
 
