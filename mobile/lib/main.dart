@@ -7,9 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'firebase/firebase_options.dart';
 import 'services/notification_service.dart';
+import 'services/sync_service.dart';
 import 'blocs/notification_bloc.dart';
 import 'blocs/auth_bloc.dart';
 import 'routes/app_router.dart';
+import 'widgets/sync_status_indicator.dart';
 
 // バックグラウンド通知を処理するハンドラー
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -52,6 +54,9 @@ class TaskVisionApp extends StatelessWidget {
           create: (_) => NotificationBloc(notificationService: notificationService)
             ..add(const NotificationInitialized()),
         ),
+        
+        // 同期サービスをProviderとして提供
+        ChangeNotifierProvider(create: (_) => SyncService()),
         
         // 認証BLoCをProviderとして提供
         BlocProvider<AuthBloc>(create: (_) => AuthBloc()),
@@ -135,6 +140,14 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          // 同期ステータスインジケーター
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: SyncStatusIndicator(
+              showText: false,
+              iconSize: 20,
+            ),
+          ),
           // 設定アイコン
           IconButton(
             icon: const Icon(Icons.settings),
@@ -195,6 +208,58 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildFeatureButton(
+                      context,
+                      Icons.task_alt,
+                      'タスク管理',
+                      () => Navigator.pushNamed(context, AppRouter.taskList),
+                    ),
+                    const SizedBox(width: 16),
+                    _buildFeatureButton(
+                      context,
+                      Icons.calendar_month,
+                      'タイムブロッキング',
+                      () => Navigator.pushNamed(context, AppRouter.blockCalendar),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Consumer<SyncService>(
+          builder: (context, syncService, child) {
+            if (syncService.status == SyncStatus.offline) {
+              return Container(
+                color: Colors.orange.shade100,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cloud_off, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'オフラインモードです。変更はオンラインに戻ったときに同期されます。',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRouter.settings);
+                      },
+                      child: const Text('詳細'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
         ),
       ],
     );
