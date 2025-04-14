@@ -60,14 +60,14 @@ flutter:
     - assets/images/
     - assets/icons/
 
-  # fonts:
-  #   - family: NotoSansJP
-  #     fonts:
-  #       - asset: assets/fonts/NotoSansJP-Regular.otf
-  #       - asset: assets/fonts/NotoSansJP-Bold.otf
-  #         weight: 700
-  #       - asset: assets/fonts/NotoSansJP-Medium.otf
-  #         weight: 500
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: assets/fonts/NotoSansJP-Regular.otf
+        - asset: assets/fonts/NotoSansJP-Bold.otf
+          weight: 700
+        - asset: assets/fonts/NotoSansJP-Medium.otf
+          weight: 500
 
 flutter_icons:
   android: 'launcher_icon'
