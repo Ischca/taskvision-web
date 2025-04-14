@@ -1,16 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
+enum TaskPriority {
+  high,
+  medium,
+  low,
+}
+
+enum TaskStatus {
+  notStarted,
+  inProgress,
+  completed,
+}
+
 class Task {
   final String id;
   final String title;
   final String? description;
-  final bool completed;
-  final DateTime? deadline;
-  final String userId;
-  final String? blockId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? dueDate;
+  final TaskPriority priority;
+  final TaskStatus status;
+  final String userId;
+  final String? blockId;
+  final List<String>? tags;
+  final bool isDeleted;
   final String? parentTaskId;
   final Map<String, dynamic>? repeatConfig;
 
@@ -18,12 +33,15 @@ class Task {
     String? id,
     required this.title,
     this.description,
-    this.completed = false,
-    this.deadline,
-    required this.userId,
-    this.blockId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    this.dueDate,
+    this.priority = TaskPriority.medium,
+    this.status = TaskStatus.notStarted,
+    required this.userId,
+    this.blockId,
+    this.tags,
+    this.isDeleted = false,
     this.parentTaskId,
     this.repeatConfig,
   })  : id = id ?? const Uuid().v4(),
@@ -34,12 +52,15 @@ class Task {
     String? id,
     String? title,
     String? description,
-    bool? completed,
-    DateTime? deadline,
-    String? userId,
-    String? blockId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? dueDate,
+    TaskPriority? priority,
+    TaskStatus? status,
+    String? userId,
+    String? blockId,
+    List<String>? tags,
+    bool? isDeleted,
     String? parentTaskId,
     Map<String, dynamic>? repeatConfig,
   }) {
@@ -47,12 +68,15 @@ class Task {
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
-      completed: completed ?? this.completed,
-      deadline: deadline ?? this.deadline,
-      userId: userId ?? this.userId,
-      blockId: blockId ?? this.blockId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      dueDate: dueDate ?? this.dueDate,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      userId: userId ?? this.userId,
+      blockId: blockId ?? this.blockId,
+      tags: tags ?? this.tags,
+      isDeleted: isDeleted ?? this.isDeleted,
       parentTaskId: parentTaskId ?? this.parentTaskId,
       repeatConfig: repeatConfig ?? this.repeatConfig,
     );
@@ -63,12 +87,15 @@ class Task {
       'id': id,
       'title': title,
       'description': description,
-      'completed': completed,
-      'deadline': deadline?.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
+      'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
+      'priority': priority.index,
+      'status': status.index,
       'userId': userId,
       'blockId': blockId,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'tags': tags,
+      'isDeleted': isDeleted,
       'parentTaskId': parentTaskId,
       'repeatConfig': repeatConfig,
     };
@@ -79,14 +106,17 @@ class Task {
       id: map['id'],
       title: map['title'],
       description: map['description'],
-      completed: map['completed'] ?? false,
-      deadline: map['deadline'] != null
-          ? DateTime.parse(map['deadline'])
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      updatedAt: (map['updatedAt'] as Timestamp).toDate(),
+      dueDate: map['dueDate'] != null
+          ? (map['dueDate'] as Timestamp).toDate()
           : null,
+      priority: TaskPriority.values[map['priority']],
+      status: TaskStatus.values[map['status']],
       userId: map['userId'],
       blockId: map['blockId'],
-      createdAt: DateTime.parse(map['createdAt']),
-      updatedAt: DateTime.parse(map['updatedAt']),
+      tags: map['tags'] != null ? List<String>.from(map['tags']) : null,
+      isDeleted: map['isDeleted'] ?? false,
       parentTaskId: map['parentTaskId'],
       repeatConfig: map['repeatConfig'],
     );
@@ -94,20 +124,35 @@ class Task {
 
   factory Task.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return Task(
-      id: doc.id,
-      title: data['title'] ?? '',
-      description: data['description'],
-      completed: data['completed'] ?? false,
-      deadline: data['deadline'] != null
-          ? (data['deadline'] as Timestamp).toDate()
-          : null,
-      userId: data['userId'] ?? '',
-      blockId: data['blockId'],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-      parentTaskId: data['parentTaskId'],
-      repeatConfig: data['repeatConfig'],
-    );
+    return Task.fromMap(data);
   }
+
+  // Helper methods for task filtering
+  bool isOverdue() {
+    if (dueDate == null) return false;
+    return dueDate!.isBefore(DateTime.now()) && status != TaskStatus.completed;
+  }
+
+  bool isDueToday() {
+    if (dueDate == null) return false;
+    final now = DateTime.now();
+    return dueDate!.year == now.year &&
+        dueDate!.month == now.month &&
+        dueDate!.day == now.day;
+  }
+
+  bool isDueThisWeek() {
+    if (dueDate == null) return false;
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+    return dueDate!.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+        dueDate!.isBefore(endOfWeek.add(const Duration(days: 1)));
+  }
+
+  bool hasTag(String tag) {
+    return tags != null && tags!.contains(tag);
+  }
+
+  bool get isCompleted => status == TaskStatus.completed;
 }
