@@ -6,6 +6,7 @@ import '../screens/auth/password_reset_screen.dart';
 import '../screens/tasks/task_list_screen.dart';
 import '../screens/blocks/block_calendar_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/settings/notification_settings_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -15,6 +16,7 @@ class AppRouter {
   static const String tasks = '/tasks';
   static const String blocks = '/blocks';
   static const String settings = '/settings';
+  static const String notificationSettings = '/notification-settings';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -45,6 +47,10 @@ class AppRouter {
       case settings:
         return MaterialPageRoute(
           builder: (_) => const SettingsScreen(),
+        );
+      case notificationSettings:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationSettingsScreen(),
         );
       default:
         return MaterialPageRoute(
