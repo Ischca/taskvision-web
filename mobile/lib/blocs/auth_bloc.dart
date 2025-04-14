@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/firebase_service.dart';
+import '../services/auth_service.dart';
 
 // Events
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class AuthCheckRequested extends AuthEvent {}
@@ -39,6 +39,10 @@ class SignUpRequested extends AuthEvent {
   List<Object> get props => [email, password];
 }
 
+class GoogleSignInRequested extends AuthEvent {}
+
+class AppleSignInRequested extends AuthEvent {}
+
 class SignOutRequested extends AuthEvent {}
 
 // States
@@ -46,7 +50,7 @@ abstract class AuthState extends Equatable {
   const AuthState();
 
   @override
-  List<Object?> get props => [];
+  List<Object> get props => [];
 }
 
 class AuthInitial extends AuthState {}
@@ -75,22 +79,24 @@ class AuthFailure extends AuthState {
 
 // BLoC
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final FirebaseService _firebaseService;
+  final AuthService firebaseService;
 
-  AuthBloc({required FirebaseService firebaseService})
-      : _firebaseService = firebaseService,
-        super(AuthInitial()) {
+  AuthBloc({required this.firebaseService}) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
+    on<GoogleSignInRequested>(_onGoogleSignInRequested);
+    on<AppleSignInRequested>(_onAppleSignInRequested);
     on<SignOutRequested>(_onSignOutRequested);
   }
 
   void _onAuthCheckRequested(
-      AuthCheckRequested event, Emitter<AuthState> emit) async {
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     
-    final user = _firebaseService.currentUser;
+    final user = firebaseService.currentUser;
     
     if (user != null) {
       emit(Authenticated(user));
@@ -100,44 +106,102 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onSignInRequested(
-      SignInRequested event, Emitter<AuthState> emit) async {
+    SignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     
     try {
-      final result = await _firebaseService.signInWithEmailAndPassword(
+      final userCredential = await firebaseService.signInWithEmailAndPassword(
         event.email,
         event.password,
       );
-      emit(Authenticated(result.user!));
+      
+      if (userCredential.user != null) {
+        emit(Authenticated(userCredential.user!));
+      } else {
+        emit(const AuthFailure('ログインに失敗しました。もう一度お試しください。'));
+      }
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(const AuthFailure('ログインに失敗しました。もう一度お試しください。'));
     }
   }
 
   void _onSignUpRequested(
-      SignUpRequested event, Emitter<AuthState> emit) async {
+    SignUpRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     
     try {
-      final result = await _firebaseService.createUserWithEmailAndPassword(
+      final userCredential = await firebaseService.registerWithEmailAndPassword(
         event.email,
         event.password,
       );
-      emit(Authenticated(result.user!));
+      
+      if (userCredential.user != null) {
+        emit(Authenticated(userCredential.user!));
+      } else {
+        emit(const AuthFailure('アカウント登録に失敗しました。もう一度お試しください。'));
+      }
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(const AuthFailure('アカウント登録に失敗しました。もう一度お試しください。'));
+    }
+  }
+
+  void _onGoogleSignInRequested(
+    GoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    try {
+      final userCredential = await firebaseService.signInWithGoogle();
+      
+      if (userCredential != null && userCredential.user != null) {
+        emit(Authenticated(userCredential.user!));
+      } else {
+        emit(Unauthenticated());
+      }
+    } catch (e) {
+      emit(const AuthFailure('Googleログインに失敗しました。もう一度お試しください。'));
+    }
+  }
+
+  void _onAppleSignInRequested(
+    AppleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    try {
+      final userCredential = await firebaseService.signInWithApple();
+      
+      if (userCredential != null && userCredential.user != null) {
+        emit(Authenticated(userCredential.user!));
+      } else {
+        emit(Unauthenticated());
+      }
+    } catch (e) {
+      emit(const AuthFailure('Appleログインに失敗しました。もう一度お試しください。'));
     }
   }
 
   void _onSignOutRequested(
-      SignOutRequested event, Emitter<AuthState> emit) async {
+    SignOutRequested event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(AuthLoading());
     
     try {
-      await _firebaseService.signOut();
+      await firebaseService.signOut();
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(const AuthFailure('ログアウトに失敗しました。もう一度お試しください。'));
     }
   }
 }

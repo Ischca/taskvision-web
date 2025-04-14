@@ -5,11 +5,9 @@
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
-.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -78,7 +76,8 @@ app.*.map.json
 # Firebase
 google-services.json
 GoogleService-Info.plist
-firebase_options.dart
+# Uncommented to allow placeholder firebase_options.dart
+# firebase_options.dart
 
 # Local configuration files
 .env
