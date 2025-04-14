@@ -209,29 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildFeatureButton(
-                      context,
-                      Icons.task_alt,
-                      'タスク管理',
-                      () => Navigator.pushNamed(context, AppRouter.taskList),
-                    ),
-                    const SizedBox(width: 16),
-                    _buildFeatureButton(
-                      context,
-                      Icons.calendar_month,
-                      'タイムブロッキング',
-                      () => Navigator.pushNamed(context, AppRouter.blockCalendar),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
         Consumer<SyncService>(
           builder: (context, syncService, child) {
             if (syncService.status == SyncStatus.offline) {
