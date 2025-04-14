@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'firebase/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,13 +21,13 @@ class TaskVisionApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
         useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
+        fontFamily: 'NotoSansJP',
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.indigo,
         useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
+        fontFamily: 'NotoSansJP',
       ),
       themeMode: ThemeMode.system,
       localizationsDelegates: const [
