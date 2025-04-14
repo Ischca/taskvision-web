@@ -21,13 +21,13 @@ class TaskVisionApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
         useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
+        fontFamily: 'NotoSansJP',
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.indigo,
         useMaterial3: true,
-        // fontFamily: 'NotoSansJP',
+        fontFamily: 'NotoSansJP',
       ),
       themeMode: ThemeMode.system,
       localizationsDelegates: const [
