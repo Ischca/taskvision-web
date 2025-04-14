@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import '../../blocs/app_bloc.dart';
+import '../../blocs/auth_bloc.dart';
 import '../../services/sync_service.dart';
 import 'sync_settings_screen.dart';
 
@@ -37,34 +40,69 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
-          _buildSectionHeader(context, 'アカウント'),
-          _buildSettingItem(
-            context,
-            icon: Icons.person,
-            title: 'プロフィール',
-            subtitle: 'ユーザー情報の編集',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('この機能は現在開発中です'),
-                ),
-              );
-            },
-          ),
-          _buildSettingItem(
-            context,
-            icon: Icons.security,
-            title: 'セキュリティ',
-            subtitle: 'パスワードとセキュリティ設定',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('この機能は現在開発中です'),
-                ),
-              );
-            },
-          ),
+          
           _buildSectionHeader(context, 'アプリ設定'),
+          
+          // テーマ設定
+          BlocBuilder<AppBloc, AppState>(
+            builder: (context, state) {
+              return _buildSettingItem(
+                context,
+                icon: Icons.color_lens,
+                title: 'テーマ',
+                subtitle: 'アプリの外観をカスタマイズ',
+                trailing: Switch(
+                  value: state.isDarkMode,
+                  onChanged: (value) {
+                    context.read<AppBloc>().add(ThemeChanged(value));
+                  },
+                ),
+                onTap: () {},
+              );
+            },
+          ),
+          
+          // 言語設定
+          BlocBuilder<AppBloc, AppState>(
+            builder: (context, state) {
+              return _buildSettingItem(
+                context,
+                icon: Icons.language,
+                title: '言語',
+                subtitle: state.locale == 'ja' ? '日本語' : 'English',
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('言語を選択'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              title: const Text('日本語'),
+                              onTap: () {
+                                context.read<AppBloc>().add(const LocaleChanged('ja'));
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('English'),
+                              onTap: () {
+                                context.read<AppBloc>().add(const LocaleChanged('en'));
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
+          ),
+          
           _buildSettingItem(
             context,
             icon: Icons.notifications,
@@ -78,11 +116,14 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          
+          _buildSectionHeader(context, 'アカウント'),
+          
           _buildSettingItem(
             context,
-            icon: Icons.color_lens,
-            title: 'テーマ',
-            subtitle: 'アプリの外観をカスタマイズ',
+            icon: Icons.person,
+            title: 'プロフィール',
+            subtitle: 'ユーザー情報の編集',
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -91,11 +132,12 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          
           _buildSettingItem(
             context,
-            icon: Icons.language,
-            title: '言語',
-            subtitle: 'アプリの言語を変更',
+            icon: Icons.security,
+            title: 'セキュリティ',
+            subtitle: 'パスワードとセキュリティ設定',
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -104,7 +146,25 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          
+          // アカウント情報
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
+                return _buildSettingItem(
+                  context,
+                  icon: Icons.account_circle,
+                  title: 'アカウント',
+                  subtitle: state.user.email ?? '',
+                  onTap: () {},
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          
           _buildSectionHeader(context, 'その他'),
+          
           _buildSettingItem(
             context,
             icon: Icons.help,
@@ -118,6 +178,7 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          
           _buildSettingItem(
             context,
             icon: Icons.info,
@@ -127,19 +188,30 @@ class SettingsScreen extends StatelessWidget {
               _showAboutDialog(context);
             },
           ),
+          
           const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: OutlinedButton(
-              onPressed: () {
-                _showLogoutConfirmationDialog(context);
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-              child: const Text('ログアウト'),
-            ),
+          
+          // ログアウトボタン
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      _showLogoutConfirmationDialog(context);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                    child: const Text('ログアウト'),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
+          
           const SizedBox(height: 24),
         ],
       ),
@@ -226,9 +298,8 @@ class SettingsScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Implement logout logic here
+                context.read<AuthBloc>().add(SignOutRequested());
                 Navigator.of(context).pop();
-                Navigator.of(context).pushReplacementNamed('/login');
               },
               child: const Text('ログアウト'),
             ),
