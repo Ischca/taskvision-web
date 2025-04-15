@@ -141,7 +141,12 @@ class _BlockCalendarScreenState extends State<BlockCalendarScreen> {
         }
 
         // Sort blocks by start time
-        blocks.sort((a, b) => a.startTime.compareTo(b.startTime));
+        blocks.sort((a, b) {
+          if (a.startTime == null && b.startTime == null) return 0;
+          if (a.startTime == null) return -1;
+          if (b.startTime == null) return 1;
+          return a.startTime!.compareTo(b.startTime!);
+        });
 
         return ListView.builder(
           itemCount: blocks.length,
@@ -181,8 +186,10 @@ class _BlockCalendarScreenState extends State<BlockCalendarScreen> {
                   hour,
                 );
                 final hourEnd = hourStart.add(const Duration(hours: 1));
-                return block.startTime.isBefore(hourEnd) &&
-                    block.endTime.isAfter(hourStart);
+                return block.startTime != null && 
+                       block.endTime != null && 
+                       block.startTime!.isBefore(hourEnd) &&
+                       block.endTime!.isAfter(hourStart);
               }).toList();
 
               return _buildTimelineHour(hour, hourBlocks);
@@ -244,10 +251,10 @@ class _BlockCalendarScreenState extends State<BlockCalendarScreen> {
     final hourEnd = hourStart.add(const Duration(hours: 1));
 
     // Calculate the overlap with this hour
-    final blockStart = block.startTime.isAfter(hourStart)
-        ? block.startTime
+    final blockStart = block.startTime != null && block.startTime!.isAfter(hourStart)
+        ? block.startTime!
         : hourStart;
-    final blockEnd = block.endTime.isBefore(hourEnd) ? block.endTime : hourEnd;
+    final blockEnd = block.endTime != null && block.endTime!.isBefore(hourEnd) ? block.endTime! : hourEnd;
 
     // Calculate the percentage of the hour that this block takes up
     final hourMinutes = 60;
@@ -293,9 +300,12 @@ class _BlockCalendarScreenState extends State<BlockCalendarScreen> {
   }
 
   Widget _buildBlockItem(Block block) {
-    final startTime = DateFormat('HH:mm').format(block.startTime);
-    final endTime = DateFormat('HH:mm').format(block.endTime);
-    final duration = block.duration.inMinutes;
+    // Handle nullable startTime and endTime
+    final startTime = block.startTime != null ? DateFormat('HH:mm').format(block.startTime!) : "未設定";
+    final endTime = block.endTime != null ? DateFormat('HH:mm').format(block.endTime!) : "未設定";
+    final duration = block.startTime != null && block.endTime != null 
+        ? block.endTime!.difference(block.startTime!).inMinutes
+        : 0;
     final hours = duration ~/ 60;
     final minutes = duration % 60;
     final durationText = hours > 0

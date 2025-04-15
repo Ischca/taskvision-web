@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationService with ChangeNotifier {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -110,7 +112,7 @@ class NotificationService with ChangeNotifier {
     await prefs.setString('fcm_token', token);
     
     // Save to Firestore if user is logged in
-    final currentUser = FirebaseFirestore.instance.app.auth().currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       await _firestore.collection('users').doc(currentUser.uid).update({
         'fcmTokens': FieldValue.arrayUnion([token]),
@@ -157,7 +159,7 @@ class NotificationService with ChangeNotifier {
   }
   
   // Show a local notification
-  Future<void> _showLocalNotification({
+  Future<void> showLocalNotification({
     required int id,
     required String title,
     required String body,
@@ -224,7 +226,7 @@ class NotificationService with ChangeNotifier {
       id,
       title,
       body,
-      TZDateTime.from(scheduledDate, local),
+      tz.TZDateTime.from(scheduledDate, tz.local),
       details,
       androidAllowWhileIdle: true,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
