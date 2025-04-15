@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../utils/constants.dart';
+import '../../blocs/auth_bloc.dart';
 
 class PasswordResetScreen extends StatefulWidget {
   const PasswordResetScreen({super.key});
@@ -22,32 +24,13 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
     super.dispose();
   }
 
-  Future<void> _resetPassword() async {
+  void _resetPassword() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      try {
-        await FirebaseAuth.instance.sendPasswordResetEmail(
-          email: _emailController.text.trim(),
-        );
-        setState(() {
-          _resetEmailSent = true;
-          _isLoading = false;
-        });
-      } on FirebaseAuthException catch (e) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = _getErrorMessage(e.code);
-        });
-      } catch (e) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'パスワードリセットメールの送信に失敗しました。';
-        });
-      }
+      context.read<AuthBloc>().add(
+            PasswordResetRequested(
+              email: _emailController.text.trim(),
+            ),
+          );
     }
   }
 
@@ -70,9 +53,30 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
       appBar: AppBar(
         title: const Text('パスワードをリセット'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _resetEmailSent ? _buildSuccessContent() : _buildResetForm(),
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthLoading) {
+            setState(() {
+              _isLoading = true;
+              _errorMessage = null;
+            });
+          } else if (state is AuthFailure) {
+            setState(() {
+              _isLoading = false;
+              if (state.message.contains('パスワードリセットメールを送信しました')) {
+                _resetEmailSent = true;
+              } else {
+                _errorMessage = state.message;
+              }
+            });
+          }
+        },
+        builder: (context, state) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: _resetEmailSent ? _buildSuccessContent() : _buildResetForm(),
+          );
+        },
       ),
     );
   }

@@ -281,7 +281,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                   notificationService.initialize().then((_) {
                     notificationService.requestPermission().then((hasPermission) {
                       if (hasPermission) {
-                        notificationService._showLocalNotification(
+                        notificationService.showLocalNotification(
                           id: 0,
                           title: 'テスト通知',
                           body: 'これはテスト通知です。通知が正しく機能しています。',
