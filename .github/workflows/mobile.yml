@@ -46,7 +46,7 @@ jobs:
 
       # Auto-fix lint issues
       - name: Format code
-        run: flutter format .
+        run: dart format .
 
       # Fix unused imports
       - name: Remove unused imports
