@@ -157,7 +157,7 @@ class NotificationService with ChangeNotifier {
   }
   
   // Show a local notification
-  Future<void> _showLocalNotification({
+  Future<void> showLocalNotification({
     required int id,
     required String title,
     required String body,

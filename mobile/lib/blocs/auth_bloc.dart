@@ -43,6 +43,17 @@ class GoogleSignInRequested extends AuthEvent {}
 
 class AppleSignInRequested extends AuthEvent {}
 
+class PasswordResetRequested extends AuthEvent {
+  final String email;
+
+  const PasswordResetRequested({
+    required this.email,
+  });
+
+  @override
+  List<Object> get props => [email];
+}
+
 class SignOutRequested extends AuthEvent {}
 
 // States
@@ -87,6 +98,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpRequested>(_onSignUpRequested);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<AppleSignInRequested>(_onAppleSignInRequested);
+    on<PasswordResetRequested>(_onPasswordResetRequested);
     on<SignOutRequested>(_onSignOutRequested);
   }
 
@@ -188,6 +200,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     } catch (e) {
       emit(const AuthFailure('Appleログインに失敗しました。もう一度お試しください。'));
+    }
+  }
+
+  void _onPasswordResetRequested(
+    PasswordResetRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: event.email,
+      );
+      emit(const AuthFailure('パスワードリセットメールを送信しました。メールをご確認ください。'));
+    } on FirebaseAuthException catch (e) {
+      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
+    } catch (e) {
+      emit(const AuthFailure('パスワードリセットメールの送信に失敗しました。'));
     }
   }
 
