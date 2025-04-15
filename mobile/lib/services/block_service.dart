@@ -123,11 +123,16 @@ class BlockService {
 
   // Check for overlapping blocks
   Future<bool> hasOverlappingBlocks(String userId, Block block) async {
+    // Check if startTime or endTime is null
+    if (block.startTime == null || block.endTime == null) {
+      return false; // Cannot have overlap if either time is null
+    }
+    
     final querySnapshot = await _firestore
         .collection(_collection)
         .where('userId', isEqualTo: userId)
-        .where('startTime', isLessThan: Timestamp.fromDate(block.endTime))
-        .where('endTime', isGreaterThan: Timestamp.fromDate(block.startTime))
+        .where('startTime', isLessThan: Timestamp.fromDate(block.endTime!))
+        .where('endTime', isGreaterThan: Timestamp.fromDate(block.startTime!))
         .where('isDeleted', isEqualTo: false)
         .get();
 

@@ -26,6 +26,8 @@ class NotificationService with ChangeNotifier {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
+    // Initialize timezone data
+    tz.initializeTimeZones();
     // Configure local notifications
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
@@ -160,7 +162,7 @@ class NotificationService with ChangeNotifier {
   }
 
   // Show a local notification
-  Future<void> _showLocalNotification({
+  Future<void> showLocalNotification({
     required int id,
     required String title,
     required String body,
