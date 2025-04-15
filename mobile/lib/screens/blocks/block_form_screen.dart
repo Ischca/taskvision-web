@@ -74,11 +74,24 @@ class _BlockFormScreenState extends State<BlockFormScreen> {
     if (widget.block != null) {
       _titleController.text = widget.block!.title;
       _descriptionController.text = widget.block!.description ?? '';
-      _startDate = widget.block!.startTime;
-      _startTime = TimeOfDay.fromDateTime(widget.block!.startTime);
-      _endDate = widget.block!.endTime;
-      _endTime = TimeOfDay.fromDateTime(widget.block!.endTime);
-      _selectedColor = widget.block!.color;
+      
+      // Handle nullable startTime
+      if (widget.block!.startTime != null) {
+        _startDate = widget.block!.startTime!;
+        _startTime = TimeOfDay.fromDateTime(widget.block!.startTime!);
+      }
+      
+      // Handle nullable endTime
+      if (widget.block!.endTime != null) {
+        _endDate = widget.block!.endTime!;
+        _endTime = TimeOfDay.fromDateTime(widget.block!.endTime!);
+      }
+      
+      // Handle nullable color
+      if (widget.block!.color != null) {
+        _selectedColor = widget.block!.color!;
+      }
+      
       _selectedTaskId = widget.block!.taskId;
       _isRecurring = widget.block!.isRecurring;
       
@@ -124,6 +137,8 @@ class _BlockFormScreenState extends State<BlockFormScreen> {
     super.dispose();
   }
 
+  // Combine date and time into a single DateTime object
+  // This method assumes non-null parameters as it's only called with validated data
   DateTime _combineDateAndTime(DateTime date, TimeOfDay time) {
     return DateTime(
       date.year,
@@ -254,15 +269,17 @@ class _BlockFormScreenState extends State<BlockFormScreen> {
           );
         }
 
+        // Create block with properly handled nullable fields
         final block = Block(
           id: widget.block?.id,
           title: _titleController.text.trim(),
           description: _descriptionController.text.trim().isNotEmpty
               ? _descriptionController.text.trim()
               : null,
-          startTime: startDateTime,
-          endTime: endDateTime,
-          color: _selectedColor,
+          // These fields are defined as nullable in Block model
+          startTime: startDateTime, // Non-null at this point due to form validation
+          endTime: endDateTime, // Non-null at this point due to form validation
+          color: _selectedColor, // Non-null due to default initialization
           userId: widget.userId,
           taskId: _selectedTaskId,
           isRecurring: _isRecurring,
