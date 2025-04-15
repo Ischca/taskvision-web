@@ -9,6 +9,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
 class NotificationService with ChangeNotifier {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
@@ -139,7 +140,7 @@ class NotificationService with ChangeNotifier {
   // Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // Show a local notification for foreground messages
-    await _showLocalNotification(
+    await showLocalNotification(
       id: message.hashCode,
       title: message.notification?.title ?? 'TaskVision',
       body: message.notification?.body ?? '',

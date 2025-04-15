@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/firebase_service.dart';
 
 // Events
 abstract class AuthEvent extends Equatable {
@@ -90,9 +91,10 @@ class AuthFailure extends AuthState {
 
 // BLoC
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthService firebaseService;
+  final AuthService authService;
+  final FirebaseService firebaseService;
 
-  AuthBloc({required this.firebaseService}) : super(AuthInitial()) {
+  AuthBloc({required this.authService, required this.firebaseService}) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
@@ -124,7 +126,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     
     try {
-      final userCredential = await firebaseService.signInWithEmailAndPassword(
+      final userCredential = await authService.signInWithEmailAndPassword(
         event.email,
         event.password,
       );
@@ -135,7 +137,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthFailure('ログインに失敗しました。もう一度お試しください。'));
       }
     } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
+      emit(AuthFailure(authService.getErrorMessageFromCode(e.code)));
     } catch (e) {
       emit(const AuthFailure('ログインに失敗しました。もう一度お試しください。'));
     }
@@ -148,7 +150,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     
     try {
-      final userCredential = await firebaseService.registerWithEmailAndPassword(
+      final userCredential = await authService.registerWithEmailAndPassword(
         event.email,
         event.password,
       );
@@ -159,7 +161,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(const AuthFailure('アカウント登録に失敗しました。もう一度お試しください。'));
       }
     } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
+      emit(AuthFailure(authService.getErrorMessageFromCode(e.code)));
     } catch (e) {
       emit(const AuthFailure('アカウント登録に失敗しました。もう一度お試しください。'));
     }
@@ -172,7 +174,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     
     try {
-      final userCredential = await firebaseService.signInWithGoogle();
+      final userCredential = await authService.signInWithGoogle();
       
       if (userCredential != null && userCredential.user != null) {
         emit(Authenticated(userCredential.user!));
@@ -191,7 +193,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     
     try {
-      final userCredential = await firebaseService.signInWithApple();
+      final userCredential = await authService.signInWithApple();
       
       if (userCredential != null && userCredential.user != null) {
         emit(Authenticated(userCredential.user!));
@@ -215,7 +217,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(const AuthFailure('パスワードリセットメールを送信しました。メールをご確認ください。'));
     } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
+      emit(AuthFailure(authService.getErrorMessageFromCode(e.code)));
     } catch (e) {
       emit(const AuthFailure('パスワードリセットメールの送信に失敗しました。'));
     }
@@ -228,7 +230,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     
     try {
-      await firebaseService.signOut();
+      await authService.signOut();
       emit(Unauthenticated());
     } catch (e) {
       emit(const AuthFailure('ログアウトに失敗しました。もう一度お試しください。'));
