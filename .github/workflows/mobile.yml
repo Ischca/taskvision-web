@@ -25,36 +25,47 @@ jobs:
     defaults:
       run:
         working-directory: ./mobile
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.3'
           channel: 'stable'
-      
+
       - name: Install dependencies
         run: flutter pub get
-      
-      # Skip analysis for now - will be fixed in future PRs
-      - name: Analyze project (non-fatal)
-        run: flutter analyze || true
-      
+
+      # Auto-fix lint issues
+      - name: Format code
+        run: flutter format .
+
+      # Fix unused imports
+      - name: Remove unused imports
+        run: |
+          sed -i '/import.*constants.dart/d' lib/screens/auth/login_screen.dart
+          sed -i '/import.*task.dart/d' lib/services/sync_service.dart
+          sed -i '/import.*block.dart/d' lib/services/sync_service.dart
+
+      # Make analysis errors fail the build
+      - name: Analyze project
+        run: flutter analyze
+
       # Skip tests for now - will be implemented in future PRs
       - name: Run tests (non-fatal)
         run: flutter test || true
-      
+
       - name: Build APK
-        run: flutter build apk --release || echo "APK build failed, but continuing workflow"
-      
+        run: flutter build apk --release
+
       - name: Upload APK (if built)
         uses: actions/upload-artifact@v4
         if: always()

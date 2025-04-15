@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      - id: flutter-format
+        name: Flutter Format
+        description: Format Flutter code.
+        entry: bash -c 'cd mobile && flutter format .'
+        language: system
+        files: \.dart$
+
+      - id: flutter-analyze
+        name: Flutter Analyze
+        description: Statically analyze Flutter code for errors, warnings, and lints.
+        entry: bash -c 'cd mobile && flutter analyze --fix'
+        language: system
+        files: \.dart$
+        pass_filenames: false
