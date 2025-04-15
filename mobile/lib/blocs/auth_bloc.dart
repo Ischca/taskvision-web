@@ -217,7 +217,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       emit(const AuthFailure('パスワードリセットメールを送信しました。メールをご確認ください。'));
     } on FirebaseAuthException catch (e) {
-      emit(AuthFailure(firebaseService.getErrorMessageFromCode(e.code)));
+      emit(AuthFailure(authService.getErrorMessageFromCode(e.code)));
     } catch (e) {
       emit(const AuthFailure('パスワードリセットメールの送信に失敗しました。'));
     }
