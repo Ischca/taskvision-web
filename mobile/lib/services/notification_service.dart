@@ -228,7 +228,7 @@ class NotificationService with ChangeNotifier {
       body,
       tz.TZDateTime.from(scheduledDate, tz.local),
       details,
-      androidAllowWhileIdle: true,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );

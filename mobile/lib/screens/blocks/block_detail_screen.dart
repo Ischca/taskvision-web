@@ -66,9 +66,15 @@ class BlockDetailScreen extends StatelessWidget {
   }
 
   Widget _buildBlockDetails(BuildContext context, Block block) {
-    final startTime = DateFormat('yyyy年MM月dd日 HH:mm').format(block.startTime);
-    final endTime = DateFormat('yyyy年MM月dd日 HH:mm').format(block.endTime);
-    final duration = block.duration.inMinutes;
+    final startTime = block.startTime != null 
+        ? DateFormat('yyyy年MM月dd日 HH:mm').format(block.startTime!)
+        : "未設定";
+    final endTime = block.endTime != null 
+        ? DateFormat('yyyy年MM月dd日 HH:mm').format(block.endTime!)
+        : "未設定";
+    final duration = block.startTime != null && block.endTime != null
+        ? block.endTime!.difference(block.startTime!).inMinutes
+        : 0;
     final hours = duration ~/ 60;
     final minutes = duration % 60;
     final durationText = hours > 0
@@ -125,7 +131,7 @@ class BlockDetailScreen extends StatelessWidget {
                         width: 16,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: block.color,
+                          color: block.color ?? Colors.grey,
                           shape: BoxShape.circle,
                         ),
                         margin: const EdgeInsets.only(right: 8),

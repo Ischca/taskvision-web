@@ -63,7 +63,7 @@ class TaskVisionApp extends StatelessWidget {
         ),
         
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(firebaseService: firebaseService)
+          create: (context) => AuthBloc(authService: AuthService(), firebaseService: firebaseService)
             ..add(AuthCheckRequested()),
         ),
         

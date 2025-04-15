@@ -32,7 +32,7 @@ class AppRouter {
   // Route generator
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case home:
+      case AppRouter.home:
         return MaterialPageRoute(
           builder: (_) => BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
@@ -43,23 +43,23 @@ class AppRouter {
             },
           ),
         );
-      case login:
+      case AppRouter.login:
         return MaterialPageRoute(
           builder: (_) => const LoginScreen(),
         );
-      case register:
+      case AppRouter.register:
         return MaterialPageRoute(
           builder: (_) => const RegisterScreen(),
         );
-      case passwordReset:
+      case AppRouter.passwordReset:
         return MaterialPageRoute(
           builder: (_) => const PasswordResetScreen(),
         );
-      case tasks:
+      case AppRouter.tasks:
         return MaterialPageRoute(
           builder: (_) => const TaskListScreen(),
         );
-      case taskDetail:
+      case AppRouter.taskDetail:
         final args = settings.arguments as Map<String, dynamic>?;
         final taskId = args?['taskId'] as String?;
         if (taskId == null) {
@@ -68,7 +68,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => TaskDetailScreen(taskId: taskId),
         );
-      case taskForm:
+      case AppRouter.taskForm:
         final args = settings.arguments as Map<String, dynamic>?;
         final userId = args?['userId'] as String?;
         final task = args?['task'];
@@ -78,11 +78,11 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => TaskFormScreen(userId: userId, task: task),
         );
-      case blocks:
+      case AppRouter.blocks:
         return MaterialPageRoute(
           builder: (_) => const BlockCalendarScreen(),
         );
-      case blockDetail:
+      case AppRouter.blockDetail:
         final args = settings.arguments as Map<String, dynamic>?;
         final blockId = args?['blockId'] as String?;
         if (blockId == null) {
@@ -91,7 +91,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => BlockDetailScreen(blockId: blockId),
         );
-      case blockForm:
+      case AppRouter.blockForm:
         final args = settings.arguments as Map<String, dynamic>?;
         final userId = args?['userId'] as String?;
         final block = args?['block'];
@@ -106,11 +106,11 @@ class AppRouter {
             initialDate: initialDate,
           ),
         );
-      case settings:
+      case AppRouter.settings:
         return MaterialPageRoute(
           builder: (_) => const SettingsScreen(),
         );
-      case notificationSettings:
+      case AppRouter.notificationSettings:
         return MaterialPageRoute(
           builder: (_) => const NotificationSettingsScreen(),
         );

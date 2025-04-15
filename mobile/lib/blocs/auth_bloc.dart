@@ -79,9 +79,10 @@ class AuthFailure extends AuthState {
 
 // BLoC
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthService firebaseService;
+  final AuthService authService;
+  final FirebaseService firebaseService;
 
-  AuthBloc({required this.firebaseService}) : super(AuthInitial()) {
+  AuthBloc({required this.authService, required this.firebaseService}) : super(AuthInitial()) {
     on<AuthCheckRequested>(_onAuthCheckRequested);
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
