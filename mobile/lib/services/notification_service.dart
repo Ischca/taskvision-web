@@ -135,7 +135,7 @@ class NotificationService with ChangeNotifier {
   // Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // Show a local notification for foreground messages
-    await _showLocalNotification(
+    await showLocalNotification(
       id: message.hashCode,
       title: message.notification?.title ?? 'TaskVision',
       body: message.notification?.body ?? '',
