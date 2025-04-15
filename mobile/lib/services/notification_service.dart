@@ -13,22 +13,21 @@ class NotificationService with ChangeNotifier {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   bool _isInitialized = false;
   bool _hasPermission = false;
   String? _token;
-  
+
   bool get isInitialized => _isInitialized;
   bool get hasPermission => _hasPermission;
   String? get token => _token;
-  
+
   // Initialize the notification service
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     // Initialize timezone data
     tz.initializeTimeZones();
-    
     // Configure local notifications
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
@@ -40,30 +39,30 @@ class NotificationService with ChangeNotifier {
       android: androidSettings,
       iOS: iosSettings,
     );
-    
+
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
-    
+
     // Configure FCM for foreground notifications
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
-    
+
     // Handle incoming messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
-    
+
     // Check if we have a stored token
     await _loadSavedToken();
-    
+
     _isInitialized = true;
     notifyListeners();
   }
-  
+
   // Request notification permissions
   Future<bool> requestPermission() async {
     if (Platform.isIOS) {
@@ -73,33 +72,33 @@ class NotificationService with ChangeNotifier {
         sound: true,
         provisional: false,
       );
-      
+
       _hasPermission = settings.authorizationStatus == AuthorizationStatus.authorized ||
                        settings.authorizationStatus == AuthorizationStatus.provisional;
     } else {
       // On Android, permissions are granted by default for FCM
       _hasPermission = true;
-      
+
       // For local notifications on Android 13+, we need to request permission
       if (Platform.isAndroid) {
-        final AndroidFlutterLocalNotificationsPlugin? androidPlugin = 
+        final AndroidFlutterLocalNotificationsPlugin? androidPlugin =
             _localNotifications.resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>();
-                
+
         if (androidPlugin != null) {
           await androidPlugin.requestPermission();
         }
       }
     }
-    
+
     if (_hasPermission) {
       await _getToken();
     }
-    
+
     notifyListeners();
     return _hasPermission;
   }
-  
+
   // Get the FCM token and save it
   Future<String?> _getToken() async {
     _token = await _firebaseMessaging.getToken();
@@ -108,13 +107,13 @@ class NotificationService with ChangeNotifier {
     }
     return _token;
   }
-  
+
   // Save token to SharedPreferences and Firestore
   Future<void> _saveToken(String token) async {
     // Save locally
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('fcm_token', token);
-    
+
     // Save to Firestore if user is logged in
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
@@ -124,18 +123,18 @@ class NotificationService with ChangeNotifier {
       });
     }
   }
-  
+
   // Load saved token from SharedPreferences
   Future<void> _loadSavedToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('fcm_token');
-    
+
     // If we have a saved token, refresh it
     if (_token != null) {
       _getToken();
     }
   }
-  
+
   // Handle foreground messages
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     // Show a local notification for foreground messages
@@ -146,7 +145,7 @@ class NotificationService with ChangeNotifier {
       payload: message.data.toString(),
     );
   }
-  
+
   // Handle when a notification is tapped
   void _onNotificationTapped(NotificationResponse response) {
     // Parse the payload and navigate accordingly
@@ -155,13 +154,13 @@ class NotificationService with ChangeNotifier {
       // based on the notification payload
     }
   }
-  
+
   // Handle when app is opened from a notification
   void _handleMessageOpenedApp(RemoteMessage message) {
     // This would be implemented to navigate to the appropriate screen
     // based on the notification payload
   }
-  
+
   // Show a local notification
   Future<void> showLocalNotification({
     required int id,
@@ -177,18 +176,18 @@ class NotificationService with ChangeNotifier {
       priority: Priority.high,
       showWhen: true,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
-    
+
     await _localNotifications.show(
       id,
       title,
@@ -197,7 +196,7 @@ class NotificationService with ChangeNotifier {
       payload: payload,
     );
   }
-  
+
   // Schedule a local notification
   Future<void> scheduleNotification({
     required int id,
@@ -214,18 +213,18 @@ class NotificationService with ChangeNotifier {
       priority: Priority.high,
       showWhen: true,
     );
-    
+
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
     );
-    
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
-    
+
     await _localNotifications.zonedSchedule(
       id,
       title,
@@ -237,17 +236,17 @@ class NotificationService with ChangeNotifier {
       payload: payload,
     );
   }
-  
+
   // Cancel a specific notification
   Future<void> cancelNotification(int id) async {
     await _localNotifications.cancel(id);
   }
-  
+
   // Cancel all notifications
   Future<void> cancelAllNotifications() async {
     await _localNotifications.cancelAll();
   }
-  
+
   // Update token when user logs in
   Future<void> updateTokenForUser(String userId) async {
     if (_token != null) {
@@ -266,7 +265,7 @@ class NotificationService with ChangeNotifier {
       }
     }
   }
-  
+
   // Remove token when user logs out
   Future<void> removeTokenForUser(String userId) async {
     if (_token != null) {
