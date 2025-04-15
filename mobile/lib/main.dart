@@ -13,9 +13,8 @@ import 'routes/app_router.dart';
 import 'services/firebase_service.dart';
 import 'services/sync_service.dart';
 import 'services/notification_service.dart';
-import 'screens/home_screen.dart';
+import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
-import 'widgets/sync_status_indicator.dart';
 
 // バックグラウンド通知を処理するハンドラー
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
