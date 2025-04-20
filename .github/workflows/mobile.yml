@@ -41,25 +41,44 @@ jobs:
           flutter-version: '3.19.3'
           channel: 'stable'
       
+      # Restore Firebase configuration files from secrets
+      - name: Restore Firebase config
+        run: |
+          mkdir -p firebase
+          echo "${{ secrets.FIREBASE_ANDROID_JSON }}" | base64 -d > firebase/google-services.json
+          echo "${{ secrets.FIREBASE_IOS_PLIST }}" | base64 -d > firebase/GoogleService-Info.plist
+      
+      # Install FlutterFire CLI and generate firebase_options.dart
+      - name: Install FlutterFire CLI
+        run: dart pub global activate flutterfire_cli
+      
+      - name: Generate firebase_options.dart
+        run: |
+          flutterfire configure \
+            --project ${{ secrets.FIREBASE_PROJECT_ID }} \
+            --out=lib/firebase/firebase_options.dart \
+            --platforms=android,ios \
+            --yes
+      
       - name: Install dependencies
         run: flutter pub get
       
-      # Skip analysis for now - will be fixed in future PRs
-      - name: Analyze project (non-fatal)
-        run: flutter analyze || true
+      # Run analysis with proper error handling
+      - name: Analyze project
+        run: flutter analyze
       
-      # Skip tests for now - will be implemented in future PRs
-      - name: Run tests (non-fatal)
-        run: flutter test || true
+      # Run tests with proper error handling
+      - name: Run tests
+        run: flutter test
       
+      # Build APK with proper error handling
       - name: Build APK
-        run: flutter build apk --release || echo "APK build failed, but continuing workflow"
+        run: flutter build apk --release
       
-      - name: Upload APK (if built)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: app-release
-          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
