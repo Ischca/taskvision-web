@@ -25,6 +25,8 @@ jobs:
     defaults:
       run:
         working-directory: ./mobile
+    env:
+      FIREBASE_PROJECT_ID: 'taskvision-3f130'
     
     steps:
       - uses: actions/checkout@v3
