@@ -69,7 +69,7 @@ jobs:
                 "client_info": {
                   "mobilesdk_app_id": "${FIREBASE_ANDROID_APP_ID}",
                   "android_client_info": {
-                    "package_name": "com.ischca.taskvision"
+                    "package_name": "com.taskvision.taskvision"
                   }
                 },
                 "oauth_client": [],
