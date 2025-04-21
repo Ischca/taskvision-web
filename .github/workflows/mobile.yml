@@ -44,15 +44,88 @@ jobs:
       # Restore Firebase configuration files from secrets
       - name: Restore Firebase config
         run: |
+          # Create directories
           mkdir -p firebase
           mkdir -p android/app
-          echo "${{ secrets.FIREBASE_ANDROID_JSON }}" | base64 -d > firebase/google-services.json
-          echo "${{ secrets.FIREBASE_IOS_PLIST }}" | base64 -d > firebase/GoogleService-Info.plist
-          # Copy google-services.json to Android app directory
-          cp firebase/google-services.json android/app/google-services.json
-          # Copy GoogleService-Info.plist to iOS app directory (if needed)
           mkdir -p ios/Runner
-          cp firebase/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
+          
+          # Create a valid google-services.json file directly in the Android app directory
+          cat > android/app/google-services.json << 'EOL'
+          {
+            "project_info": {
+              "project_number": "${{ vars.FIREBASE_PROJECT_NUMBER }}",
+              "project_id": "${{ vars.FIREBASE_PROJECT_ID }}",
+              "storage_bucket": "${{ vars.FIREBASE_PROJECT_ID }}.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "${{ vars.FIREBASE_ANDROID_APP_ID }}",
+                  "android_client_info": {
+                    "package_name": "com.ischca.taskvision"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "${{ secrets.FIREBASE_ANDROID_API_KEY }}"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ]
+          }
+          EOL
+          
+          # Create a copy in the firebase directory for reference
+          cp android/app/google-services.json firebase/google-services.json
+          
+          # Create a valid GoogleService-Info.plist file for iOS
+          cat > ios/Runner/GoogleService-Info.plist << 'EOL'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key>
+            <string>${{ secrets.FIREBASE_IOS_API_KEY }}</string>
+            <key>GCM_SENDER_ID</key>
+            <string>${{ vars.FIREBASE_PROJECT_NUMBER }}</string>
+            <key>PLIST_VERSION</key>
+            <string>1</string>
+            <key>BUNDLE_ID</key>
+            <string>com.ischca.taskvision</string>
+            <key>PROJECT_ID</key>
+            <string>${{ vars.FIREBASE_PROJECT_ID }}</string>
+            <key>STORAGE_BUCKET</key>
+            <string>${{ vars.FIREBASE_PROJECT_ID }}.appspot.com</string>
+            <key>IS_ADS_ENABLED</key>
+            <false></false>
+            <key>IS_ANALYTICS_ENABLED</key>
+            <false></false>
+            <key>IS_APPINVITE_ENABLED</key>
+            <true></true>
+            <key>IS_GCM_ENABLED</key>
+            <true></true>
+            <key>IS_SIGNIN_ENABLED</key>
+            <true></true>
+            <key>GOOGLE_APP_ID</key>
+            <string>${{ vars.FIREBASE_IOS_APP_ID }}</string>
+          </dict>
+          </plist>
+          EOL
+          
+          # Create a copy in the firebase directory for reference
+          cp ios/Runner/GoogleService-Info.plist firebase/GoogleService-Info.plist
+          
+          # Verify files were created correctly
+          echo "Verifying google-services.json:"
+          cat android/app/google-services.json | grep project_id
+          echo "Verifying GoogleService-Info.plist:"
+          cat ios/Runner/GoogleService-Info.plist | grep PROJECT_ID
       
       # Instead of using FlutterFire CLI, manually update firebase_options.dart
       - name: Update firebase_options.dart
