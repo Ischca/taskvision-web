@@ -45,8 +45,14 @@ jobs:
       - name: Restore Firebase config
         run: |
           mkdir -p firebase
+          mkdir -p android/app
           echo "${{ secrets.FIREBASE_ANDROID_JSON }}" | base64 -d > firebase/google-services.json
           echo "${{ secrets.FIREBASE_IOS_PLIST }}" | base64 -d > firebase/GoogleService-Info.plist
+          # Copy google-services.json to Android app directory
+          cp firebase/google-services.json android/app/google-services.json
+          # Copy GoogleService-Info.plist to iOS app directory (if needed)
+          mkdir -p ios/Runner
+          cp firebase/GoogleService-Info.plist ios/Runner/GoogleService-Info.plist
       
       # Instead of using FlutterFire CLI, manually update firebase_options.dart
       - name: Update firebase_options.dart
