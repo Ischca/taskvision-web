@@ -198,6 +198,21 @@ class NotificationService with ChangeNotifier {
     );
   }
   
+  // Public method to show a local notification
+  Future<void> showLocalNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await _showLocalNotification(
+      id: id,
+      title: title,
+      body: body,
+      payload: payload,
+    );
+  }
+  
   // Schedule a local notification
   Future<void> scheduleNotification({
     required int id,

@@ -106,11 +106,11 @@ class AppRouter {
             initialDate: initialDate,
           ),
         );
-      case settings:
+      case AppRouter.settings:
         return MaterialPageRoute(
           builder: (_) => const SettingsScreen(),
         );
-      case notificationSettings:
+      case AppRouter.notificationSettings:
         return MaterialPageRoute(
           builder: (_) => const NotificationSettingsScreen(),
         );
