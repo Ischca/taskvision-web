@@ -67,3 +67,4 @@ flutterfire configure \
 - Always use GitHub Secrets for CI/CD
 - Keep your Firebase project ID and configuration secure
 - The `firebase_options.dart` file should not contain actual API keys in the repository
+- In CI environments, these files are generated from secrets
