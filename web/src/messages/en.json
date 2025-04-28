@@ -182,6 +182,8 @@
     "advancedSettings": "Advanced Settings",
     "close": "Close",
     "unassignedTasks": "Unassigned Tasks",
+    "incompleteTitle": "Incomplete Tasks",
+    "completedTitle": "Completed Tasks",
     "items": " items",
     "progress": "Progress",
     "noUnassignedTasks": "No unassigned tasks",
