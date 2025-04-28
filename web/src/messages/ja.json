@@ -183,6 +183,8 @@
     "advancedSettings": "詳細設定",
     "close": "閉じる",
     "unassignedTasks": "未割り当てタスク",
+    "incompleteTitle": "未完了タスク",
+    "completedTitle": "完了タスク",
     "items": "件",
     "progress": "進捗",
     "noUnassignedTasks": "未割り当てのタスクはありません",
