@@ -56,8 +56,8 @@ RUN cd /opt && \
     flutter/bin/flutter doctor
 
 # Set up Flutter for Android development
-RUN flutter/bin/flutter config --no-analytics && \
-    flutter/bin/flutter config --android-sdk ${ANDROID_SDK_ROOT}
+RUN /opt/flutter/bin/flutter config --no-analytics && \
+    /opt/flutter/bin/flutter config --android-sdk ${ANDROID_SDK_ROOT}
 
 # Create a non-root user
 RUN useradd -ms /bin/bash developer
@@ -70,10 +70,10 @@ USER developer
 WORKDIR /workspace
 
 # Pre-download Flutter dependencies
-RUN flutter/bin/flutter precache
+RUN /opt/flutter/bin/flutter precache
 
 # Verify installation
-RUN flutter/bin/flutter doctor -v
+RUN /opt/flutter/bin/flutter doctor -v
 
 # Set the entrypoint
 ENTRYPOINT ["/bin/bash"]
