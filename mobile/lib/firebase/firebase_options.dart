@@ -1,6 +1,6 @@
 // File: lib/firebase/firebase_options.dart
 // Firebase configuration options for TaskVision mobile app
-// This is a placeholder file that will be replaced with actual Firebase configuration
+// Development configuration for local testing
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
@@ -40,35 +40,35 @@ class DefaultFirebaseOptions {
   }
 
   // Configuration for Android
-  // Replace with actual configuration from Firebase console
+  // Development configuration for local testing
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'placeholder-api-key',
-    appId: 'placeholder-app-id',
-    messagingSenderId: 'placeholder-sender-id',
-    projectId: 'placeholder-project-id',
-    storageBucket: 'placeholder-storage-bucket',
+    apiKey: 'AIzaSyDevelopmentKeyForAndroidPlatform12345',
+    appId: '1:123456789012:android:1234567890123456789012',
+    messagingSenderId: '123456789012',
+    projectId: 'taskvision-dev',
+    storageBucket: 'taskvision-dev.appspot.com',
   );
 
   // Configuration for iOS
-  // Replace with actual configuration from Firebase console
+  // Development configuration for local testing
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'placeholder-api-key',
-    appId: 'placeholder-app-id',
-    messagingSenderId: 'placeholder-sender-id',
-    projectId: 'placeholder-project-id',
-    storageBucket: 'placeholder-storage-bucket',
-    iosClientId: 'placeholder-ios-client-id',
-    iosBundleId: 'com.taskvision.app',
+    apiKey: 'AIzaSyDevelopmentKeyForIOSPlatform123456789',
+    appId: '1:123456789012:ios:1234567890123456789012',
+    messagingSenderId: '123456789012',
+    projectId: 'taskvision-dev',
+    storageBucket: 'taskvision-dev.appspot.com',
+    iosClientId: '123456789012-zyxwvutsrqponmlkjihgfedcba654321.apps.googleusercontent.com',
+    iosBundleId: 'com.taskvision.taskvision',
   );
 
   // Configuration for Web
-  // Replace with actual configuration from Firebase console
+  // Development configuration for local testing
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'placeholder-api-key',
-    appId: 'placeholder-app-id',
-    messagingSenderId: 'placeholder-sender-id',
-    projectId: 'placeholder-project-id',
-    storageBucket: 'placeholder-storage-bucket',
-    authDomain: 'placeholder-auth-domain',
+    apiKey: 'AIzaSyDevelopmentKeyForWebPlatform1234567890',
+    appId: '1:123456789012:web:1234567890123456789012',
+    messagingSenderId: '123456789012',
+    projectId: 'taskvision-dev',
+    storageBucket: 'taskvision-dev.appspot.com',
+    authDomain: 'taskvision-dev.firebaseapp.com',
   );
 }
