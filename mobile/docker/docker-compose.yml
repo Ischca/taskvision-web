@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: taskvision_flutter
     volumes:
-      - ../../mobile:/workspace
+      - ../:/workspace
       - flutter-pub-cache:/home/developer/.pub-cache
     ports:
       - "8080:8080"  # For web server
