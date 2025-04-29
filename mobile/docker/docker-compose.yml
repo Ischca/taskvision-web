@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  flutter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskvision_flutter
+    volumes:
+      - ../../mobile:/workspace
+      - flutter-pub-cache:/home/developer/.pub-cache
+    ports:
+      - "8080:8080"  # For web server
+      - "8888:8888"  # For debug server
+    environment:
+      - DISPLAY=${DISPLAY}
+    network_mode: "host"  # For Linux GUI apps
+    tty: true
+    stdin_open: true
+
+volumes:
+  flutter-pub-cache:
