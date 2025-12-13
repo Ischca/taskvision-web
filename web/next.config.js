@@ -12,12 +12,18 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     unoptimized: true,
-    domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+      },
+    ],
   },
   output: "standalone",
   distDir: ".next",
@@ -27,12 +33,13 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
     disableOptimizedLoading: false,
-    appDocumentPreloading: false,
     serverActions: {
       bodySizeLimit: "2mb",
       allowedOrigins: ["localhost:3000"],
     },
   },
+  // Turbopack configuration (empty to silence webpack migration warning)
+  turbopack: {},
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
