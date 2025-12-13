@@ -1,14 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { M_PLUS_Rounded_1c } from "next/font/google";
+// import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 
 // M PLUS Rounded 1c フォントの設定
-const mPlusRounded = M_PLUS_Rounded_1c({
-  weight: ["400", "500", "700"],
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-m-plus-rounded",
-});
+// TODO: Google Fontsへのアクセスが環境で制限されている場合は、
+// 本番環境では有効化してください
+// const mPlusRounded = M_PLUS_Rounded_1c({
+//   weight: ["400", "500", "700"],
+//   subsets: ["latin"],
+//   display: "swap",
+//   variable: "--font-m-plus-rounded",
+// });
+
+// フォールバック用のダミー変数
+const mPlusRounded = {
+  variable: "",
+};
 
 export const metadata: Metadata = {
   title: "TaskVision - 日々のタスクをブロックで管理",
