@@ -23,7 +23,13 @@ function getLocale(request: NextRequest): string {
   return defaultLocale;
 }
 
-export default function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
+  return middleware(request);
+}
+
+export { middleware };
+
+function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 静的ファイル・API・_next を除外
