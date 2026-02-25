@@ -10,7 +10,7 @@ import {
   deleteDoc,
   getDoc,
 } from 'firebase/firestore';
-import { Task, Block, Reminder, ReminderType } from '@/types';
+import { Task, Block, Reminder, ReminderType } from '../types';
 
 // ブラウザ通知のパーミッション要求
 export const requestNotificationPermission = async (): Promise<boolean> => {

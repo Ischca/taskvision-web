@@ -160,7 +160,33 @@
     "errorDelete": "ブロックの削除に失敗しました",
     "errorUpdate": "ブロックの更新に失敗しました",
     "errorAdd": "ブロックの追加に失敗しました",
+    "errorMove": "ブロックの移動に失敗しました",
     "emptyNameError": "ブロック名を入力してください"
+  },
+  "profile": {
+    "title": "アカウント設定",
+    "tabs": {
+      "profile": "プロフィール",
+      "account": "アカウント"
+    },
+    "name": "名前",
+    "email": "メールアドレス",
+    "emailHint": "メールアドレスはGoogleアカウントに紐づいています。変更するには、Googleアカウント設定から行ってください。",
+    "updateButton": "プロフィールを更新",
+    "updating": "更新中...",
+    "updateSuccess": "プロフィールを更新しました。",
+    "updateError": "プロフィールの更新に失敗しました。",
+    "accountActions": "アカウント操作",
+    "dangerZone": "危険な操作",
+    "deleteWarning": "アカウントを削除すると、すべてのデータが完全に削除され、復元できなくなります。",
+    "deleteAccount": "アカウントを削除",
+    "deleteConfirmTitle": "本当にアカウントを削除しますか？",
+    "deleteConfirmMessage": "この操作は取り消せません。確認のため「削除する」と入力してください。",
+    "deleteConfirmWord": "削除する",
+    "confirmMismatch": "確認テキストが一致しません。",
+    "deleteError": "アカウントの削除に失敗しました。再ログインして再試行してください。",
+    "deleteAccountPermanent": "アカウントを完全に削除",
+    "processing": "処理中..."
   },
   "tasks": {
     "title": "タスク",

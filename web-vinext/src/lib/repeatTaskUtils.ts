@@ -1,4 +1,4 @@
-import { Task, RepeatSettings, RepeatException } from '@/types';
+import { Task, RepeatSettings, RepeatException } from '../types';
 import { db } from './firebase';
 import {
   collection,

@@ -12,7 +12,7 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 import { useAuth } from "./AuthProvider";
 import { signOut } from "firebase/auth";
@@ -32,6 +32,8 @@ const EmptyHeader = () => (
 const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "ja";
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { user, userId, loading } = useAuth();
@@ -65,7 +67,7 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push("/login");
+      router.push(`/${locale}/login`);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -86,8 +88,9 @@ const Header = () => {
     className?: string;
     children: React.ReactNode;
   }) => {
+    const localizedHref = href.startsWith("/") ? `/${locale}${href === "/" ? "" : href}` : href;
     return (
-      <Link href={href} className={className}>
+      <Link href={localizedHref} className={className}>
         {children}
       </Link>
     );
@@ -171,7 +174,7 @@ const Header = () => {
                     >
                       <UserCircleIcon className="h-5 w-5" />
                       <span className="text-sm font-medium">
-                        {user?.displayName || t("user.anonymous")}
+                        {user?.displayName || t("common.user.anonymous")}
                       </span>
                     </label>
                     <ul

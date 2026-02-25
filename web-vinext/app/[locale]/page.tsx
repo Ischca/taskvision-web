@@ -188,13 +188,13 @@ export default function Home() {
         <p className="text-lg mb-6">{t("common.messages.loginPrompt")}</p>
         <div className="flex space-x-4">
           <Link
-            href="/login"
+            href={`/${locale}/login`}
             className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             {t("common.actions.login")}
           </Link>
           <Link
-            href="/signup"
+            href={`/${locale}/signup`}
             className="px-6 py-2 bg-gray-200 text-gray-800 font-medium rounded-lg hover:bg-gray-300 transition-colors"
           >
             {t("common.actions.signup")}

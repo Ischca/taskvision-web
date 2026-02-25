@@ -52,8 +52,6 @@ export default function CalendarPage() {
           ...doc.data(),
         })) as Task[];
 
-        console.log("allTasks", allTasks);
-
         // クライアント側で日付範囲でフィルタリング
         const startDateStr = formatDate(firstDay);
         const endDateStr = formatDate(lastDay);
@@ -66,8 +64,6 @@ export default function CalendarPage() {
           const taskDate = parseDate(task.date);
           return taskDate >= firstDay && taskDate <= lastDay;
         });
-
-        console.log("filteredTasks", filteredTasks);
 
         setTasks(filteredTasks);
       } catch (error) {

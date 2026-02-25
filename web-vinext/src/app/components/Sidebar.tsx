@@ -4,6 +4,7 @@ import React, { ReactNode } from "react";
 import { Block, Task } from "../../types";
 import { useTheme } from "./ThemeProvider";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useTranslations } from "../../../app/[locale]/LocaleLayoutClient";
 
 interface SidebarProps {
@@ -13,6 +14,8 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ blocks, tasks, children }) => {
+  const params = useParams();
+  const locale = (params?.locale as string) || "ja";
   const { theme } = useTheme();
   const t = useTranslations();
   const isDark = theme === "dark";
@@ -112,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ blocks, tasks, children }) => {
 
       <div className="mt-6">
         <Link
-          href="/blocks/manage"
+          href={`/${locale}/blocks/manage`}
           className="text-primary-600 dark:text-primary-400 hover:underline text-sm flex items-center"
         >
           {t("common.sidebar.goToBlockManagement")}

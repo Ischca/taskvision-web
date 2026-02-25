@@ -47,7 +47,16 @@ function resolve(messages: Messages, key: string): string {
  * t("common.actions.login") のようにフルパスで使える
  */
 export function createTranslator(messages: Messages) {
-  return function t(key: string): string {
-    return resolve(messages, key);
+  return function t(
+    key: string,
+    params?: Record<string, string | number>,
+  ): string {
+    let value = resolve(messages, key);
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        value = value.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+      }
+    }
+    return value;
   };
 }

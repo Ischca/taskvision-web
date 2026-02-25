@@ -37,8 +37,8 @@ const dateToString = (date: Date): string => {
 // モックのuseToastフック（実際の実装は@/components/ui/use-toastにあるはず）
 const useToast = () => {
   return {
-    toast: (props: any) => {
-      console.log("Toast:", props);
+    toast: (_props: Record<string, unknown>) => {
+      // Toast notification placeholder
     },
   };
 };
@@ -346,7 +346,6 @@ const GlobalTaskAddButton = ({ todayStr }: GlobalTaskAddButtonProps) => {
             const day = String(dateObj.getDate()).padStart(2, "0");
             finalDate = `${year}-${month}-${day}`;
 
-            console.log("日付を文字列形式で保存:", finalDate);
           } else {
             console.warn("警告: 不正な日付形式", selectedDate);
           }

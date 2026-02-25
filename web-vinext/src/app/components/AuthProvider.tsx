@@ -79,6 +79,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [reminderTimerId, setReminderTimerId] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [repeatCheckTimers, setRepeatCheckTimers] = useState<{
+    timeout: NodeJS.Timeout | null;
+    interval: NodeJS.Timeout | null;
+  }>({ timeout: null, interval: null });
   const router = useRouter();
 
   const userId = user?.uid || null;
@@ -90,13 +94,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
-      router.push("/dashboard");
+      router.push("/");
       setUser(result.user);
       setLoading(false);
 
       if (result.user) {
         ensureDefaultBlocks(result.user.uid).catch((err) => {
-          console.error("デフォルトブロック作成エラー:", err);
+          console.error("Default block creation error:", err);
         });
       }
       return result;
@@ -122,7 +126,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      router.push("/");
       setUser(result.user);
       setLoading(false);
       return result;
@@ -143,7 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logOut = async (): Promise<void> => {
     try {
       await signOut(auth);
-      router.push("/login");
+      router.push("/");
       setUser(null);
       setLoading(true);
     } catch (error) {
@@ -238,14 +242,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         );
         const timeUntil1AM = tomorrow1AM.getTime() - now.getTime();
 
-        const scheduleNextCheck = () => {
-          setTimeout(() => {
-            checkRepeatTasks();
-            setInterval(checkRepeatTasks, 24 * 60 * 60 * 1000);
-          }, timeUntil1AM);
-        };
-
-        scheduleNextCheck();
+        const timeoutId = setTimeout(() => {
+          checkRepeatTasks();
+          const intervalId = setInterval(checkRepeatTasks, 24 * 60 * 60 * 1000);
+          setRepeatCheckTimers((prev) => ({ ...prev, interval: intervalId }));
+        }, timeUntil1AM);
+        setRepeatCheckTimers((prev) => ({ ...prev, timeout: timeoutId }));
       }
     }
 
@@ -253,6 +255,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (reminderTimerId !== null) {
         stopReminderTimer(reminderTimerId);
       }
+      if (repeatCheckTimers.timeout) clearTimeout(repeatCheckTimers.timeout);
+      if (repeatCheckTimers.interval) clearInterval(repeatCheckTimers.interval);
     };
   }, [loading, userId, reminderTimerId]);
 

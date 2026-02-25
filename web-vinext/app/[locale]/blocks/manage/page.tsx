@@ -22,11 +22,14 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import useRequireAuth from "../../../../src/app/hooks/useRequireAuth";
 import { useTranslations } from "../../LocaleLayoutClient";
 
 export default function BlockManagePage() {
   const t = useTranslations();
+  const routeParams = useParams();
+  const locale = (routeParams?.locale as string) || "ja";
   // 認証から実際のユーザーIDを取得
   const { userId, loading: authLoading } = useRequireAuth();
 
@@ -103,7 +106,7 @@ export default function BlockManagePage() {
       });
     } catch (error) {
       console.error("Error moving block:", error);
-      alert("ブロックの移動に失敗しました");
+      alert(t("blocks.errorMove"));
     }
   };
 
@@ -177,7 +180,7 @@ export default function BlockManagePage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t("blocks.title")}
         </h1>
-        <Link href="/" className="btn btn-outline">
+        <Link href={`/${locale}`} className="btn btn-outline">
           {t("common.backToHome")}
         </Link>
       </div>
@@ -196,7 +199,7 @@ export default function BlockManagePage() {
               {t("blocks.loginMessage")}
             </p>
             <div className="card-actions justify-end mt-4">
-              <Link href="/login" className="btn btn-primary">
+              <Link href={`/${locale}/login`} className="btn btn-primary">
                 {t("common.goToLogin")}
               </Link>
             </div>

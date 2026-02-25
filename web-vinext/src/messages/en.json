@@ -160,7 +160,33 @@
     "errorDelete": "Failed to delete block",
     "errorUpdate": "Failed to update block",
     "errorAdd": "Failed to add block",
+    "errorMove": "Failed to move block",
     "emptyNameError": "Please enter a block name"
+  },
+  "profile": {
+    "title": "Account Settings",
+    "tabs": {
+      "profile": "Profile",
+      "account": "Account"
+    },
+    "name": "Name",
+    "email": "Email",
+    "emailHint": "Email is linked to your Google account. To change it, go to your Google account settings.",
+    "updateButton": "Update Profile",
+    "updating": "Updating...",
+    "updateSuccess": "Profile updated successfully.",
+    "updateError": "Failed to update profile.",
+    "accountActions": "Account Actions",
+    "dangerZone": "Danger Zone",
+    "deleteWarning": "Deleting your account will permanently remove all data and cannot be undone.",
+    "deleteAccount": "Delete Account",
+    "deleteConfirmTitle": "Are you sure you want to delete your account?",
+    "deleteConfirmMessage": "This action cannot be undone. Type \"delete\" to confirm.",
+    "deleteConfirmWord": "delete",
+    "confirmMismatch": "Confirmation text does not match.",
+    "deleteError": "Failed to delete account. Please re-login and try again.",
+    "deleteAccountPermanent": "Permanently Delete Account",
+    "processing": "Processing..."
   },
   "tasks": {
     "date": "Date",
