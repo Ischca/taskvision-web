@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "start": "vinext start"
+    "start": "vinext start",
+    "deploy": "vinext deploy",
+    "preview": "vinext preview"
   },
   "dependencies": {
     "@esbuild/linux-arm64": "^0.25.5",

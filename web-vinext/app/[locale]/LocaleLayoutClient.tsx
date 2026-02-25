@@ -2,6 +2,7 @@
 
 import { createContext, useContext, ReactNode } from "react";
 import { Messages, createTranslator } from "../../src/lib/i18n";
+import PWAComponents from "../../src/app/components/PWAComponents";
 
 interface I18nContextValue {
   locale: string;
@@ -46,6 +47,7 @@ export function LocaleLayoutClient({
   return (
     <I18nContext.Provider value={{ locale, messages, t }}>
       {children}
+      <PWAComponents />
     </I18nContext.Provider>
   );
 }

@@ -7,6 +7,16 @@ export const metadata = {
   title: "TaskVision",
   description: "シンプルかつ使いやすいタスク管理アプリ",
   keywords: ["タスク管理", "タイムブロック", "生産性"],
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TaskVision",
+  },
+  icons: {
+    icon: "/icons/manifest-icon-192.maskable.png",
+    apple: "/icons/apple-icon-180.png",
+  },
 };
 
 export const viewport = {
