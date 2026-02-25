@@ -30,6 +30,37 @@ import { checkAndGenerateNextRepeatTasks } from "../../lib/repeatTaskUtils";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 
+function getAuthMessage(code: string): string {
+  const locale = typeof window !== "undefined"
+    ? (window.location.pathname.match(/^\/(ja|en)/)?.[1] || "ja")
+    : "ja";
+  const messages: Record<string, Record<string, string>> = {
+    ja: {
+      "auth/invalid-credential": "メールアドレスかパスワードが間違っています",
+      "auth/user-disabled": "このアカウントは無効になっています",
+      "auth/too-many-requests": "ログイン試行回数が多すぎます。しばらく待ってから再試行してください",
+      "auth/popup-blocked": "ポップアップがブロックされました",
+      "auth/popup-closed-by-user": "認証がキャンセルされました",
+      "default-email": "認証に失敗しました",
+      "default-google": "Googleログインに失敗しました",
+      "logout-failed": "ログアウトに失敗しました",
+      "token-refresh-failed": "認証情報の更新に失敗しました",
+    },
+    en: {
+      "auth/invalid-credential": "Invalid email or password",
+      "auth/user-disabled": "This account has been disabled",
+      "auth/too-many-requests": "Too many login attempts. Please try again later",
+      "auth/popup-blocked": "Popup was blocked",
+      "auth/popup-closed-by-user": "Authentication was cancelled",
+      "default-email": "Authentication failed",
+      "default-google": "Failed to login with Google",
+      "logout-failed": "Failed to logout",
+      "token-refresh-failed": "Failed to refresh authentication",
+    },
+  };
+  return messages[locale]?.[code] || messages["ja"][code] || code;
+}
+
 export type AuthContextType = {
   user: User | null;
   loading: boolean;
@@ -106,14 +137,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return result;
     } catch (error: unknown) {
       const firebaseError = error as { code?: string };
-      let errorMessage = "認証に失敗しました";
+      let errorMessage = getAuthMessage("default-email");
       if (firebaseError.code === "auth/invalid-credential") {
-        errorMessage = "メールアドレスかパスワードが間違っています";
+        errorMessage = getAuthMessage("auth/invalid-credential");
       } else if (firebaseError.code === "auth/user-disabled") {
-        errorMessage = "このアカウントは無効になっています";
+        errorMessage = getAuthMessage("auth/user-disabled");
       } else if (firebaseError.code === "auth/too-many-requests") {
-        errorMessage =
-          "ログイン試行回数が多すぎます。しばらく待ってから再試行してください";
+        errorMessage = getAuthMessage("auth/too-many-requests");
       }
       setError(errorMessage);
       toast.error(errorMessage);
@@ -132,11 +162,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return result;
     } catch (error: unknown) {
       const firebaseError = error as { code?: string };
-      let errorMessage = "Googleログインに失敗しました";
+      let errorMessage = getAuthMessage("default-google");
       if (firebaseError.code === "auth/popup-blocked") {
-        errorMessage = "ポップアップがブロックされました";
+        errorMessage = getAuthMessage("auth/popup-blocked");
       } else if (firebaseError.code === "auth/popup-closed-by-user") {
-        errorMessage = "認証がキャンセルされました";
+        errorMessage = getAuthMessage("auth/popup-closed-by-user");
       }
       setError(errorMessage);
       toast.error(errorMessage);
@@ -151,9 +181,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
       setLoading(true);
     } catch (error) {
-      console.error("ログアウトエラー:", error);
-      setError("ログアウトに失敗しました");
-      toast.error("ログアウトに失敗しました");
+      console.error("Logout error:", error);
+      const errorMessage = getAuthMessage("logout-failed");
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -163,8 +194,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const newToken = await getIdToken(user, true);
       return newToken;
     } catch (error) {
-      console.error("トークン更新エラー:", error);
-      setError("認証情報の更新に失敗しました");
+      console.error("Token refresh error:", error);
+      setError(getAuthMessage("token-refresh-failed"));
       return null;
     }
   }, [user]);

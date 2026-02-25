@@ -5,8 +5,8 @@ import { Toaster } from "react-hot-toast";
 
 export const metadata = {
   title: "TaskVision",
-  description: "シンプルかつ使いやすいタスク管理アプリ",
-  keywords: ["タスク管理", "タイムブロック", "生産性"],
+  description: "TaskVision - Task management with time blocking",
+  keywords: ["task management", "time blocking", "productivity", "タスク管理", "タイムブロック", "生産性"],
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

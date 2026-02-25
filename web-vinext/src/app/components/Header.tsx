@@ -348,11 +348,6 @@ const Header = () => {
                   suppressHydrationWarning
                 >
                   <li>
-                    <CustomLink href="/help">
-                      {t("common.navigation.help")}
-                    </CustomLink>
-                  </li>
-                  <li>
                     <CustomLink href="/pwa-guide" className="flex items-center">
                       <DevicePhoneMobileIcon className="h-4 w-4 mr-2" />
                       {t("common.navigation.installApp")}

@@ -11,6 +11,18 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { Task, Block, Reminder, ReminderType } from '../types';
+import jaMessages from '../messages/ja.json';
+import enMessages from '../messages/en.json';
+import { createTranslator } from './i18n';
+
+// Detect locale from URL for notification messages
+function getNotificationTranslator() {
+  const locale = typeof window !== 'undefined'
+    ? (window.location.pathname.match(/^\/(ja|en)/)?.[1] || 'ja')
+    : 'ja';
+  const messages = locale === 'en' ? enMessages : jaMessages;
+  return createTranslator(messages as Record<string, unknown>);
+}
 
 // ブラウザ通知のパーミッション要求
 export const requestNotificationPermission = async (): Promise<boolean> => {
@@ -55,7 +67,7 @@ export const showNotification = (
     try {
       new Notification(notificationTitle, defaultOptions);
     } catch (error) {
-      console.error('通知の表示に失敗しました:', error);
+      console.error('Failed to show notification:', error);
     }
   }
 };
@@ -70,26 +82,27 @@ export const createReminder = async (
   try {
     const taskDoc = await getDoc(doc(db, 'tasks', taskId));
     if (!taskDoc.exists()) {
-      console.error('タスクが見つかりません');
+      console.error('Task not found');
       return null;
     }
 
     const task = taskDoc.data() as Task;
+    const t = getNotificationTranslator();
     let message = '';
 
     switch (type) {
-      case 'block_start':
-        // ブロック名は別途取得
-        const blockName = blockId ? await getBlockName(blockId) : '未設定';
-        message = `ブロック「${blockName}」が間もなく始まります。タスク「${task.title}」の準備をしましょう。`;
+      case 'block_start': {
+        const blockName = blockId ? await getBlockName(blockId) : t('notifications.unknownBlock');
+        message = t('notifications.blockStartSoon', { blockName, taskTitle: task.title });
         break;
-      case 'block_end':
-        // ブロック名は別途取得
-        const endBlockName = blockId ? await getBlockName(blockId) : '未設定';
-        message = `ブロック「${endBlockName}」が間もなく終了します。タスク「${task.title}」は完了しましたか？`;
+      }
+      case 'block_end': {
+        const endBlockName = blockId ? await getBlockName(blockId) : t('notifications.unknownBlock');
+        message = t('notifications.blockEndSoon', { blockName: endBlockName, taskTitle: task.title });
         break;
+      }
       case 'task_deadline':
-        message = `タスク「${task.title}」の締切時間が近づいています。`;
+        message = t('notifications.deadlineSoon', { taskTitle: task.title });
         break;
     }
 
@@ -111,23 +124,25 @@ export const createReminder = async (
     const docRef = await addDoc(collection(db, 'reminders'), reminderData);
     return docRef.id;
   } catch (error) {
-    console.error('リマインダーの作成に失敗しました:', error);
+    console.error('Failed to create reminder:', error);
     return null;
   }
 };
 
 // ブロック名を取得する関数
 const getBlockName = async (blockId: string): Promise<string> => {
+  const t = getNotificationTranslator();
+  const fallback = t('notifications.unknownBlock');
   try {
     const blockDoc = await getDoc(doc(db, 'blocks', blockId));
     if (blockDoc.exists()) {
       const block = blockDoc.data() as Block;
-      return block.name || '未設定';
+      return block.name || fallback;
     }
-    return '未設定';
+    return fallback;
   } catch (error) {
-    console.error('ブロック名の取得に失敗しました:', error);
-    return '未設定';
+    console.error('Failed to get block name:', error);
+    return fallback;
   }
 };
 
@@ -234,7 +249,7 @@ export const updateTaskReminders = async (task: Task): Promise<void> => {
     // すべてのリマインダー作成を待つ
     await Promise.all(promises);
   } catch (error) {
-    console.error('リマインダーの更新に失敗しました:', error);
+    console.error('Failed to update reminders:', error);
   }
 };
 
@@ -256,7 +271,7 @@ export const checkReminders = async (userId: string): Promise<void> => {
 
     await Promise.all(updatePromises);
   } catch (error) {
-    console.error('リマインダーチェック中にエラーが発生しました:', error);
+    console.error('Error during reminder check:', error);
   }
 };
 
@@ -267,7 +282,7 @@ export const startReminderTimer = (userId: string): NodeJS.Timeout => {
     if (granted) {
       checkReminders(userId);
     } else {
-      console.error('通知の許可が得られませんでした');
+      console.error('Notification permission not granted');
     }
   });
 
@@ -313,9 +328,10 @@ export const setupLocalReminders = (task: Task): void => {
     const reminderTime = deadlineTime - deadlineReminderMinutes * 60 * 1000;
 
     if (reminderTime > now) {
+      const t = getNotificationTranslator();
       const timeoutId = window.setTimeout(() => {
-        showNotification('タスク締切リマインダー', {
-          body: `タスク「${task.title}」の締切時間が近づいています。`,
+        showNotification(t('notifications.deadlineReminder'), {
+          body: t('notifications.deadlineSoon', { taskTitle: task.title }),
           tag: `deadline_${task.id}`,
         });
       }, reminderTime - now);

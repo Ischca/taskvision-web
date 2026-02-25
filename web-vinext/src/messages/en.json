@@ -81,7 +81,8 @@
       "nextWeek": "Next Week",
       "previousDay": "Previous Day",
       "nextDay": "Next Day",
-      "date": "Date"
+      "date": "Date",
+      "selectDate": "Select date"
     },
     "messages": {
       "welcome": "Welcome to TaskVision",
@@ -114,6 +115,24 @@
       "googleLoginFailed": "Failed to login with Google.",
       "googleSignupFailed": "Failed to sign up with Google."
     }
+  },
+  "authErrors": {
+    "authFailed": "Authentication failed",
+    "invalidCredential": "Invalid email or password",
+    "userDisabled": "This account has been disabled",
+    "tooManyRequests": "Too many login attempts. Please try again later",
+    "googleLoginFailed": "Failed to login with Google",
+    "popupBlocked": "Popup was blocked",
+    "authCancelled": "Authentication was cancelled",
+    "logoutFailed": "Failed to logout",
+    "tokenRefreshFailed": "Failed to refresh authentication"
+  },
+  "notifications": {
+    "blockStartSoon": "Block \"{blockName}\" is about to start. Get ready for task \"{taskTitle}\".",
+    "blockEndSoon": "Block \"{blockName}\" is about to end. Have you completed task \"{taskTitle}\"?",
+    "deadlineSoon": "The deadline for task \"{taskTitle}\" is approaching.",
+    "deadlineReminder": "Task Deadline Reminder",
+    "unknownBlock": "Unset"
   },
   "calendar": {
     "title": "Calendar",
@@ -161,7 +180,8 @@
     "errorUpdate": "Failed to update block",
     "errorAdd": "Failed to add block",
     "errorMove": "Failed to move block",
-    "emptyNameError": "Please enter a block name"
+    "emptyNameError": "Please enter a block name",
+    "timeRangeSeparator": "–"
   },
   "profile": {
     "title": "Account Settings",
@@ -188,7 +208,36 @@
     "deleteAccountPermanent": "Permanently Delete Account",
     "processing": "Processing..."
   },
+  "pwa": {
+    "installTitle": "Install App",
+    "installDescription": "Add TaskVision to your home screen to use it offline.",
+    "install": "Install",
+    "later": "Later",
+    "close": "Close",
+    "updateTitle": "Update Available",
+    "updateDescription": "A new version of TaskVision is available. Update to get the latest features.",
+    "update": "Update",
+    "offlineMessage": "You are offline. Please check your internet connection.",
+    "onlineMessage": "Connection restored!",
+    "guideTitle": "How to Install TaskVision",
+    "guideSubtitle": "A guide to using TaskVision more comfortably",
+    "whatIsPwa": "What is a PWA?",
+    "whatIsPwaDescription": "TaskVision is provided as a PWA (Progressive Web App). Installing it from your browser gives you a native app-like experience.",
+    "howToInstall": "How to Install",
+    "chromeDesktop": "Chrome (Desktop)",
+    "chromeDesktopSteps": "Click the install icon in the address bar → Click 'Install'",
+    "iosSafari": "Safari (iOS)",
+    "iosSafariSteps": "Tap the share button → Tap 'Add to Home Screen' → Tap 'Add'",
+    "androidChrome": "Chrome (Android)",
+    "androidChromeSteps": "Tap menu (⋮) → Tap 'Add to Home Screen' → Tap 'Add'",
+    "offlineFeatures": "Offline Features",
+    "offlineFeaturesDescription": "After installing, you can access cached data even offline. Data syncs automatically when connection is restored.",
+    "autoUpdate": "Auto Update",
+    "autoUpdateDescription": "The app updates to the latest version automatically. You will be notified with a banner when an update is available.",
+    "tryApp": "Try the App"
+  },
   "tasks": {
+    "title": "Tasks",
     "date": "Date",
     "addTask": "Add Task",
     "taskName": "Task Name",
@@ -236,6 +285,8 @@
     "taskDeleted": "Task deleted",
     "taskDeleteFailed": "Failed to delete task",
     "error": "An error occurred",
+    "editTask": "Edit task",
+    "deleteTask": "Delete task",
     "deleteConfirmation": "Do you want to delete this task? This action cannot be undone.",
     "unassignedDate": "Unassigned Date",
     "selectBlockOptional": "Select a block (optional)",

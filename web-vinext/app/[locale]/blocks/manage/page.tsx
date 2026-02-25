@@ -283,7 +283,7 @@ export default function BlockManagePage() {
                                   })
                                 }
                               />
-                              <span>〜</span>
+                              <span>{t("blocks.timeRangeSeparator")}</span>
                               <input
                                 type="time"
                                 className="input input-bordered input-sm"
@@ -298,7 +298,7 @@ export default function BlockManagePage() {
                             </div>
                           ) : (
                             <span>
-                              {block.startTime} 〜 {block.endTime}
+                              {block.startTime} {t("blocks.timeRangeSeparator")} {block.endTime}
                             </span>
                           )}
                         </td>

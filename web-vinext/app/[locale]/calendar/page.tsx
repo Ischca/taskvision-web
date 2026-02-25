@@ -184,7 +184,7 @@ export default function CalendarPage() {
                     month: "long",
                     day: "numeric",
                   })}
-                  のタスク
+                  {t("calendar.tasksForDay")}
                 </h2>
 
                 {loading ? (

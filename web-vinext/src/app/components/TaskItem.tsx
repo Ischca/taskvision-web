@@ -478,13 +478,13 @@ const TaskItem = ({ task, isDraggable = false }: TaskItemProps) => {
       await updateDoc(taskRef, updateData);
       setIsModalOpen(false);
       setShowToast(true);
-      setToastMessage("タスクを更新しました");
+      setToastMessage(t("tasks.taskUpdated"));
       setToastType("success");
       setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
       console.error("Error updating task:", error);
       setShowToast(true);
-      setToastMessage("エラーが発生しました");
+      setToastMessage(t("tasks.error"));
       setToastType("error");
       setTimeout(() => setShowToast(false), 3000);
     } finally {
@@ -599,7 +599,7 @@ const TaskItem = ({ task, isDraggable = false }: TaskItemProps) => {
             className="p-1 rounded-full text-gray-500 hover:bg-gray-100 hover:text-primary-600 transition-colors"
             onClick={() => setIsModalOpen(true)}
             disabled={isDeleting}
-            aria-label="タスクを編集"
+            aria-label={t("tasks.editTask")}
           >
             <PencilIcon className="h-4 w-4" />
           </button>
@@ -607,7 +607,7 @@ const TaskItem = ({ task, isDraggable = false }: TaskItemProps) => {
             className="p-1 rounded-full text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors ml-1"
             onClick={handleDelete}
             disabled={isDeleting}
-            aria-label="タスクを削除"
+            aria-label={t("tasks.deleteTask")}
           >
             <TrashIcon className="h-4 w-4" />
           </button>

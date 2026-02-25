@@ -5,6 +5,7 @@ import { locales } from "../../lib/i18n";
 import { useEffect, useState } from "react";
 import { LanguageIcon } from "@heroicons/react/24/outline";
 import { useTheme } from "./ThemeProvider";
+import { useTranslations } from "../../../app/[locale]/LocaleLayoutClient";
 
 const LanguageSwitcher = () => {
   const router = useRouter();
@@ -12,6 +13,7 @@ const LanguageSwitcher = () => {
   const [currentLocale, setCurrentLocale] = useState("ja");
   const [isOpen, setIsOpen] = useState(false);
   const { theme } = useTheme();
+  const t = useTranslations();
 
   useEffect(() => {
     if (pathname) {
@@ -47,7 +49,7 @@ const LanguageSwitcher = () => {
             ? "text-gray-300 hover:bg-gray-700"
             : "text-gray-600 hover:bg-gray-100"
         }`}
-        aria-label="言語を選択"
+        aria-label={t("common.language.selectLanguage")}
       >
         <LanguageIcon
           className={`h-5 w-5 ${theme === "dark" ? "text-gray-300" : "text-gray-600"}`}

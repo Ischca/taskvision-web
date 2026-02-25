@@ -81,7 +81,8 @@
       "nextWeek": "来週",
       "previousDay": "前日",
       "nextDay": "翌日",
-      "date": "日付"
+      "date": "日付",
+      "selectDate": "日付を選択"
     },
     "messages": {
       "welcome": "TaskVisionへようこそ",
@@ -114,6 +115,24 @@
       "googleLoginFailed": "Googleログインに失敗しました。",
       "googleSignupFailed": "Googleでの登録に失敗しました。"
     }
+  },
+  "authErrors": {
+    "authFailed": "認証に失敗しました",
+    "invalidCredential": "メールアドレスかパスワードが間違っています",
+    "userDisabled": "このアカウントは無効になっています",
+    "tooManyRequests": "ログイン試行回数が多すぎます。しばらく待ってから再試行してください",
+    "googleLoginFailed": "Googleログインに失敗しました",
+    "popupBlocked": "ポップアップがブロックされました",
+    "authCancelled": "認証がキャンセルされました",
+    "logoutFailed": "ログアウトに失敗しました",
+    "tokenRefreshFailed": "認証情報の更新に失敗しました"
+  },
+  "notifications": {
+    "blockStartSoon": "ブロック「{blockName}」が間もなく始まります。タスク「{taskTitle}」の準備をしましょう。",
+    "blockEndSoon": "ブロック「{blockName}」が間もなく終了します。タスク「{taskTitle}」は完了しましたか？",
+    "deadlineSoon": "タスク「{taskTitle}」の締切時間が近づいています。",
+    "deadlineReminder": "タスク締切リマインダー",
+    "unknownBlock": "未設定"
   },
   "calendar": {
     "title": "カレンダー",
@@ -161,7 +180,8 @@
     "errorUpdate": "ブロックの更新に失敗しました",
     "errorAdd": "ブロックの追加に失敗しました",
     "errorMove": "ブロックの移動に失敗しました",
-    "emptyNameError": "ブロック名を入力してください"
+    "emptyNameError": "ブロック名を入力してください",
+    "timeRangeSeparator": "〜"
   },
   "profile": {
     "title": "アカウント設定",
@@ -187,6 +207,34 @@
     "deleteError": "アカウントの削除に失敗しました。再ログインして再試行してください。",
     "deleteAccountPermanent": "アカウントを完全に削除",
     "processing": "処理中..."
+  },
+  "pwa": {
+    "installTitle": "アプリをインストール",
+    "installDescription": "TaskVisionをホーム画面に追加して、オフラインでも使用できます。",
+    "install": "インストール",
+    "later": "あとで",
+    "close": "閉じる",
+    "updateTitle": "アップデートが利用可能です",
+    "updateDescription": "TaskVisionの新しいバージョンが利用可能です。更新してアプリを最新の状態にしましょう。",
+    "update": "更新する",
+    "offlineMessage": "オフラインモードです。インターネット接続を確認してください。",
+    "onlineMessage": "接続が回復しました！",
+    "guideTitle": "TaskVisionアプリのインストール方法",
+    "guideSubtitle": "より快適にTaskVisionを利用するためのガイド",
+    "whatIsPwa": "PWAとは？",
+    "whatIsPwaDescription": "TaskVisionはPWA（プログレッシブウェブアプリ）として提供されています。ブラウザからインストールすることで、ネイティブアプリのような体験が得られます。",
+    "howToInstall": "インストール方法",
+    "chromeDesktop": "Chrome（デスクトップ）",
+    "chromeDesktopSteps": "アドレスバー右側のインストールアイコンをクリック → 「インストール」をクリック",
+    "iosSafari": "Safari（iOS）",
+    "iosSafariSteps": "共有ボタンをタップ → 「ホーム画面に追加」をタップ → 「追加」をタップ",
+    "androidChrome": "Chrome（Android）",
+    "androidChromeSteps": "メニュー（⋮）をタップ → 「ホーム画面に追加」をタップ → 「追加」をタップ",
+    "offlineFeatures": "オフライン機能",
+    "offlineFeaturesDescription": "インストール後はオフラインでもキャッシュされたデータにアクセスできます。接続が回復すると自動的に同期されます。",
+    "autoUpdate": "自動更新",
+    "autoUpdateDescription": "アプリは自動的に最新バージョンに更新されます。更新が利用可能な場合はバナーでお知らせします。",
+    "tryApp": "アプリを使ってみる"
   },
   "tasks": {
     "title": "タスク",
@@ -237,6 +285,8 @@
     "taskDeleted": "タスクを削除しました",
     "taskDeleteFailed": "タスクの削除に失敗しました",
     "error": "エラーが発生しました",
+    "editTask": "タスクを編集",
+    "deleteTask": "タスクを削除",
     "deleteConfirmation": "このタスクを削除しますか？この操作は元に戻せません。",
     "unassignedDate": "日付未割り当て",
     "selectBlockOptional": "ブロックを選択（任意）",

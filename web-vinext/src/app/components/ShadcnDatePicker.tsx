@@ -27,7 +27,7 @@ interface ShadcnDatePickerProps {
 const ShadcnDatePicker: React.FC<ShadcnDatePickerProps> = ({
   date,
   onDateChange,
-  placeholder = "日付を選択",
+  placeholder,
   className = "",
   disabled = false,
   onOpenChange,
@@ -111,7 +111,7 @@ const ShadcnDatePicker: React.FC<ShadcnDatePickerProps> = ({
           {date && selectedDate ? (
             format(selectedDate, dateFormat, { locale })
           ) : (
-            <span>{placeholder}</span>
+            <span>{placeholder || t("common.dates.selectDate")}</span>
           )}
         </Button>
       </PopoverTrigger>

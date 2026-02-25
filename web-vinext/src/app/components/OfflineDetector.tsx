@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { WifiIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from "../../../app/[locale]/LocaleLayoutClient";
 
 export default function OfflineDetector() {
+  const t = useTranslations();
   const [isOffline, setIsOffline] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
 
@@ -42,15 +44,15 @@ export default function OfflineDetector() {
             <WifiIcon className="h-5 w-5 text-amber-500 mr-2" />
             <p className="text-amber-800 text-sm font-medium">
               {isOffline
-                ? "オフラインモードです。インターネット接続を確認してください。"
-                : "接続が回復しました！"}
+                ? t("pwa.offlineMessage")
+                : t("pwa.onlineMessage")}
             </p>
           </div>
           {isOffline && (
             <button
               onClick={() => setShowBanner(false)}
               className="text-amber-500 hover:text-amber-700"
-              aria-label="閉じる"
+              aria-label={t("pwa.close")}
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
