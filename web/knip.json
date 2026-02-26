@@ -1,0 +1,6 @@
+{
+  "entry": ["src/app/**/page.tsx", "src/app/**/layout.tsx", "src/app/**/error.tsx", "src/app/**/not-found.tsx", "src/middleware.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/lib/shared/**"],
+  "ignoreDependencies": ["autoprefixer"]
+}

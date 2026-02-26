@@ -1,18 +1,9 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "taskvision-web",
   "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "worker/index.ts",
   "assets": {
-    "directory": "dist/client",
-    "binding": "ASSETS"
-  },
-  // Environment variables for Firebase (set via Cloudflare dashboard or wrangler secret)
-  // "vars": {
-  //   "NEXT_PUBLIC_FIREBASE_API_KEY": "",
-  //   "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "",
-  //   "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "",
-  //   "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "",
-  //   "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "",
-  //   "NEXT_PUBLIC_FIREBASE_APP_ID": ""
-  // }
+    "directory": "dist/client"
+  }
 }

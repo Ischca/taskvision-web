@@ -303,7 +303,6 @@ const TaskFormModal = ({
                         onDateChange={handleDateChange}
                         placeholder={t("tasks.selectDate")}
                         className="w-full calendar-popup"
-                        // @ts-expect-error
                         onOpenChange={handleCalendarOpenChange}
                       />
                     </div>
@@ -351,7 +350,6 @@ const TaskFormModal = ({
                       onDateChange={handleDeadlineDateChange}
                       placeholder={t("tasks.selectDeadline")}
                       className="w-full calendar-popup"
-                      // @ts-expect-error
                       onOpenChange={handleCalendarOpenChange}
                     />
                   </div>

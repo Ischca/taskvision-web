@@ -291,14 +291,6 @@ export const setupLocalReminders = (task: Task): void => {
   if (!task.reminderSettings) return;
 
   const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enableBlockStartReminder,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockStartReminderMinutes,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enableBlockEndReminder,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockEndReminderMinutes,
     enableDeadlineReminder,
     deadlineReminderMinutes,
   } = task.reminderSettings;

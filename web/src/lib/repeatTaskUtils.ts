@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Task, RepeatSettings, RepeatType, RepeatException } from '@/types';
+import { Task, RepeatSettings, RepeatException } from '@/types';
 import { db } from './firebase';
 import {
   collection,
@@ -9,8 +8,6 @@ import {
   query,
   where,
   getDocs,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Timestamp,
 } from 'firebase/firestore';
 
 /**

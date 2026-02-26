@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(docker network:*)",
+      "Bash(grep:*)",
+      "Bash(docker sandbox:*)",
+      "Bash(docker desktop:*)",
+      "Bash(echo Could not read Docker Desktop settings:*)",
+      "Bash(gh search:*)",
+      "Bash(gh issue:*)",
+      "Bash(python3:*)",
+      "Bash(echo No comments or access denied:*)",
+      "WebFetch(domain:blog.cloudflare.com)",
+      "WebSearch"
+    ]
+  }
+}

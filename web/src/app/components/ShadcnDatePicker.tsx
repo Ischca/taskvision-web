@@ -21,6 +21,7 @@ interface ShadcnDatePickerProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const ShadcnDatePicker: React.FC<ShadcnDatePickerProps> = ({
@@ -29,6 +30,7 @@ const ShadcnDatePicker: React.FC<ShadcnDatePickerProps> = ({
   placeholder = "日付を選択",
   className = "",
   disabled = false,
+  onOpenChange,
 }) => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -90,7 +92,7 @@ const ShadcnDatePicker: React.FC<ShadcnDatePickerProps> = ({
   };
 
   return (
-    <Popover>
+    <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

@@ -12,32 +12,28 @@ const compat = new FlatCompat({
 
 // 共通のルールを定義
 const commonRules = {
-  // 未使用変数を無効化
+  // 未使用変数: JS版はoff（TypeScript版で管理）、_プレフィックスは許可
   'no-unused-vars': 'off',
-  '@typescript-eslint/no-unused-vars': 'off',
-  
-  // any型の使用を許可
-  '@typescript-eslint/no-explicit-any': 'off',
-  
+  '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+
+  // any型の使用を警告
+  '@typescript-eslint/no-explicit-any': 'warn',
+
   // requireスタイルのインポートを許可
   '@typescript-eslint/no-require-imports': 'off',
-  
-  // 未使用式を許可
-  '@typescript-eslint/no-unused-expressions': 'off',
-  'no-unused-expressions': 'off',
-  
+
   // 未定義変数を許可（Reactなど）
   'no-undef': 'off',
-  
-  // TypeScriptコメントディレクティブの制限緩和
-  '@typescript-eslint/ban-ts-comment': 'off',
-  
+
+  // TypeScriptコメントディレクティブの使用を警告
+  '@typescript-eslint/ban-ts-comment': 'warn',
+
   // ケース文での宣言を許可
   'no-case-declarations': 'off',
-  
+
   // 不要なエスケープを許可
   'no-useless-escape': 'off',
-  
+
   // デフォルトエクスポートのスタイルを緩和
   'import/no-anonymous-default-export': 'off'
 };
@@ -55,18 +51,18 @@ export default [
       'next.config.js'
     ]
   },
-  
+
   // Next.js設定 - FlatCompatを使用
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  
+
   // ベース設定
   js.configs.recommended,
-  
+
   // グローバルルール
   {
     rules: commonRules,
     linterOptions: {
-      reportUnusedDisableDirectives: false
+      reportUnusedDisableDirectives: true
     }
   }
 ];
