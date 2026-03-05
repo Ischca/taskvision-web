@@ -12,7 +12,22 @@
       "Bash(python3:*)",
       "Bash(echo No comments or access denied:*)",
       "WebFetch(domain:blog.cloudflare.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm view:*)",
+      "Bash(do echo:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh:*)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx vinext:*)",
+      "Bash(npm run:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:taskvision-web.ischca-dev.workers.dev)",
+      "Bash(npx playwright:*)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(gcloud identity-platform:*)"
     ]
   }
 }
