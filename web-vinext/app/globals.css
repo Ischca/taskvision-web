@@ -1,3 +1,175 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 基本スタイル */
+:root,
+html.light {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 250, 251, 252;
+  --background-end-rgb: 255, 255, 255;
+}
+
+html.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 39;
+  --background-end-rgb: 31, 41, 55;
+}
+
+body {
+  background: rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ダークモード専用スタイル */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+html.dark .text-gray-900 {
+  color: #f3f4f6 !important;
+}
+
+html.dark .text-gray-700 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-gray-600 {
+  color: #e5e7eb !important;
+}
+
+html.dark .btn,
+html.dark .menu {
+  color: #e5e7eb;
+}
+
+/* タスクアイテムのスタイル */
+.task-item {
+  @apply flex items-center justify-between
+         py-2 px-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700
+         transition-colors duration-200;
+}
+
+/* 完了タスクのスタイル */
+.completed-task {
+  @apply line-through text-gray-400
+         opacity-60 transition-all duration-200;
+}
+
+/* ドラッグ&ドロップ関連のスタイル */
+.dragging {
+  opacity: 0.5;
+  transform: scale(0.98);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.drag-over {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 2px dashed #3b82f6;
+  border-radius: 0.5rem;
+}
+
+/* 未割り当てタスクセクション */
+.unassigned-tasks-section {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transition-all duration-300;
+}
+
+.unassigned-tasks-section.drag-over {
+  @apply ring-2 ring-primary-500;
+}
+
+/* カレンダータスクアイテム */
+.calendar-task-item {
+  @apply text-xs truncate rounded px-1 py-0.5 mt-1;
+}
+
+.calendar-task-item.done {
+  @apply line-through text-gray-500 bg-gray-100;
+}
+
+.calendar-task-item.pending {
+  @apply bg-primary-100 text-primary-800;
+}
+
+/* トースト通知のスタイル */
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 100;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.toast-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left: 4px solid #10B981;
+}
+
+.toast-error {
+  border-left: 4px solid #f87272;
+}
+
+html.dark .toast {
+  background: #1F2937;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+/* テーマ切り替え時のスムーズなトランジション */
+body,
+.text-gray-900,
+.text-gray-700,
+.text-gray-600,
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.border-gray-200,
+.border-gray-300 {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+}
+
+/* ライトモード時にダークモードのクラスを無効化 */
+html.light .dark\:bg-gray-800,
+html.light .dark\:bg-gray-900,
+html.light .dark\:border-gray-600,
+html.light .dark\:text-gray-400,
+html.light .dark\:text-gray-300,
+html.light .dark\:text-gray-200,
+html.light .dark\:text-gray-100,
+html.light .dark\:hover\:bg-gray-700,
+html.light .dark\:text-white,
+html.light .dark\:text-gray-500 {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.light, html.light * {
+    color-scheme: light !important;
+  }
+}
