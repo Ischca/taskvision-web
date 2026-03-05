@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 共通の関数
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // タスクコレクション
+    match /tasks/{taskId} {
+      // データの読み取りは自分のデータのみ
+      allow read: if isOwner(resource.data.userId);
+      
+      // タスクの作成：認証済みユーザーのみ可能で、自分のIDを設定する必要がある
+      allow create: if isSignedIn() 
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0;
+      
+      // タスクの更新：自分のタスクのみ更新可能
+      allow update: if isOwner(resource.data.userId)
+                    && request.resource.data.userId == resource.data.userId;
+      
+      // タスクの削除：自分のタスクのみ削除可能
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // ブロックコレクション
+    match /blocks/{blockId} {
+      // 自分のブロックのみ読み取り、作成、更新、削除可能
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isOwner(resource.data.userId);
+    }
+    
+    // リマインダーコレクション
+    match /reminders/{reminderId} {
+      // 関連するタスクドキュメントを取得する関数
+      function getTask(taskId) {
+        return get(/databases/$(database)/documents/tasks/$(taskId)).data;
+      }
+      
+      // リマインダーに関連するタスクの所有者であれば操作可能
+      allow read: if isSignedIn() && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId)) 
+                  && isOwner(getTask(resource.data.taskId).userId);
+                  
+      allow create: if isSignedIn()
+                    && request.resource.data.taskId is string
+                    && exists(/databases/$(database)/documents/tasks/$(request.resource.data.taskId))
+                    && isOwner(getTask(request.resource.data.taskId).userId);
+                    
+      allow update, delete: if isSignedIn()
+                            && resource.data.taskId is string
+                            && exists(/databases/$(database)/documents/tasks/$(resource.data.taskId))
+                            && isOwner(getTask(resource.data.taskId).userId);
+    }
+    
+    // その他のコレクションはデフォルトでアクセス不可
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 
