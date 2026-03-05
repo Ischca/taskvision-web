@@ -31,8 +31,6 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   experimental: {
-    optimizeCss: true,
-    disableOptimizedLoading: false,
     serverActions: {
       bodySizeLimit: "2mb",
       allowedOrigins: ["localhost:3000"],
